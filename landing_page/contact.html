@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Կապ Մեզ Հետ — Պատվեր և Խորհրդատվություն — ArchiTek Soft</title>
+  
+  <!-- SEO & Meta -->
+  <meta name="description" content="Կապվեք Architeksoft-ի ինժեներական թիմի հետ՝ անհատական B2B առաջարկի կամ նախագծի Live 3D ցուցադրության համար:" />
+  <meta name="keywords" content="Architeksoft, 3D Visualization, Pixel Streaming, Unreal Engine 5, AR Furniture, CNC Cutlist, Blum Blueprint, Interior Design" />
+  <meta property="og:title" content="Կապ Մեզ Հետ — Պատվեր և Խորհրդատվություն — ArchiTek Soft" />
+  <meta property="og:description" content="Կապվեք Architeksoft-ի ինժեներական թիմի հետ՝ անհատական B2B առաջարկի կամ նախագծի Live 3D ցուցադրության համար:" />
+  <meta property="og:image" content="assets/images/share.jpg" />
+  <meta property="og:type" content="website" />
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png" />
+
+  <!-- Fonts & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+Armenian:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css?v=37.0" />
+
+  <!-- Three.js 3D WebGL Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- Ambient High-Tech Atmospheric Glows -->
+  <div class="ambient-bg">
+    <canvas id="web-pattern-canvas" class="web-pattern-canvas"></canvas>
+    <div class="ambient-grid"></div>
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+    <div class="ambient-glow-3"></div>
+  </div>
+
+  <!-- ==========================================================================
+       HEADER & NAVIGATION
+       ========================================================================== -->
+  <header class="site-nav" id="main-nav">
+    <div class="nav-container">
+      <a href="/" class="brand-logo" aria-label="ArchiTek Soft Home">
+        <img src="assets/images/image01.png" alt="ArchiTek Soft" class="brand-img" onerror="this.src='assets/images/image08.png'" />
+      </a>
+
+      <!-- Desktop Nav Menu -->
+            <!-- Navigation Links -->
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="/" class="nav-link " data-i18n="nav_home">Գլխավոր</a></li>
+        
+        <!-- Capabilities Dropdown -->
+        <li class="nav-item-dropdown">
+          <a href="/capabilities" class="nav-link dropdown-toggle " data-i18n="nav_capabilities">
+            <span data-i18n="nav_capabilities">Հնարավորություններ</span>
+            <svg class="nav-arrow-svg" viewBox="0 0 24 24" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="/configurator" class="dropdown-item">
+              <div class="dropdown-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2"/></svg>
+              </div>
+              <div class="dropdown-info">
+                <div class="dropdown-title" data-i18n="nav_drop_showroom_title">Ինտերակտիվ 4K Ցուցասրահ</div>
+                <div class="dropdown-desc" data-i18n="nav_drop_showroom_desc">Ռեալ-թայմ քայլել սենյակում, լույսի և նյութերի փոփոխություն</div>
+              </div>
+            </a>
+            <a href="/capabilities#ar" class="dropdown-item">
+              <div class="dropdown-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+              </div>
+              <div class="dropdown-info">
+                <div class="dropdown-title" data-i18n="nav_drop_ar_title">Web 3D & Բջջային AR</div>
+                <div class="dropdown-desc" data-i18n="nav_drop_ar_desc">360° ինտերակտիվություն և 1:1 AR պրոյեկցիա սմարթֆոնով</div>
+              </div>
+            </a>
+            <a href="/capabilities#blueprints" class="dropdown-item">
+              <div class="dropdown-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0l12.6 12.6z"/><path d="m14.5 5.5 4 4"/><path d="m11.5 8.5 2 2"/><path d="m8.5 11.5 2 2"/><path d="m5.5 14.5 2 2"/></svg>
+              </div>
+              <div class="dropdown-info">
+                <div class="dropdown-title" data-i18n="nav_drop_factory_title">Գործարանային Փաստաթղթավորում</div>
+                <div class="dropdown-desc" data-i18n="nav_drop_factory_desc">CNC ռասկրոյ, Blum ֆուրնիտուրա և զրո խոտան</div>
+              </div>
+            </a>
+          </div>
+        </li>
+
+        <li><a href="/process" class="nav-link " data-i18n="nav_pipeline">Ինչպես է Աշխատում</a></li>
+        <li><a href="/portfolio" class="nav-link " data-i18n="nav_portfolio">Պորտֆոլիո</a></li>
+        <li><a href="/b2b" class="nav-link " data-i18n="nav_b2b">Արտադրողներին</a></li>
+        <li><a href="/contact" class="nav-link active" data-i18n="nav_contact">Կապ</a></li>
+        <li class="mobile-only-cta">
+          <a href="/configurator" class="btn btn-primary">
+            <span data-i18n="nav_demo_btn">3D Ցուցասրահ</span>
+            <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Nav Actions (Theme, Language & CTA) -->
+      <div class="nav-actions">
+
+        <div class="lang-selector">
+          <button class="lang-btn" id="lang-btn" aria-label="Select Language" title="Select Language">
+            <span class="flag-icon" id="current-flag-icon">
+              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#d90012" d="M0 0h640v160H0z"/><path fill="#0033a0" d="M0 160h640v160H0z"/><path fill="#f2a800" d="M0 320h640v160H0z"/></svg>
+            </span>
+            <svg class="chevron-svg" viewBox="0 0 24 24" width="12" height="12"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="lang-dropdown">
+            <div class="lang-item active" data-lang="hy">
+              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#d90012" d="M0 0h640v160H0z"/><path fill="#0033a0" d="M0 160h640v160H0z"/><path fill="#f2a800" d="M0 320h640v160H0z"/></svg>
+              <span>Հայերեն</span>
+              <span class="lang-badge">ՀԱՅ</span>
+            </div>
+            <div class="lang-item" data-lang="ru">
+              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#fff" d="M0 0h640v160H0z"/><path fill="#0039a6" d="M0 160h640v160H0z"/><path fill="#d52b1e" d="M0 320h640v160H0z"/></svg>
+              <span>Русский</span>
+              <span class="lang-badge">РУС</span>
+            </div>
+            <div class="lang-item" data-lang="en">
+              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#fff" d="m75 0 245 180L565 0h75v60L435 240l205 180v60h-75L320 300 75 480H0v-60l205-180L0 60V0z"/><path fill="#C8102E" d="m424 281 216 159v40l-244-180zm141-281-245 180h50L640 40V0zM0 40l190 140h-50L0 76zm0 400 245-180h-50L0 440z"/><path fill="#fff" d="M240 0h160v480H240zM0 160h640v160H0z"/><path fill="#C8102E" d="M267 0h107v480H267zM0 187h640v107H0z"/></svg>
+              <span>English</span>
+              <span class="lang-badge">ENG</span>
+            </div>
+          </div>
+        </div>
+
+        <a href="/configurator" class="btn btn-primary btn-sm btn-nav-cta">
+          <span data-i18n="nav_demo_btn">3D Ցուցասրահ</span>
+          <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+
+        <button class="mobile-toggle" id="mobile-toggle" aria-label="Open Navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Header Hero -->
+  <section class="page-header-hero">
+    <div class="container">
+      <div class="breadcrumb-trail">
+        <a href="/" class="breadcrumb-link" data-i18n="bc_home">Գլխավոր</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current" data-i18n="bc_contact">Կապ</span>
+      </div>
+      <h1 class="page-header-title" data-i18n="contact_page_title">Կապվեք Մեզ Հետ & Ստացեք Խորհրդատվություն</h1>
+      <p class="page-header-desc" data-i18n="contact_page_desc">
+        Մեր ինժեներական թիմը պատրաստ է պատասխանել ձեր հարցերին և պատրաստել անհատական առաջարկ ձեր նախագծի համար:
+      </p>
+      <div class="page-header-stats">
+        <div class="page-stat-badge">
+          <span>⚡</span>
+          <span>Արագ Արձագանք <span class="accent">15 րոպե</span></span>
+        </div>
+        <div class="page-stat-badge">
+          <span>📍</span>
+          <span>Գլխամաս <span class="accent">Երևան, ՀՀ</span></span>
+        </div>
+        <div class="page-stat-badge">
+          <span>🤝</span>
+          <span>B2B Գործընկերություն <span class="accent">Ակտիվ</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Grid -->
+  <section class="subpage-section">
+    <div class="container">
+      <div class="contact-grid">
+        <!-- Contact Info Left -->
+        <div class="contact-info">
+          <div class="section-tag" data-i18n="contact_tag">Get in Touch</div>
+          <h2 class="section-title" style="text-align: left;" data-i18n="contact_title">Սկսեք Ձեր Պրոյեկտի Թվայնացումը Այսօր</h2>
+          <p class="section-desc" style="text-align: left;" data-i18n="contact_desc">
+            Կապվեք մեզ հետ անհատական B2B առաջարկի կամ ձեր նախագծի Live 3D ցուցադրության համար:
+          </p>
+
+          <div class="contact-channels">
+            <div class="contact-card">
+              <div class="contact-icon">📞</div>
+              <div class="contact-details">
+                <h4 data-i18n="contact_phone_lbl">Հեռախոսահամարներ</h4>
+                <p><a href="tel:+37498000000" style="color: var(--text-pure); font-weight: 700;">+374 (98) 00-00-00</a></p>
+                <p style="font-size: 0.82rem; color: var(--text-dim);">Երկ - Շաբ (10:00 - 19:00)</p>
+              </div>
+            </div>
+
+            <div class="contact-card">
+              <div class="contact-icon">✈️</div>
+              <div class="contact-details">
+                <h4 data-i18n="contact_tg_lbl">Telegram Ուղիղ Կապ</h4>
+                <p><a href="https://t.me/ArchiTek_Soft" target="_blank" style="color: var(--accent-cyan); font-weight: 600;">@ArchiTek_Soft</a></p>
+                <p style="font-size: 0.82rem; color: var(--text-dim);">Ակնթարթային պատասխան և ֆայլերի փոխանակում</p>
+              </div>
+            </div>
+
+            <div class="contact-card">
+              <div class="contact-icon">✉️</div>
+              <div class="contact-details">
+                <h4 data-i18n="contact_email_lbl">Էլ․ Հասցե</h4>
+                <p><a href="mailto:info@architeksoft.com" style="color: var(--text-pure); font-weight: 600;">info@architeksoft.com</a></p>
+                <p style="font-size: 0.82rem; color: var(--text-dim);">B2B համագործակցության և հարցումների համար</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Form Right -->
+        <div class="contact-form-wrapper">
+          <form class="contact-form" id="project-form">
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_name_lbl">Ձեր Անունը / Ընկերության Անվանումը</label>
+              <input type="text" class="form-input" required placeholder="Օրինակ՝ Արմեն Կարապետյան" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_phone_lbl">Հեռախոսահամար կամ Telegram</label>
+              <input type="tel" class="form-input" required placeholder="+374 (XX) XX-XX-XX" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_service_lbl">Ծառայության Տեսակը</label>
+              <select class="form-select">
+                <option data-i18n="form_opt1">Կահույքի Ինտերակտիվ 3D & Ցուցասրահ</option>
+                <option data-i18n="form_opt2">Անշարժ Գույքի և Ինտերիերի Վիզուալիզացիա</option>
+                <option data-i18n="form_opt3">Գործարանային CNC Ռասկրոյ և Blueprint</option>
+                <option data-i18n="form_opt4">Ամբողջական 4-Փուլ Փաթեթ</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_msg_lbl">Հաղորդագրություն կամ Նախագծի Մանրամասներ</label>
+              <textarea class="form-textarea" rows="4" placeholder="Նկարագրեք ձեր նախագիծը..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center;" data-i18n="form_submit_btn">
+              <span>Ուղարկել Հարցումը 🚀</span>
+            </button>
+
+            <div id="form-toast" style="display:none; margin-top: 16px; padding: 14px; border-radius: 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; font-weight: 600; font-size: 0.9rem;" data-i18n="form_success">
+              Շնորհակալություն։ Ձեր հարցումն ընդունված է։ Մեր մասնագետը կկապվի ձեզ հետ 15 րոպեի ընթացքում։
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="subpage-section alt-bg">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">FREQUENTLY ASKED QUESTIONS</div>
+        <h2 class="section-title">Հաճախ Տրվող Հարցեր</h2>
+        <p class="section-desc">
+          Պատասխաններ կահույքի թվայնացման, 3D ցուցասրահների և CNC ինտեգրման վերաբերյալ:
+        </p>
+      </div>
+
+      <div class="faq-grid">
+        <div class="faq-card">
+          <div class="faq-question">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 .88-.36 1.68-.93 2.25z"/></svg>
+            <span>Ի՞նչ ձևաչափի ֆայլեր կարող եմ ուղարկել:</span>
+          </div>
+          <div class="faq-answer">
+            Մենք ընդունում ենք ձեռքի էսքիզներ (լուսանկար կամ սկան), DWG, PDF, 3Ds Max, SketchUp, Blender, OBJ/FBX և նույնիսկ պարզ չափագրման տվյալներ:
+          </div>
+        </div>
+
+        <div class="faq-card">
+          <div class="faq-question">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 .88-.36 1.68-.93 2.25z"/></svg>
+            <span>Ինչքա՞ն ժամանակ է տևում նախագծի պատրաստումը:</span>
+          </div>
+          <div class="faq-answer">
+            Ստանդարտ խոհանոցի կամ ննջասենյակի 3D ցուցասրահը և CNC Blueprint-ը պատրաստ են լինում 24-48 ժամվա ընթացքում:
+          </div>
+        </div>
+
+        <div class="faq-card">
+          <div class="faq-question">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 .88-.36 1.68-.93 2.25z"/></svg>
+            <span>Արդյո՞ք հաճախորդը պետք է ծրագիր ներբեռնի AR-ի համար:</span>
+          </div>
+          <div class="faq-answer">
+            Ոչ: Մեր Web 3D և AR լուծումներն աշխատում են անմիջապես Safari/Chrome բրաուզերներում (iOS QuickLook և Android SceneViewer տեխնոլոգիայով):
+          </div>
+        </div>
+
+        <div class="faq-card">
+          <div class="faq-question">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 .88-.36 1.68-.93 2.25z"/></svg>
+            <span>Ինչպե՞ս է կատարվում գործարանի CNC հաստոցի հետ կապը:</span>
+          </div>
+          <div class="faq-answer">
+            Մենք տրամադրում ենք միլիմետրային ճշգրիտ DXF / PDF / CSV ռասկրոյի քարտեզներ և Blum/Hettich ծակման սխեմաներ, որոնք անմիջապես համատեղելի են հիմնական CNC հաստոցների հետ:
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       GLOBAL CTA BANNER
+       ========================================================================== -->
+  <section class="cta-banner-section">
+    <div class="container">
+      <div class="cta-banner-card">
+        <div class="section-tag" data-i18n="pipeline_tag">The Architeksoft Master Standard</div>
+        <h2 class="cta-banner-title" data-i18n="cta_banner_title">Պատրա՞ստ եք Թվայնացնել Ձեր Արտադրությունը</h2>
+        <p class="cta-banner-desc" data-i18n="cta_banner_desc">
+          Միացեք առաջատար ապրանքանիշերին: Փորձեք 4K ինտերակտիվ ցուցասրահը և ստացեք գործարանային CNC ռասկրոյ:
+        </p>
+        <div class="cta-banner-actions">
+          <a href="/contact" class="btn btn-primary btn-lg" data-i18n="cta_banner_btn_contact">
+            <span>Կապվել Մեզ Հետ</span>
+          </a>
+          <a href="/p/aren-kitchen" target="_blank" class="btn btn-secondary btn-lg" data-i18n="cta_banner_btn_portal">
+            <span>Բացել Aren Portal-ը</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <a href="/" class="brand-logo">
+          <img src="assets/images/image01.png" alt="Logo" onerror="this.src='assets/images/image08.png'" />
+          <span class="brand-name">ARCHITEK<span>SOFT</span></span>
+        </a>
+
+        <ul class="social-links">
+          <li><a href="https://facebook.com/ArchiTekSoft" target="_blank" class="social-btn" title="Facebook">f</a></li>
+          <li><a href="https://www.instagram.com/architek_soft" target="_blank" class="social-btn" title="Instagram">📸</a></li>
+          <li><a href="https://linkedin.com/company/architek-soft" target="_blank" class="social-btn" title="LinkedIn">in</a></li>
+          <li><a href="https://youtube.com/@ArchiTekSoft" target="_blank" class="social-btn" title="YouTube">▶</a></li>
+          <li><a href="https://t.me/ArchiTek_Soft" target="_blank" class="social-btn" title="Telegram">✈️</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-bottom">
+        <div data-i18n="footer_rights">© 2026 ArchiTek Soft. Բոլոր իրավունքները պաշտպանված են։</div>
+        <div data-i18n="footer_tagline">High-Tech 3D Visualization, Interactive Showrooms & CNC Factory Engineering.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       MODALS (VIDEO, LIGHTBOX, AR)
+       ========================================================================== -->
+  <!-- Video Modal -->
+  <div class="modal-backdrop" id="video-modal">
+    <div class="modal-content" style="max-width: 960px;">
+      <button class="modal-close-btn" onclick="closeVideoModal()">✕</button>
+      <div style="padding: 16px 24px; background: #080c14; border-bottom: 1px solid var(--border-subtle); font-weight: 700; color: #fff;" id="modal-video-title">
+        Architeksoft UE5 Preview
+      </div>
+      <div style="aspect-ratio: 16/9; background: #000;">
+        <video id="modal-video-player" controls playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div class="modal-backdrop" id="lightbox-modal">
+    <div class="modal-content" style="max-width: 1100px; background: transparent; border: none; box-shadow: none;">
+      <button class="modal-close-btn" onclick="closeLightbox()">✕</button>
+      <div style="text-align: center;">
+        <img id="lightbox-img" src="" alt="Zoom" style="max-width: 100%; max-height: 85vh; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 25px 60px rgba(0,0,0,0.9);" />
+        <div id="lightbox-title" style="margin-top: 12px; font-weight: 600; color: #fff; font-size: 1rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AR Modal -->
+  <div class="modal-backdrop" id="ar-modal">
+    <div class="modal-content" style="max-width: 460px; padding: 36px; text-align: center;">
+      <button class="modal-close-btn" onclick="closeARModal()">✕</button>
+      <div style="font-size: 3rem; margin-bottom: 12px;">📱</div>
+      <h3 style="font-size: 1.5rem; margin-bottom: 10px; color: #fff;">Augmented Reality (AR)</h3>
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px;">
+        Սկանավորեք QR կոդը ձեր սմարթֆոնով՝ կահույքն անմիջապես ձեր իրական սենյակում տեսնելու համար (1:1 մասշտաբ):
+      </p>
+      <div style="background: #fff; padding: 16px; border-radius: 16px; display: inline-block; margin-bottom: 20px;">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=http://192.168.10.138:3456/p/aren-kitchen" alt="AR QR Code" style="width: 180px; height: 180px; display: block;" />
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-dim); font-family: var(--font-mono);">
+        COMPATIBLE: iOS QuickLook / Android SceneViewer
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/app.js?v=37.0"></script>
+  <!-- Floating Quick Controls Dock (Theme & Sound in Right-Middle of Screen) -->
+  <aside class="floating-quick-dock" id="floating-quick-dock" aria-label="Quick Controls">
+    <button class="quick-dock-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" title="Dark / Light Mode">
+      <svg class="theme-icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+      <svg class="theme-icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+      </svg>
+    </button>
+    <div class="quick-dock-divider"></div>
+    <button class="quick-dock-btn sound-toggle-btn" id="sound-toggle-btn" aria-label="Toggle Sound FX" title="Sound FX On/Off">
+      <svg class="sound-icon-on" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+      </svg>
+      <svg class="sound-icon-off" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <line x1="23" y1="9" x2="17" y2="15"></line>
+        <line x1="17" y1="9" x2="23" y2="15"></line>
+      </svg>
+    </button>
+  </aside>
+</body>
+</html>

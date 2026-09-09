@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArchiTek Soft — 3D Ինտերակտիվ Ցուցասրահ</title>
+  
+  <!-- SEO & Meta -->
+  <meta name="description" content="ArchiTek Soft 3D Ինտերակտիվ Ցուցասրահ — 360° պտտում, ֆասադների նյութափոխություն և բջջային AR:" />
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+
+  <!-- Fonts & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css?v=37.0" />
+
+  <!-- Three.js 3D WebGL Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- Ambient Luxury Glows -->
+  <div class="ambient-bg">
+    <canvas id="web-pattern-canvas" class="web-pattern-canvas"></canvas>
+    <div class="ambient-grid"></div>
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+  </div>
+
+  <!-- Navigation -->
+  <header class="site-nav" id="main-nav">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo" aria-label="ArchiTek Soft Home">
+        <img src="assets/images/image01.png" alt="ArchiTek Soft" class="brand-img" onerror="this.src='assets/images/image08.png'" />
+      </a>
+
+            <!-- Navigation Links -->
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="/" class="nav-link " data-i18n="nav_home">Գլխավոր</a></li>
+        
+        <!-- Capabilities Dropdown -->
+        <li class="nav-item-dropdown">
+          <a href="/capabilities" class="nav-link dropdown-toggle " data-i18n="nav_capabilities">
+            <span data-i18n="nav_capabilities">Հնարավորություններ</span>
+            <svg class="nav-arrow-svg" viewBox="0 0 24 24" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="/configurator" class="dropdown-item">
+              <div class="dropdown-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2"/></svg>
+              </div>
+              <div class="dropdown-info">
+                <div class="dropdown-title" data-i18n="nav_drop_showroom_title">Ինտերակտիվ 4K Ցուցասրահ</div>
+                <div class="dropdown-desc" data-i18n="nav_drop_showroom_desc">Ռեալ-թայմ քայլել սենյակում, լույսի և նյութերի փոփոխություն</div>
+              </div>
+            </a>
+            <a href="/capabilities#ar" class="dropdown-item">
+              <div class="dropdown-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+              </div>
+              <div class="dropdown-info">
+                <div class="dropdown-title" data-i18n="nav_drop_ar_title">Web 3D & Բջջային AR</div>
+                <div class="dropdown-desc" data-i18n="nav_drop_ar_desc">360° ինտերակտիվություն և 1:1 AR պրոյեկցիա սմարթֆոնով</div>
+              </div>
+            </a>
+            <a href="/capabilities#blueprints" class="dropdown-item">
+              <div class="dropdown-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0l12.6 12.6z"/><path d="m14.5 5.5 4 4"/><path d="m11.5 8.5 2 2"/><path d="m8.5 11.5 2 2"/><path d="m5.5 14.5 2 2"/></svg>
+              </div>
+              <div class="dropdown-info">
+                <div class="dropdown-title" data-i18n="nav_drop_factory_title">Գործարանային Փաստաթղթավորում</div>
+                <div class="dropdown-desc" data-i18n="nav_drop_factory_desc">CNC ռասկրոյ, Blum ֆուրնիտուրա և զրո խոտան</div>
+              </div>
+            </a>
+          </div>
+        </li>
+
+        <li><a href="/process" class="nav-link " data-i18n="nav_pipeline">Ինչպես է Աշխատում</a></li>
+        <li><a href="/portfolio" class="nav-link " data-i18n="nav_portfolio">Պորտֆոլիո</a></li>
+        <li><a href="/b2b" class="nav-link " data-i18n="nav_b2b">Արտադրողներին</a></li>
+        <li><a href="/contact" class="nav-link " data-i18n="nav_contact">Կապ</a></li>
+        <li class="mobile-only-cta">
+          <a href="/configurator" class="btn btn-primary">
+            <span data-i18n="nav_demo_btn">3D Ցուցասրահ</span>
+            <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-actions">
+
+        <div class="lang-selector">
+          <button class="lang-btn" id="lang-btn" aria-label="Select Language" title="Select Language">
+            <span class="flag-icon" id="current-flag-icon">
+              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#d90012" d="M0 0h640v160H0z"/><path fill="#0033a0" d="M0 160h640v160H0z"/><path fill="#f2a800" d="M0 320h640v160H0z"/></svg>
+            </span>
+            <svg class="chevron-svg" viewBox="0 0 24 24" width="12" height="12"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="lang-dropdown">
+            <div class="lang-item active" data-lang="hy">
+              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#d90012" d="M0 0h640v160H0z"/><path fill="#0033a0" d="M0 160h640v160H0z"/><path fill="#f2a800" d="M0 320h640v160H0z"/></svg>
+              <span>Հայերեն</span>
+              <span class="lang-badge">ՀԱՅ</span>
+            </div>
+            <div class="lang-item" data-lang="ru">
+              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#fff" d="M0 0h640v160H0z"/><path fill="#0039a6" d="M0 160h640v160H0z"/><path fill="#d52b1e" d="M0 320h640v160H0z"/></svg>
+              <span>Русский</span>
+              <span class="lang-badge">РУС</span>
+            </div>
+            <div class="lang-item" data-lang="en">
+              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#fff" d="m75 0 245 180L565 0h75v60L435 240l205 180v60h-75L320 300 75 480H0v-60l205-180L0 60V0z"/><path fill="#C8102E" d="m424 281 216 159v40l-244-180zm141-281-245 180h50L640 40V0zM0 40l190 140h-50L0 76zm0 400 245-180h-50L0 440z"/><path fill="#fff" d="M240 0h160v480H240zM0 160h640v160H0z"/><path fill="#C8102E" d="M267 0h107v480H267zM0 187h640v107H0z"/></svg>
+              <span>English</span>
+              <span class="lang-badge">ENG</span>
+            </div>
+          </div>
+        </div>
+
+        <a href="/configurator" class="btn btn-primary btn-sm btn-nav-cta">
+          <span data-i18n="nav_demo_btn">3D Ցուցասրահ</span>
+          <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+
+        <button class="mobile-toggle" id="mobile-toggle" aria-label="Open Navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3D Configurator Dedicated Studio Section -->
+  <main style="padding: 110px 0 60px 0;">
+    <div class="container">
+      <div class="section-header" style="margin-bottom: 30px;">
+        <div class="section-tag" data-i18n="config_tag">Ինտերակտիվ 3D</div>
+        <h1 class="section-title" data-i18n="config_title">Ինտերակտիվ 3D Ցուցասրահ Բրաուզերում</h1>
+        <p class="section-desc" data-i18n="config_desc">
+          Ուսումնասիրեք մոդելը 360° անկյան տակ, փոխեք ֆասադների նյութերը իրական ժամանակում։
+        </p>
+      </div>
+
+      <!-- 3D Studio Stage -->
+      <div class="configurator-stage glass-card">
+        
+        <!-- Controls Header -->
+        <div class="config-toolbar">
+          <div class="config-mode-badge">
+            <span class="pulse-led"></span>
+            <span>WEBGL 3D REAL-TIME</span>
+          </div>
+          <div class="config-actions">
+            <button class="btn btn-sm btn-outline-cyan active" id="rotate-btn" onclick="toggleAutoRotate()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>360° Պտույտ</span>
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="reset3DCamera()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <span>Վերականգնել</span>
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="openARModal()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              <span data-i18n="btn_ar_launch">Տեսնել Սենյակում (AR)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3D Canvas Canvas Viewport -->
+        <div class="three-canvas-wrapper" id="three-canvas-container">
+          <div class="three-loading-spinner">
+            <div class="spinner-ring"></div>
+            <span>Բեռնվում է 3D Տարածքը...</span>
+          </div>
+        </div>
+
+        <!-- Material Selection Palette -->
+        <div class="config-materials-panel">
+          <span class="mat-label" data-i18n="config_choose_mat">Ընտրեք Ֆասադի Նյութը՝</span>
+          <div class="mat-swatches">
+            <button class="mat-btn active" onclick="changeConfigMaterial('walnut', this)">
+              <span class="swatch-color" style="background: linear-gradient(135deg, #4a3319, #2b1d0c);"></span>
+              <span data-i18n="mat_walnut">Ընկուզենի</span>
+            </button>
+            <button class="mat-btn" onclick="changeConfigMaterial('marble', this)">
+              <span class="swatch-color" style="background: linear-gradient(135deg, #f5f5f7, #c8c8cf);"></span>
+              <span data-i18n="mat_marble">Մարմար</span>
+            </button>
+            <button class="mat-btn" onclick="changeConfigMaterial('graphite', this)">
+              <span class="swatch-color" style="background: linear-gradient(135deg, #2a2e36, #121418);"></span>
+              <span data-i18n="mat_graphite">Գրաֆիտ</span>
+            </button>
+            <button class="mat-btn" onclick="changeConfigMaterial('gold', this)">
+              <span class="swatch-color" style="background: linear-gradient(135deg, #d4af37, #997a15);"></span>
+              <span data-i18n="mat_gold">Ոսկի</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Action Banner -->
+      <div style="text-align: center; margin-top: 40px;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 12px; color: #fff;">Ցանկանո՞ւմ եք թվայնացնել Ձեր կահույքի նախագիծը</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+          Մենք կպատրաստենք Ձեր անհատական ինտերակտիվ 3D ցուցասրահը և գործարանային CNC գծագրերը։
+        </p>
+        <a href="index.html#contact" class="btn btn-primary btn-lg">
+          <span data-i18n="hero_btn_contact">Կապվել Մեզ Հետ</span>
+          <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- AR Modal -->
+  <div class="modal-backdrop" id="ar-modal">
+    <div class="modal-content" style="max-width: 460px; padding: 36px; text-align: center;">
+      <button class="modal-close-btn" onclick="closeARModal()">✕</button>
+      <div style="font-size: 2.5rem; margin-bottom: 12px; color: var(--accent-cyan);">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      </div>
+      <h3 style="font-size: 1.4rem; margin-bottom: 10px; color: #fff;">Augmented Reality (AR)</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px;">
+        Սկանավորեք QR կոդը Ձեր սմարթֆոնով՝ կահույքն անմիջապես Ձեր սենյակում տեսնելու համար (1:1 մասշտաբով)։
+      </p>
+      <div style="background: #fff; padding: 16px; border-radius: 16px; display: inline-block; margin-bottom: 20px;">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=http://192.168.10.138:3456/p/aren-kitchen" alt="AR QR Code" style="width: 180px; height: 180px; display: block;" />
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-dim);">
+        Համատեղելի է iOS (iPhone/iPad) և Android սարքերի հետ
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-bottom">
+        <div data-i18n="footer_rights">© 2026 ArchiTek Soft. Բոլոր իրավունքները պաշտպանված են։</div>
+        <div data-i18n="footer_tagline">Բարձրտեխնոլոգիական 3D Վիզուալիզացիա, Ինտերակտիվ Ցուցասրահներ և CNC Ռասկրոյ:</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/app.js?v=37.0"></script>
+  <!-- Floating Quick Controls Dock (Theme & Sound in Right-Middle of Screen) -->
+  <aside class="floating-quick-dock" id="floating-quick-dock" aria-label="Quick Controls">
+    <button class="quick-dock-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" title="Dark / Light Mode">
+      <svg class="theme-icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+      <svg class="theme-icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+      </svg>
+    </button>
+    <div class="quick-dock-divider"></div>
+    <button class="quick-dock-btn sound-toggle-btn" id="sound-toggle-btn" aria-label="Toggle Sound FX" title="Sound FX On/Off">
+      <svg class="sound-icon-on" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+      </svg>
+      <svg class="sound-icon-off" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <line x1="23" y1="9" x2="17" y2="15"></line>
+        <line x1="17" y1="9" x2="23" y2="15"></line>
+      </svg>
+    </button>
+  </aside>
+</body>
+</html>

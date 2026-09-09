@@ -1,0 +1,26 @@
+{
+  "posts": [],
+  "projects": [
+    {
+      "id": "proj_aren_kitchen",
+      "slug": "aren-kitchen",
+      "clientName": "Արեն (Aren)",
+      "code": "AT-2026-042",
+      "category": "Ժամանակակից Պրեմիում Խոհանոց",
+      "title": "Aren • Bespoke Luxury Kitchen Architecture",
+      "description": "Անհատական նախագծված պրեմիում խոհանոց՝ բնական փայտի շպոնով, քվարցային մակերեսներով և ինտեգրված Blum ֆուրնիտուրայով: Էսքիզից մինչև 4K Unreal Engine 5 ինտերակտիվ վիզուալիզացիա և գործարանային ճշգրիտ ռասկրոյ:",
+      "sketchUrl": "/local-assets/photo_2026-09-08_15-44-07.jpg",
+      "renders": [
+        "/local-assets/WD1.jpg",
+        "/local-assets/WD2.jpg",
+        "/local-assets/WD3.jpg"
+      ],
+      "videoUrl": "/local-assets/ArchiTek_Kitchen%20Preview%20.mp4",
+      "pdfUrl": "/local-assets/Aren.pdf",
+      "pixelStreamingUrl": "https://live.architeksoft.com/aren",
+      "webViewerUrl": "https://viewer.architeksoft.com/aren",
+      "status": "READY_FOR_PRODUCTION",
+      "createdAt": "2026-09-09T06:14:56.255Z"
+    }
+  ]
+}

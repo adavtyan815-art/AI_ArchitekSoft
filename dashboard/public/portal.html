@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="hy" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Architeksoft • Հաճախորդի Նախագծային Պորտալ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #070b14; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    
+    /* Before/After Slider */
+    .ba-container { position: relative; overflow: hidden; user-select: none; }
+    .ba-after-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    .ba-before-wrapper { position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; }
+    .ba-before-image { position: absolute; top: 0; left: 0; height: 100%; max-width: none; object-fit: cover; }
+    .ba-handle {
+      position: absolute; top: 0; bottom: 0; width: 4px; background: #38bdf8;
+      cursor: ew-resize; z-index: 20; transform: translateX(-50%);
+    }
+    .ba-circle {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 44px; height: 44px; border-radius: 50%; background: #0f172a;
+      border: 3px solid #38bdf8; display: flex; items-center; justify-content: center;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-[#050811] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white custom-scroll">
+
+  <!-- TOP BRAND HEADER -->
+  <header class="border-b border-slate-800/80 bg-[#070b14]/90 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center font-black text-white shadow-lg shadow-cyan-500/25 border border-cyan-400/30">
+          AS
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight text-white">Architeksoft</span>
+            <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Client Portal</span>
+          </div>
+          <p class="text-xs text-slate-400">Next-Gen Real-Time 3D & Furniture Engineering</p>
+        </div>
+      </div>
+
+      <!-- Project Badge & Quick Actions -->
+      <div class="flex items-center space-x-3">
+        <div class="hidden sm:flex flex-col text-right">
+          <span id="header-client-name" class="text-xs font-bold text-slate-200">Հաճախորդ՝ Aren</span>
+          <span id="header-project-id" class="text-[11px] font-mono text-cyan-400">ID: AT-2026-042</span>
+        </div>
+        <button onclick="openARModal()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 transition flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="scan" class="w-4 h-4 text-cyan-400"></i> <span class="hidden md:inline">AR Դիտում</span>
+        </button>
+        <button onclick="copyCurrentLink()" class="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-cyan-600/20">
+          <i data-lucide="share-2" class="w-4 h-4"></i> <span class="hidden sm:inline">Կիսվել</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN PORTAL BODY -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+    <!-- 1. HERO PROJECT HEADER -->
+    <div class="bg-gradient-to-b from-slate-900/80 to-slate-950/60 border border-slate-800 rounded-3xl p-8 sm:p-10 relative overflow-hidden">
+      <div class="absolute -top-24 -right-24 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 max-w-3xl space-y-4">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span id="project-category-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            Ժամանակակից Պրեմիում Խոհանոց
+          </span>
+          <span class="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Պատրաստ է արտադրության
+          </span>
+        </div>
+        <h1 id="project-title" class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          Aren • Bespoke Luxury Kitchen
+        </h1>
+        <p id="project-description" class="text-slate-300 text-sm sm:text-base leading-relaxed">
+          Անհատական նախագծված պրեմիում խոհանոց՝ բնական փայտի շպոնով, քվարցային մակերեսներով և ինտեգրված Blum ֆուրնիտուրայով: Էսքիզից մինչև 4K Unreal Engine 5 ինտերակտիվ վիզուալիզացիա և գործարանային ճշգրիտ ռասկրոյ:
+        </p>
+      </div>
+
+      <!-- Quick Stats Strip -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800/80">
+        <div>
+          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Վիզուալիզացիա</div>
+          <div class="text-sm font-bold text-cyan-400 mt-0.5">UE 5.4 Lumen & Nanite</div>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Ինտերակտիվություն</div>
+          <div class="text-sm font-bold text-white mt-0.5">Pixel Streaming (AWS)</div>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Արտադրական Ռասկրոյ</div>
+          <div class="text-sm font-bold text-emerald-400 mt-0.5">CNC Ճշգրտություն (PDF)</div>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Հասանելիություն</div>
+          <div class="text-sm font-bold text-indigo-400 mt-0.5">Ցանկացած սարքից + AR</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. INTERACTIVE 3D / PIXEL STREAMING VIEWPORT -->
+    <section class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <i data-lucide="gamepad-2" class="w-6 h-6 text-cyan-400"></i> 1. Ինտերակտիվ 3D Շոուրում (Real-Time)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Կառավարեք տեսախցիկը, բացեք դարակները և փոխեք ֆասադների գույները անմիջապես էկրանին</p>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+          <button onclick="set3DMode('pixel')" id="btn-mode-pixel" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5 transition">
+            <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Unreal Engine 5 Stream
+          </button>
+          <button onclick="set3DMode('viewer')" id="btn-mode-viewer" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition">
+            <i data-lucide="globe" class="w-3.5 h-3.5"></i> Web 3D / AR
+          </button>
+        </div>
+      </div>
+
+      <!-- Viewport Frame -->
+      <div class="relative w-full aspect-video max-h-[640px] bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl group">
+        
+        <!-- Stream Frame / Simulator View -->
+        <div id="viewport-container" class="w-full h-full relative flex items-center justify-center bg-black">
+          <img id="viewport-bg-render" src="/local-assets/WD1.jpg" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40"></div>
+
+          <!-- Interactive Overlay Controls & Banner -->
+          <div class="absolute inset-0 p-6 sm:p-8 flex flex-col justify-between pointer-events-none">
+            
+            <!-- Top Controls -->
+            <div class="flex items-center justify-between pointer-events-auto">
+              <div class="flex items-center gap-2">
+                <span class="px-3 py-1 rounded-lg bg-black/60 backdrop-blur border border-white/10 text-xs font-mono text-cyan-400 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> 60 FPS • 4K Real-Time
+                </span>
+                <span class="hidden sm:inline-block px-3 py-1 rounded-lg bg-black/60 backdrop-blur border border-white/10 text-xs text-slate-300">
+                  Lumen Global Illumination
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="openARModal()" class="p-2.5 rounded-xl bg-black/60 backdrop-blur border border-white/10 hover:border-cyan-500 text-white transition" title="AR Ռեժիմ">
+                  <i data-lucide="smartphone" class="w-4 h-4 text-cyan-400"></i>
+                </button>
+                <button onclick="toggleFullscreenViewport()" class="p-2.5 rounded-xl bg-black/60 backdrop-blur border border-white/10 hover:border-cyan-500 text-white transition" title="Ամբողջ Էկրանով">
+                  <i data-lucide="maximize" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Center Launch Action -->
+            <div class="text-center pointer-events-auto max-w-md mx-auto space-y-3">
+              <div class="w-16 h-16 rounded-full bg-cyan-500/20 border-2 border-cyan-400 flex items-center justify-center mx-auto text-cyan-400 shadow-xl shadow-cyan-500/30">
+                <i data-lucide="play" class="w-7 h-7 ml-1"></i>
+              </div>
+              <h3 class="text-xl font-bold text-white">Միանալ UE5 Ինտերակտիվ Սեսիային</h3>
+              <p class="text-xs text-slate-300">Անհատական AWS Pixel Streaming սերվեր՝ առանց ձեր սարքի ռեսուրսները ծանրաբեռնելու</p>
+              <div class="pt-2 flex items-center justify-center gap-3">
+                <a id="btn-open-live-stream" href="https://live.architeksoft.com/aren" target="_blank" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-cyan-500/30 transition flex items-center gap-2">
+                  <i data-lucide="external-link" class="w-4 h-4"></i> Բացել Live Stream Պատուհանը
+                </a>
+              </div>
+            </div>
+
+            <!-- Bottom Interactive Toolbar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 pointer-events-auto">
+              <div class="flex items-center gap-3 text-xs text-slate-300">
+                <span class="flex items-center gap-1.5 font-semibold text-white">
+                  <i data-lucide="mouse-pointer" class="w-3.5 h-3.5 text-cyan-400"></i> Ազատ տեղաշարժ
+                </span>
+                <span class="hidden sm:inline text-slate-600">|</span>
+                <span class="hidden sm:flex items-center gap-1.5 font-semibold text-white">
+                  <i data-lucide="hand" class="w-3.5 h-3.5 text-cyan-400"></i> Դարակներ բացել
+                </span>
+                <span class="hidden md:inline text-slate-600">|</span>
+                <span class="hidden md:flex items-center gap-1.5 font-semibold text-white">
+                  <i data-lucide="palette" class="w-3.5 h-3.5 text-cyan-400"></i> Ֆասադներ փոխել
+                </span>
+              </div>
+
+              <!-- Color Palette Swapper -->
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-slate-400 font-semibold">Ֆասադներ՝</span>
+                <button onclick="swapMaterial('/local-assets/WD1.jpg', 'Բնական Կաղնու Շպոն')" class="w-5 h-5 rounded-full bg-[#8b5a2b] border-2 border-white/40 hover:scale-110 transition" title="Կաղնու Շպոն"></button>
+                <button onclick="swapMaterial('/local-assets/WD2.jpg', 'Անտրացիտ Մատ')" class="w-5 h-5 rounded-full bg-[#262626] border-2 border-white/40 hover:scale-110 transition" title="Անտրացիտ"></button>
+                <button onclick="swapMaterial('/local-assets/WD3.jpg', 'Սպիտակ Քվարց')" class="w-5 h-5 rounded-full bg-[#f5f5f4] border-2 border-white/40 hover:scale-110 transition" title="Սպիտակ Քվարց"></button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. INTERACTIVE BEFORE & AFTER SLIDER (Sketch -> 3D) -->
+    <section class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <i data-lucide="sliders-horizontal" class="w-6 h-6 text-cyan-400"></i> 2. Էսքիզից մինչև 3D Ռեալիզմ (Before & After)
+          </h2>
+          <p class="text-xs text-slate-400">Շարժեք կենտրոնական գիծը ձախ/աջ՝ ձեռքի էսքիզի և պատրաստի 4K Unreal Engine 5 ռենդերի տարբերությունը տեսնելու համար</p>
+        </div>
+      </div>
+
+      <div id="ba-slider-box" class="ba-container w-full aspect-[16/9] sm:aspect-[21/9] max-h-[520px] rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden relative cursor-ew-resize">
+        <!-- After Image (3D Render) -->
+        <img id="ba-after-img" src="/local-assets/WD1.jpg" alt="3D Render" class="ba-after-image">
+        
+        <!-- Before Wrapper (Sketch) -->
+        <div id="ba-before-wrap" class="ba-before-wrapper" style="width: 50%;">
+          <img id="ba-before-img" src="/local-assets/photo_2026-09-08_15-44-07.jpg" alt="Hand Sketch" class="ba-before-image">
+        </div>
+
+        <!-- Slider Line & Handle -->
+        <div id="ba-handle" class="ba-handle" style="left: 50%;">
+          <div class="ba-circle">
+            <i data-lucide="move-horizontal" class="w-5 h-5 text-cyan-400"></i>
+          </div>
+        </div>
+
+        <!-- Labels -->
+        <div class="absolute top-4 left-4 z-30 px-3.5 py-1.5 rounded-xl bg-slate-950/80 backdrop-blur border border-white/10 text-xs font-bold text-slate-200 pointer-events-none">
+          ✏️ 1. Գծագիր / Էսքիզ
+        </div>
+        <div class="absolute top-4 right-4 z-30 px-3.5 py-1.5 rounded-xl bg-cyan-950/80 backdrop-blur border border-cyan-500/30 text-xs font-bold text-cyan-400 pointer-events-none">
+          ✨ 2. Unreal Engine 5 Ռեալիզմ
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 4K ULTRA-HD PHOTO GALLERY -->
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+          <i data-lucide="images" class="w-6 h-6 text-cyan-400"></i> 3. 4K Ֆոտոռեալիստիկ Գալերեա
+        </h2>
+        <p class="text-xs text-slate-400">Սեղմեք ցանկացած լուսանկարի վրա՝ մեծ չափսով դիտելու համար</p>
+      </div>
+
+      <div id="renders-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Render 1 -->
+        <div onclick="openLightbox('/local-assets/WD1.jpg')" class="group relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer shadow-lg">
+          <img src="/local-assets/WD1.jpg" alt="WD1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition p-4 flex items-end justify-between">
+            <span class="text-xs font-bold text-white">Գլխավոր Ռակուրս • 4K</span>
+            <i data-lucide="zoom-in" class="w-5 h-5 text-cyan-400"></i>
+          </div>
+        </div>
+
+        <!-- Render 2 -->
+        <div onclick="openLightbox('/local-assets/WD2.jpg')" class="group relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer shadow-lg">
+          <img src="/local-assets/WD2.jpg" alt="WD2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition p-4 flex items-end justify-between">
+            <span class="text-xs font-bold text-white">Կղզյակ և Լուսավորություն</span>
+            <i data-lucide="zoom-in" class="w-5 h-5 text-cyan-400"></i>
+          </div>
+        </div>
+
+        <!-- Render 3 -->
+        <div onclick="openLightbox('/local-assets/WD3.jpg')" class="group relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer shadow-lg">
+          <img src="/local-assets/WD3.jpg" alt="WD3" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition p-4 flex items-end justify-between">
+            <span class="text-xs font-bold text-white">Պահարանների Դետալներ</span>
+            <i data-lucide="zoom-in" class="w-5 h-5 text-cyan-400"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. VIDEO & PRODUCTION BLUEPRINT (PDF) ROW -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Video Showcase -->
+      <div class="lg:col-span-6 space-y-4">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <i data-lucide="video" class="w-6 h-6 text-cyan-400"></i> 4. Տեսաշարժ / Preview Video
+          </h2>
+          <p class="text-xs text-slate-400">Կահույքի շարժման և դետալների դինամիկ տեսանյութ</p>
+        </div>
+
+        <div class="aspect-video bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-xl relative">
+          <video id="project-video-player" src="/local-assets/ArchiTek_Kitchen Preview .mp4" controls class="w-full h-full object-cover"></video>
+        </div>
+      </div>
+
+      <!-- Factory Production Blueprint & Raskroy (PDF) -->
+      <div class="lg:col-span-6 space-y-4">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <i data-lucide="file-text" class="w-6 h-6 text-emerald-400"></i> 5. Արտադրական Ռասկրոյ & Գծագրեր (PDF)
+          </h2>
+          <p class="text-xs text-slate-400">Գործարանային ամբողջական կոնստրուկցիա, ռասկրոյի քարտեզ և ֆուրնիտուրա</p>
+        </div>
+
+        <!-- PDF Interactive Card -->
+        <div class="bg-slate-900/70 border border-emerald-500/20 rounded-3xl p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-xl relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="space-y-4 relative z-10">
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/10">
+                <i data-lucide="file-check-2" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <h4 id="pdf-doc-title" class="font-extrabold text-base text-white">Aren.pdf • Լրիվ Ռասկրոյ</h4>
+                <p class="text-xs text-slate-400">Գործարանային CNC ճշգրտության տեխնիկական փաստաթուղթ</p>
+              </div>
+            </div>
+
+            <div class="space-y-2 bg-slate-950/70 p-4 rounded-2xl border border-slate-800 text-xs">
+              <div class="flex items-center justify-between text-slate-300">
+                <span>• Կահույքի դետալների ռասկրոյ (Cutting List)</span>
+                <span class="text-emerald-400 font-bold">100% ճշգրիտ</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-300">
+                <span>• Եզրաշերտի նշումներ (ABS 1mm / 2mm)</span>
+                <span class="text-emerald-400 font-bold">Ներառված է</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-300">
+                <span>• Ֆուրնիտուրայի և անցքերի քարտեզ</span>
+                <span class="text-emerald-400 font-bold">Blum Spec</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 flex flex-col sm:flex-row items-center gap-3 relative z-10">
+            <a id="btn-view-pdf" href="/local-assets/Aren.pdf" target="_blank" class="w-full sm:flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20">
+              <i data-lucide="eye" class="w-4 h-4"></i> Դիտել PDF Փաստաթուղթը
+            </a>
+            <a id="btn-download-pdf" href="/local-assets/Aren.pdf" download class="w-full sm:w-auto px-5 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2">
+              <i data-lucide="download" class="w-4 h-4"></i> Ներբեռնել
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 6. TECHNICAL SPECIFICATIONS & ARCHITECTURAL PASSPORT -->
+    <section class="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 space-y-6">
+      <div>
+        <h3 class="text-xl font-extrabold text-white flex items-center gap-2">
+          <i data-lucide="clipboard-list" class="w-5 h-5 text-cyan-400"></i> Նախագծի Տեխնիկական Անձնագիր (Technical Passport)
+        </h3>
+        <p class="text-xs text-slate-400">Արտադրական և ծրագրային ամբողջական տվյալներ</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <div class="text-[11px] font-bold uppercase text-slate-400">Ֆասադներ և Նյութեր</div>
+          <div class="text-sm font-semibold text-slate-100 mt-1">Բնական կաղնու շպոն, Մատ Անտրացիտ, Դեկտոն Քվարց</div>
+        </div>
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <div class="text-[11px] font-bold uppercase text-slate-400">Ֆուրնիտուրա & Մեխանիզմներ</div>
+          <div class="text-sm font-semibold text-slate-100 mt-1">Blum Legrabox, Tip-On Blumotion, Servo-Drive</div>
+        </div>
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <div class="text-[11px] font-bold uppercase text-slate-400">3D Շարժիչ & Լուսավորություն</div>
+          <div class="text-sm font-semibold text-cyan-400 mt-1">Unreal Engine 5.4 Lumen & Nanite (Ray-Tracing)</div>
+        </div>
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <div class="text-[11px] font-bold uppercase text-slate-400">Cloud Սերվերներ</div>
+          <div class="text-sm font-semibold text-slate-100 mt-1">AWS G4dn WebRTC Low-Latency Pixel Streaming</div>
+        </div>
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <div class="text-[11px] font-bold uppercase text-slate-400">Արտադրական Ֆայլեր</div>
+          <div class="text-sm font-semibold text-emerald-400 mt-1">DXF / PDF CNC Cutting & Assembly Schemes</div>
+        </div>
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <div class="text-[11px] font-bold uppercase text-slate-400">Պատվերի Կարգավիճակ</div>
+          <div class="text-sm font-semibold text-emerald-400 mt-1">Հաստատված • Պատրաստ է արտադրության</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- LIGHTBOX MODAL -->
+  <div id="lightbox-modal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+    <button onclick="closeLightbox()" class="absolute top-6 right-6 text-white p-3 rounded-2xl bg-white/10 hover:bg-white/20 transition">
+      <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+    <img id="lightbox-img" src="" class="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl">
+  </div>
+
+  <!-- AR QR CODE MODAL -->
+  <div id="ar-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-sm w-full text-center space-y-5 relative shadow-2xl">
+      <button onclick="closeARModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto">
+        <i data-lucide="scan" class="w-7 h-7"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold text-white">Դիտել Սենյակում (AR)</h3>
+        <p class="text-xs text-slate-400 mt-1">Սկանավորեք ձեր հեռախոսի տեսախցիկով՝ կահույքը ձեր իրական սենյակում տեղադրելու համար</p>
+      </div>
+      <div class="bg-white p-4 rounded-2xl inline-block shadow-inner">
+        <!-- Dynamic QR Code pointing to this portal -->
+        <img id="ar-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://architeksoft.com" class="w-44 h-44 mx-auto">
+      </div>
+      <p class="text-[11px] text-slate-500">Աջակցվում է iOS (QuickLook) և Android (SceneViewer)</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/80 bg-[#070b14] py-10 mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <div class="flex items-center space-x-3">
+        <span class="font-bold text-slate-200">Architeksoft Ecosystem</span>
+        <span>•</span>
+        <span>www.architeksoft.com</span>
+      </div>
+      <div>
+        © 2026 Architeksoft. Բոլոր իրավունքները պաշտպանված են:
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Lucide Icons
+    if (window.lucide) lucide.createIcons();
+
+    // 1. Before / After Slider Logic
+    const baSliderBox = document.getElementById('ba-slider-box');
+    const baBeforeWrap = document.getElementById('ba-before-wrap');
+    const baBeforeImg = document.getElementById('ba-before-img');
+    const baHandle = document.getElementById('ba-handle');
+
+    function updateBeforeImgWidth() {
+      if (baSliderBox && baBeforeImg) {
+        baBeforeImg.style.width = baSliderBox.offsetWidth + 'px';
+      }
+    }
+    window.addEventListener('resize', updateBeforeImgWidth);
+    window.addEventListener('load', updateBeforeImgWidth);
+    setTimeout(updateBeforeImgWidth, 200);
+
+    let isSliding = false;
+    function setSliderPosition(xPos) {
+      const rect = baSliderBox.getBoundingClientRect();
+      let pos = (xPos - rect.left) / rect.width;
+      if (pos < 0) pos = 0;
+      if (pos > 1) pos = 1;
+      const percentage = pos * 100;
+      baBeforeWrap.style.width = percentage + '%';
+      baHandle.style.left = percentage + '%';
+    }
+
+    if (baSliderBox) {
+      baSliderBox.addEventListener('mousedown', (e) => { isSliding = true; setSliderPosition(e.clientX); });
+      window.addEventListener('mouseup', () => { isSliding = false; });
+      window.addEventListener('mousemove', (e) => { if (isSliding) setSliderPosition(e.clientX); });
+
+      baSliderBox.addEventListener('touchstart', (e) => { isSliding = true; setSliderPosition(e.touches[0].clientX); });
+      window.addEventListener('touchend', () => { isSliding = false; });
+      window.addEventListener('touchmove', (e) => { if (isSliding) setSliderPosition(e.touches[0].clientX); });
+    }
+
+    // 2. Lightbox
+    function openLightbox(url) {
+      document.getElementById('lightbox-img').src = url;
+      document.getElementById('lightbox-modal').classList.remove('hidden');
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox-modal').classList.add('hidden');
+    }
+
+    // 3. AR Modal
+    function openARModal() {
+      const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(window.location.href);
+      document.getElementById('ar-qr-img').src = qrUrl;
+      document.getElementById('ar-modal').classList.remove('hidden');
+    }
+    function closeARModal() {
+      document.getElementById('ar-modal').classList.add('hidden');
+    }
+
+    // 4. Material Swap Simulator
+    function swapMaterial(imgUrl, matName) {
+      const bg = document.getElementById('viewport-bg-render');
+      if (bg) bg.src = imgUrl;
+    }
+
+    // 5. 3D Mode Toggle
+    function set3DMode(mode) {
+      const btnP = document.getElementById('btn-mode-pixel');
+      const btnV = document.getElementById('btn-mode-viewer');
+      if (mode === 'pixel') {
+        btnP.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5 transition';
+        btnV.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition';
+      } else {
+        btnV.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5 transition';
+        btnP.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition';
+      }
+    }
+
+    // 6. Fullscreen toggle
+    function toggleFullscreenViewport() {
+      const el = document.getElementById('viewport-container');
+      if (!document.fullscreenElement) {
+        if (el.requestFullscreen) el.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // 7. Copy link
+    function copyCurrentLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Հաճախորդի պորտալի հղումը պատճենվեց: Կարող եք ուղարկել պատվիրատուին:');
+    }
+
+    // 8. Hydrate Project Data from API if dynamic slug
+    async function loadProjectData() {
+      const pathParts = window.location.pathname.split('/');
+      const slug = pathParts[pathParts.length - 1] || 'aren-kitchen';
+      try {
+        const res = await fetch('/api/projects/' + slug);
+        if (res.ok) {
+          const project = await res.json();
+          if (project) {
+            document.title = project.title + ' • Architeksoft Showcase';
+            const elTitle = document.getElementById('project-title');
+            if (elTitle) elTitle.innerText = project.title;
+            const elDesc = document.getElementById('project-description');
+            if (elDesc) elDesc.innerText = project.description;
+            const elCat = document.getElementById('project-category-badge');
+            if (elCat) elCat.innerText = project.category;
+            const elClient = document.getElementById('header-client-name');
+            if (elClient) elClient.innerText = 'Հաճախորդ՝ ' + project.clientName;
+            const elId = document.getElementById('header-project-id');
+            if (elId) elId.innerText = 'ID: ' + project.code;
+            
+            if (project.sketchUrl) {
+              const bImg = document.getElementById('ba-before-img');
+              if (bImg) bImg.src = project.sketchUrl;
+            }
+            if (project.renders && project.renders.length > 0) {
+              const aImg = document.getElementById('ba-after-img');
+              if (aImg) aImg.src = project.renders[0];
+              const vpBg = document.getElementById('viewport-bg-render');
+              if (vpBg) vpBg.src = project.renders[0];
+            }
+            if (project.pixelStreamingUrl) {
+              const btnLive = document.getElementById('btn-open-live-stream');
+              if (btnLive) btnLive.href = project.pixelStreamingUrl;
+            }
+            if (project.pdfUrl) {
+              const btnV = document.getElementById('btn-view-pdf');
+              if (btnV) btnV.href = project.pdfUrl;
+              const btnD = document.getElementById('btn-download-pdf');
+              if (btnD) btnD.href = project.pdfUrl;
+            }
+            if (project.videoUrl) {
+              const vp = document.getElementById('project-video-player');
+              if (vp) vp.src = project.videoUrl;
+            }
+          }
+        }
+      } catch (e) {
+        console.log('Using default client showcase view.');
+      }
+    }
+    loadProjectData();
+  </script>
+</body>
+</html>

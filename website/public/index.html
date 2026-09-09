@@ -1,0 +1,514 @@
+<!DOCTYPE HTML>
+<html lang="hy">
+
+<head>
+  <title>ArchiTek Soft - 3D Demo</title>
+  <link rel="icon" href="https://architeksoft.com/assets/images/favicon.png" type="image/png">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="assets/main.css" />
+  <style>
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('assets/images/background_pattern.png');
+      background-repeat: repeat;
+      opacity: 0.1;
+      z-index: -1;
+    }
+
+    #quota-info {
+      margin-top: 20px;
+      font-family: Arial, sans-serif;
+      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.5;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    #quota-info b {
+      color: #57A6FA;
+    }
+
+    .loader-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid rgba(87, 166, 250, 0.1);
+      border-top: 6px solid #57A6FA;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 25px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    #status-text {
+      color: #57A6FA;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    #tips-text {
+      color: #474747;
+      font-family: Arial, sans-serif;
+      font-size: 1.05rem;
+      max-width: 550px;
+      line-height: 1.6;
+      min-height: 3.5em;
+      transition: opacity 0.6s ease;
+      text-align: center;
+    }
+
+    .btn-disabled {
+      background-color: #ccc !important;
+      pointer-events: none;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    /* ── Invalid instance error screen ── */
+    #invalid-instance-ui {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 320px;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .invalid-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: floatIcon 3s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .invalid-title {
+      font-family: Arial, sans-serif;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #334155;
+      margin-bottom: 0.75rem;
+    }
+
+    .invalid-subtitle {
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      color: #64748b;
+      max-width: 420px;
+      line-height: 1.7;
+    }
+
+    .invalid-code {
+      margin-top: 1.25rem;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      word-break: break-all;
+    }
+
+    /* ── Mobile responsiveness ── */
+    @media (max-width: 640px) {
+      #container02 .inner {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 1rem;
+      }
+
+      #container02 .inner>div:first-child {
+        display: flex;
+        justify-content: center;
+      }
+
+      #container02 .image-component.instance-5 {
+        width: 160px !important;
+        max-width: 160px !important;
+      }
+
+      #container02 .image-component.instance-5 img {
+        width: 100% !important;
+        height: auto !important;
+      }
+
+      #container02 .text-component.style-5 {
+        font-size: 1rem !important;
+        text-align: center !important;
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body class="is-loading">
+  <div class="site-wrapper">
+    <div class="site-main">
+      <div class="inner">
+
+        <div id="container02" class="container-component instance-2 architek-row columns full">
+          <div class="wrapper">
+            <div class="inner">
+              <div>
+                <div class="image-component instance-5"><span class="frame"><img src="assets/images/image05.png"
+                      alt="Logo" /></span></div>
+              </div>
+              <div>
+                <p class="text-component style-5">Բացեք Ձեր 3D նախագիծը վայրկյանների ընթացքում: Մենք միացնում ենք
+                  գերհզոր սերվերը հատուկ Ձեզ համար</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider-component instance-7">
+
+        <div id="dynamic-zone">
+          <div id="launcher-ui">
+            <div id="image06" class="image-component instance-6">
+              <span class="frame enclosed"><img src="assets/images/image06.gif" alt="3D Preview" /></span>
+            </div>
+            <ul class="buttons-component instance-1 style-2">
+              <li><a href="#" id="btn" class="n01">ՄՈՒՏՔ 3D ՍՐԱՀ</a></li>
+            </ul>
+
+            <div id="quota-info">
+              <!-- Dynamically populated if there is an error or status to display -->
+            </div>
+          </div>
+
+          <div id="loading-ui" class="loader-container">
+            <div class="spinner"></div>
+            <div id="status-text">Միանում ենք սերվերին...</div>
+            <div id="tips-text"></div>
+          </div>
+
+          <div id="invalid-instance-ui">
+            <div class="invalid-icon">🔍</div>
+            <div class="invalid-title">Նախագիծը չի գտնվել</div>
+            <div class="invalid-subtitle">
+              Ձեր հղմամբ նախագիծ չի գտնվել։ Հնարավոր է հղումը սխալ է, ժամկետն անցել է, կամ նախագիծը հեռացվել է։<br><br>
+              Խնդրում ենք կապ հաստատել ArchiTek Soft-ի հետ ճիշտ հղման համար։
+            </div>
+            <div class="invalid-code" id="invalid-uuid-display"></div>
+          </div>
+        </div>
+
+        <hr class="divider-component instance-11">
+
+        <div id="container10" class="container-component instance-10 architek-row columns full">
+          <div class="wrapper">
+            <div class="inner">
+              <div>
+                <p class="text-component instance-55"><strong>© ArchiTek Soft</strong> | Թարմացվել է` <span
+                    id="update-date">18/04/2026</span></p>
+              </div>
+              <div>
+                <ul class="icons-component instance-4">
+                  <li><a class="n01" href="https://facebook.com/ArchiTekSoft"><svg>
+                        <use xlink:href="assets/icons.svg#facebook"></use>
+                      </svg></a></li>
+                  <li><a class="n02" href="https://instagram.com/architek_soft"><svg>
+                        <use xlink:href="assets/icons.svg#instagram"></use>
+                      </svg></a></li>
+                  <li><a class="n05" href="mailto:architeksoft@gmail.com"><svg>
+                        <use xlink:href="assets/icons.svg#email"></use>
+                      </svg></a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadClientSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        const settings = await res.json();
+        if (settings && settings.updateDate) {
+          const dateSpan = document.getElementById('update-date');
+          if (dateSpan) dateSpan.textContent = settings.updateDate;
+        }
+      } catch (err) { console.error('Failed to load settings', err); }
+    }
+    loadClientSettings();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const instanceUuid = urlParams.get('instanceUuid');
+
+    const btn = document.getElementById('btn');
+    const launcherUI = document.getElementById('launcher-ui');
+    const loadingUI = document.getElementById('loading-ui');
+    const statusText = document.getElementById('status-text');
+    const tipsText = document.getElementById('tips-text');
+    const quotaInfo = document.getElementById('quota-info');
+
+    let pollInterval = null;
+    let tipInterval = null;
+    let tipIndex = 0;
+
+    const tips = [
+      "Հուշում. Համակարգչով շարժվելու համար օգտագործեք WASD ստեղները և մկնիկը:",
+      "Հեռախոսով կառավարելու համար օգտագործեք էկրանի վրայի վիրտուալ կոճակները:",
+      "3D մոդելում կարող եք փոխել կահույքի գույները և նյութերը մեկ հպումով:",
+      "Լավագույն որակի համար խորհուրդ է տրվում օգտագործել կայուն ինտերնետ կապ:",
+      "Միջավայրը բեռնվում է ամպային սերվերի վրա, որպեսզի չծանրաբեռնի Ձեր սարքը:",
+      "Պատկերի հստակությունը կախված է սերվերի հետ կապի արագությունից. թույլ կապի դեպքում որակը կարող է ժամանակավոր նվազել:"
+    ];
+
+    function showLoadingUI() {
+      launcherUI.style.display = "none";
+      loadingUI.style.display = "flex";
+      if (!tipInterval) startTips();
+    }
+
+    function showLauncherUI() {
+      launcherUI.style.display = "block";
+      loadingUI.style.display = "none";
+      if (tipInterval) {
+        clearInterval(tipInterval);
+        tipInterval = null;
+      }
+    }
+
+    function startTips() {
+      tipsText.textContent = tips[tipIndex];
+      tipsText.style.opacity = 1;
+      tipInterval = setInterval(() => {
+        tipIndex = (tipIndex + 1) % tips.length;
+        tipsText.style.opacity = 0;
+        setTimeout(() => {
+          tipsText.textContent = tips[tipIndex];
+          tipsText.style.opacity = 1;
+        }, 600);
+      }, 8000);
+    }
+
+    function showError(msg) {
+      statusText.textContent = msg;
+      statusText.style.color = '#ef4444';
+      btn.classList.add('btn-disabled');
+      quotaInfo.innerHTML = '<span style="color:#ef4444">' + msg + '</span>';
+      quotaInfo.style.opacity = '1';
+      showLauncherUI();
+    }
+
+    async function loadQuotaInfo() {
+      quotaInfo.innerHTML = `
+        Տվյալ 3D նախագծին տրամադրված է <b id="total-limit">բեռնվում է...</b> ընդհանուր հասանելի ժամանակ:<br>
+        Մնացած հասանելի ժամանակը այս պահին՝ <b id="time-left">բեռնվում է...</b>
+        <div id="expiration-info" style="color: #64748b; font-size: 0.85rem; margin-top: 5px;"></div>
+      `;
+      try {
+        if (!instanceUuid) throw new Error("No instanceUuid");
+        const r = await fetch(`/api/instances/${instanceUuid}/balance`);
+        const d = await r.json();
+
+        document.getElementById('time-left').textContent = d.timeLeft;
+        document.getElementById('total-limit').textContent = d.displayLimitText;
+
+        if (d.remainingDays !== undefined) {
+          if (d.linkExpired) {
+            document.getElementById('expiration-info').textContent = "Այս հղման ժամկետը սպառվել է";
+          } else {
+            document.getElementById('expiration-info').textContent = `Հղումը հասանելի է ևս ${d.remainingDays} օր`;
+          }
+        }
+
+        quotaInfo.style.opacity = "1";
+
+        if (d.expired) {
+          btn.classList.add('btn-disabled');
+          btn.textContent = "ԼԻՄԻՏԸ ՍՊԱՌՎԱԾ Է";
+        }
+      } catch (e) {
+        document.getElementById('time-left').textContent = "անհասանելի";
+        document.getElementById('total-limit').textContent = "անհասանելի";
+        quotaInfo.style.opacity = "1";
+      }
+    }
+
+    if (!instanceUuid) {
+      showError("Սխալ: Բացակայում է նախագծի վավեր ID-ն հասցեում:"); // Error: Missing valid Instance ID in URL
+      btn.classList.add('btn-disabled');
+    } else {
+      showLoadingUI();
+      loadQuotaInfo();
+      checkStatus(true);
+    }
+
+    btn.onclick = (e) => {
+      e.preventDefault();
+      if (btn.classList.contains('btn-disabled')) return;
+
+      if (!navigator.onLine) {
+        alert("Խնդրում ենք ստուգել ինտերնետ կապը:");
+        return;
+      }
+
+      startConnection();
+    };
+
+    async function startConnection() {
+      if (!instanceUuid) return;
+
+      btn.classList.add('btn-disabled');
+      showLoadingUI();
+      statusText.innerText = "Միանում ենք սերվերին...";
+
+      try {
+        const payload = { hostToken: localStorage.getItem('hostToken') || undefined };
+        const response = await fetch(`/api/instances/${instanceUuid}/connect`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+        if (data.quotaExceeded) {
+          showError("Լիմիտը սպառվել է:"); // "Time limit exceeded."
+          return;
+        }
+
+        if (data.hostToken) {
+          localStorage.setItem('hostToken', data.hostToken);
+        }
+
+        if (!pollInterval) pollInterval = setInterval(() => checkStatus(false), 3000);
+
+      } catch (e) {
+        showError("Կապի խնդիր... փորձում ենք միանալ: " + e.message); // Failed to connect
+      }
+    }
+
+    async function checkStatus(isInitialLoad) {
+      try {
+        const res = await fetch(`/api/instances/${instanceUuid}/status`);
+
+        // 404 = instance doesn't exist in the system
+        if (res.status === 404) {
+          showInvalidInstance();
+          return;
+        }
+
+        const data = await res.json();
+        if (!data.success && !data.status) {
+          showInvalidInstance();
+          return;
+        }
+
+        if (data.status === 'stopped') {
+          clearInterval(pollInterval);
+          pollInterval = null;
+          showLauncherUI();
+          btn.classList.remove('btn-disabled');
+          btn.textContent = "ՄՈՒՏՔ 3D ՍՐԱՀ";
+          if (data.lastError) {
+            quotaInfo.innerHTML = '<span style="color:#ef4444">⚠️ Սխալ: ' + data.lastError + '</span>';
+            quotaInfo.style.opacity = '1';
+          } else {
+            loadQuotaInfo();
+          }
+        }
+        else if (data.status === 'stopping') {
+          showLauncherUI();
+          btn.classList.add('btn-disabled');
+          btn.textContent = "ՍՊԱՍԵՔ ԱՎԱՐՏԻՆ...";
+          quotaInfo.innerHTML = '<span style="color:#58A2EB; font-weight:bold;">Համակարգը վերագործարկվում է... խնդրում ենք սպասել։</span>';
+          quotaInfo.style.opacity = '1';
+          if (!pollInterval) pollInterval = setInterval(() => checkStatus(false), 10000);
+        }
+        else if (data.status === 'pending') {
+          showLoadingUI();
+          statusText.textContent = "Միացնում ենք սերվերը... խնդրում ենք սպասել:"; // Server is starting...
+          if (!pollInterval) pollInterval = setInterval(() => checkStatus(false), 3000);
+        }
+        else if (data.status === 'booting_server') {
+          showLoadingUI();
+          statusText.textContent = "Սերվերը ակտիվ է: Սպասում ենք 3D ծրագրին..."; // Hardware active. Waiting for 3D Application
+          if (!pollInterval) pollInterval = setInterval(() => checkStatus(false), 3000);
+        }
+        else if (data.status === 'running') {
+          clearInterval(pollInterval);
+          statusText.textContent = "Սերվերը պատրաստ է, վերահղում ենք..."; // Server is ready! Redirecting...
+          tipsText.textContent = "Կապը հաստատված է:";
+
+          const savedToken = localStorage.getItem('hostToken') || '';
+          let targetUrl = data.ip || 'http://localhost:80';
+          if (!targetUrl.startsWith('http')) {
+            targetUrl = `http://${targetUrl}:80`;
+          }
+          const pixelStreamLink = `${targetUrl}/player.html?backendUrl=${encodeURIComponent(window.location.origin)}&instanceUuid=${instanceUuid}&hostToken=${encodeURIComponent(savedToken)}`;
+
+          setTimeout(() => { window.location.href = pixelStreamLink; }, 1000);
+        }
+      } catch (e) {
+        if (!isInitialLoad) {
+          console.error("Polling error", e);
+        } else {
+          showInvalidInstance();
+        }
+      }
+    }
+
+    function showInvalidInstance() {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      launcherUI.style.display = 'none';
+      loadingUI.style.display = 'none';
+      const invalidUI = document.getElementById('invalid-instance-ui');
+      invalidUI.style.display = 'flex';
+      if (instanceUuid) {
+        document.getElementById('invalid-uuid-display').textContent = 'UUID: ' + instanceUuid;
+      }
+    }
+  </script>
+  <script src="assets/main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="hy" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architeksoft • Մարքեթինգային Ավտոմատացում</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
+
+  <!-- TOP HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-500/20">
+          AS
+        </div>
+        <div>
+          <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
+            Architeksoft <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">Marketing Engine</span>
+          </h1>
+          <p class="text-xs text-slate-400">Unreal Engine 5 Ռենդերներ և Սոց-էջերի Ավտոմատացում</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+        <button onclick="switchTab('portals')" id="nav-portals" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+          <i data-lucide="layout" class="w-4 h-4"></i> Պորտալներ (Portals)
+        </button>
+        <button onclick="switchTab('library')" id="nav-library" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="image" class="w-4 h-4"></i> Գրադարան
+        </button>
+        <button onclick="switchTab('studio')" id="nav-studio" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> AI SMM Studio
+        </button>
+        <button onclick="switchTab('calendar')" id="nav-calendar" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="calendar" class="w-4 h-4"></i> Օրացույց
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="settings" class="w-4 h-4"></i> Կարգավորումներ
+        </button>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Համակարգը Միացված է
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+    <!-- 0. CLIENT SHOWCASE PORTALS TAB -->
+    <section id="tab-portals" class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/40 border border-slate-800 p-6 rounded-2xl">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-2xl font-extrabold tracking-tight text-white">Հաճախորդների Նախագծային Պորտալներ</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Universal Showcase</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1">Յուրաքանչյուր պատվիրատու ստանում է **1 պրոֆեսիոնալ հղում** (Live 3D Stream, Before/After, 4K Gallery, PDF Ռասկրոյ)</p>
+        </div>
+        <div>
+          <button onclick="openCreateProjectModal()" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-500/25 transition flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> Ստեղծել Նոր Պորտալ
+          </button>
+        </div>
+      </div>
+
+      <!-- Portals List Grid -->
+      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- 1. CONTENT LIBRARY TAB -->
+    <section id="tab-library" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/40 border border-slate-800 p-5 rounded-2xl">
+        <div>
+          <h2 class="text-2xl font-extrabold tracking-tight text-white">Մեդիա Գրադարան (Ռենդերներ և Վիդեոներ)</h2>
+          <p class="text-sm text-slate-400 mt-1">Ընտրեք 1 կամ մի քանի նկար՝ **1 ամբողջական ալբոմ/փոստ** դարձնելու համար</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="selectAllRenders()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200 transition">
+            Ընտրել բոլոր ռենդերները
+          </button>
+          <button onclick="openStudioWithSelection()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Սարքել 1 Ամբողջական Փոստ <span id="selected-count-badge" class="px-1.5 py-0.5 bg-white/20 rounded font-mono text-[11px]">3 ընտրված</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="assets-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+    </section>
+
+    <!-- 2. AI POST STUDIO TAB -->
+    <section id="tab-studio" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Pane -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Selected Multi-Asset Strip -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-base text-white flex items-center gap-2">
+                <i data-lucide="images" class="w-5 h-5 text-cyan-400"></i> Ընտրված Նկարներ (Ալբոմ)
+              </h3>
+              <span id="studio-selected-count" class="text-xs text-cyan-400 font-semibold"></span>
+            </div>
+            
+            <div id="studio-selected-strip" class="flex items-center gap-3 overflow-x-auto pb-2 custom-scroll"></div>
+            
+            <!-- 3 STYLES SELECTOR -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Պաստառի Դիզայներական Ոճը</label>
+              <div class="grid grid-cols-1 gap-2">
+                <button type="button" onclick="setStyle('editorial')" id="style-editorial" class="style-btn p-3 rounded-xl text-left border border-cyan-500 bg-cyan-500/10 text-white transition">
+                  <div class="font-bold text-xs flex items-center justify-between">
+                    <span>🌟 Ոճ 1. Ամսագրային Շրջանակ (Editorial Frame)</span>
+                    <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded">Խորհուրդ տրվող</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-1">Ռենդերը 100% չի կտրվում: Խորը մուգ ֆոն, լոգո և նախագծի տվյալներ:</p>
+                </button>
+
+                <button type="button" onclick="setStyle('minimal')" id="style-minimal" class="style-btn p-3 rounded-xl text-left border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 transition">
+                  <div class="font-bold text-xs">🖼️ Ոճ 2. Մաքուր 4K Ռեալիզմ (Full-Bleed)</div>
+                  <p class="text-[11px] text-slate-400 mt-1">Ամբողջ էկրանով 4K ռենդեր՝ վերևի անկյունում նուրբ լոգոյով:</p>
+                </button>
+
+                <button type="button" onclick="setStyle('before_after')" id="style-before_after" class="style-btn p-3 rounded-xl text-left border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 transition">
+                  <div class="font-bold text-xs">⚡ Ոճ 3. Էսքիզ ➡️ 3D Ռեալիզմ (Before & After)</div>
+                  <p class="text-[11px] text-slate-400 mt-1">Ձեռքի գծագիրը և 3D խոհանոցը կողք-կողքի՝ բաժանարար գծով:</p>
+                </button>
+              </div>
+            </div>
+
+            <!-- Aspect Ratio -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Չափս (Aspect Ratio)</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="setAspectRatio('1:1')" id="ratio-1-1" class="ratio-btn px-3 py-2 rounded-xl text-xs font-semibold border border-cyan-500/40 bg-cyan-500/10 text-cyan-400">1:1 Քառակուսի</button>
+                <button type="button" onclick="setAspectRatio('4:5')" id="ratio-4-5" class="ratio-btn px-3 py-2 rounded-xl text-xs font-semibold border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700">4:5 Ուղղահայաց</button>
+                <button type="button" onclick="setAspectRatio('16:9')" id="ratio-16-9" class="ratio-btn px-3 py-2 rounded-xl text-xs font-semibold border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700">16:9 Լանդշաֆտ</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Պաստառի Կարգախոս (Հայերեն)</label>
+              <input type="text" id="studio-overlay-text" oninput="generatePoster()" value="Ֆոտոռեալիստիկ 3D Խոհանոց • Unreal Engine 5" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none">
+            </div>
+          </div>
+
+          <!-- AI Copy Generator -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <h3 class="font-bold text-base text-white flex items-center gap-2">
+              <i data-lucide="bot" class="w-5 h-5 text-purple-400"></i> AI Հայերեն Տեքստերի Գեներացիա
+            </h3>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Նախագծի Կատեգորիա</label>
+              <input type="text" id="ai-category" value="Ժամանակակից Պրեմիում Խոհանոց" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Լրացուցիչ ցուցումներ AI-ին (Հայերեն)</label>
+              <textarea id="ai-instructions" rows="2" placeholder="օրինակ՝ Շեշտել, որ սա 1 ամբողջական նախագիծ է, ցույց տալ Unreal Engine-ի ռեալիզմը և անհատական պատվերի հնարավորությունը..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none"></textarea>
+            </div>
+
+            <button onclick="generateAICopy()" id="btn-gen-ai" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-xl font-bold text-sm text-white shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2 transition">
+              <i data-lucide="sparkles" class="w-4 h-4"></i> Գեներացնել ՀԱՅԵՐԵՆ Տեքստերը (4 Հարթակ)
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Pane: Previews & Approval -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-bold text-sm text-slate-300 flex items-center gap-2">
+                <i data-lucide="eye" class="w-4 h-4 text-cyan-400"></i> Պաստառի Նախադիտում
+              </h4>
+              <span id="poster-dim-badge" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">1080 x 1080 px • EDITORIAL</span>
+            </div>
+
+            <div class="w-full aspect-square max-h-[420px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center relative">
+              <img id="poster-preview-img" src="/local-assets/WD1.jpg" class="max-h-full max-w-full object-contain">
+              <div id="poster-loading" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur flex flex-col items-center justify-center gap-3">
+                <div class="w-8 h-8 border-3 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-xs font-medium text-cyan-400">Sharp ռենդերինգ...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Platform Copy Box -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center space-x-2">
+                <button onclick="switchPlatform('facebook')" id="plat-facebook" class="plat-tab px-3 py-1.5 rounded-lg text-xs font-bold border border-cyan-500/40 bg-cyan-500/20 text-cyan-400 flex items-center gap-1.5">
+                  <i data-lucide="facebook" class="w-3.5 h-3.5"></i> Facebook
+                </button>
+                <button onclick="switchPlatform('instagram')" id="plat-instagram" class="plat-tab px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 flex items-center gap-1.5">
+                  <i data-lucide="instagram" class="w-3.5 h-3.5"></i> Instagram
+                </button>
+                <button onclick="switchPlatform('linkedin')" id="plat-linkedin" class="plat-tab px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 flex items-center gap-1.5">
+                  <i data-lucide="linkedin" class="w-3.5 h-3.5"></i> LinkedIn (B2B)
+                </button>
+                <button onclick="switchPlatform('youtube')" id="plat-youtube" class="plat-tab px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 flex items-center gap-1.5">
+                  <i data-lucide="youtube" class="w-3.5 h-3.5"></i> YouTube
+                </button>
+              </div>
+              <span class="text-xs text-slate-400">Հայերեն Տեքստեր</span>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Վերնագիր / Hook (Հայերեն)</label>
+                <input type="text" id="post-headline" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white font-medium focus:border-cyan-500 focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Հիմնական Տեքստ (Հայերեն Caption)</label>
+                <textarea id="post-caption" rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:outline-none custom-scroll"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Կոչ Գործողության (CTA) & Հայկական Հեշթեգեր</label>
+                <input type="text" id="post-cta" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-cyan-400 focus:border-cyan-500 focus:outline-none mb-2">
+                <input type="text" id="post-hashtags" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-400 focus:border-cyan-500 focus:outline-none font-mono">
+              </div>
+            </div>
+
+            <!-- HUMAN APPROVAL -->
+            <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-2 text-xs text-amber-400 font-medium">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i> Պահանջվում է ձեր հաստատումը
+              </div>
+
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <button onclick="savePostToSchedule()" class="flex-1 sm:flex-none px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2">
+                  <i data-lucide="clock" class="w-4 h-4"></i> Պլանավորել
+                </button>
+                <button onclick="approveAndPublishNow()" class="flex-1 sm:flex-none px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i> Հաստատել և Տեղադրել
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. CALENDAR TAB -->
+    <section id="tab-calendar" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-extrabold tracking-tight text-white">Փոստերի Օրացույց և Պատմություն</h2>
+          <p class="text-sm text-slate-400">Բոլոր պլանավորված և հրապարակված փոստերի ցանկը</p>
+        </div>
+      </div>
+
+      <div id="posts-list" class="space-y-4"></div>
+    </section>
+
+    <!-- 4. SETTINGS TAB -->
+    <section id="tab-settings" class="hidden space-y-6 max-w-2xl">
+      <div>
+        <h2 class="text-2xl font-extrabold tracking-tight text-white">Կարգավորումներ և API Բանալիներ</h2>
+        <p class="text-sm text-slate-400">Տեղական գաղտնի տվյալներ (պահվում են ձեր համակարգչում)</p>
+      </div>
+
+      <form id="settings-form" onsubmit="saveSettings(event)" class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Google Gemini API Key</label>
+          <input type="password" id="cfg-gemini" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Facebook Page ID</label>
+          <input type="text" id="cfg-fb-id" placeholder="օրինակ՝ 1029384756..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Facebook Page Access Token</label>
+          <input type="password" id="cfg-fb-token" placeholder="EAA..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none font-mono">
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-sm text-white shadow-lg shadow-cyan-500/20 transition">
+          Պահպանել Կարգավորումները
+        </button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- CREATE CLIENT PORTAL MODAL -->
+  <div id="modal-create-project" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full my-8 space-y-6 shadow-2xl relative custom-scroll max-h-[90vh] overflow-y-auto">
+      <button onclick="closeCreateProjectModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-2">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div>
+        <h3 class="text-xl font-extrabold text-white flex items-center gap-2">
+          <i data-lucide="folder-plus" class="w-5 h-5 text-cyan-400"></i> Ստեղծել Նոր Հաճախորդի Պորտալ
+        </h3>
+        <p class="text-xs text-slate-400 mt-1">Լրացրեք տվյալները և ընտրեք նախագծի ֆայլերը՝ 1 ամբողջական հղումով էջ ստանալու համար</p>
+      </div>
+
+      <form id="form-create-project" onsubmit="handleCreateProject(event)" class="space-y-4 text-xs">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Հաճախորդի Անուն</label>
+            <input type="text" id="p-client" required placeholder="օրինակ՝ Արեն (Aren)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Նախագծի Կոդ / ID</label>
+            <input type="text" id="p-code" value="AT-2026-042" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-cyan-400 focus:border-cyan-500 focus:outline-none font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Նախագծի Անվանում</label>
+            <input type="text" id="p-title" placeholder="օրինակ՝ Aren • Bespoke Luxury Kitchen" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Հղման Հասցե (Slug)</label>
+            <input type="text" id="p-slug" placeholder="aren-kitchen" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-cyan-400 focus:border-cyan-500 focus:outline-none font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Կատեգորիա</label>
+          <input type="text" id="p-category" value="Ժամանակակից Պրեմիում Խոհանոց" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Նկարագրություն (Հայերեն)</label>
+          <textarea id="p-desc" rows="3" placeholder="Անհատական նախագծված պրեմիում խոհանոց՝ բնական փայտի շպոնով..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:border-cyan-500 focus:outline-none"></textarea>
+        </div>
+
+        <!-- 3D / Live Streaming Links -->
+        <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-3">
+          <span class="font-bold text-slate-300 text-xs flex items-center gap-1.5">
+            <i data-lucide="link" class="w-4 h-4 text-cyan-400"></i> Ինտերակտիվ Հղումներ (Architeksoft Live)
+          </span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Pixel Streaming Link (UE5 AWS)</label>
+              <input type="text" id="p-pixel-url" value="https://live.architeksoft.com/aren" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Web 3D Viewer / AR Link</label>
+              <input type="text" id="p-viewer-url" value="https://viewer.architeksoft.com/aren" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none font-mono">
+            </div>
+          </div>
+        </div>
+
+        <!-- Attached Files selection from local library -->
+        <div class="space-y-3">
+          <label class="block font-semibold text-slate-300 uppercase tracking-wider">Կցված Ֆայլեր (Ընտրեք Գրադարանից)</label>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Էսքիզ (Sketch)</label>
+              <select id="p-file-sketch" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-cyan-500 focus:outline-none"></select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Վիդեո (Preview MP4)</label>
+              <select id="p-file-video" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-cyan-500 focus:outline-none"></select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Ռասկրոյ / Գծագիր (PDF)</label>
+              <select id="p-file-pdf" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-cyan-500 focus:outline-none">
+                <option value="/local-assets/Aren.pdf">Aren.pdf (Ռասկրոյ)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">4K Ռենդերներ (նշեք բոլորը, որոնք պատկանում են այս նախագծին)</label>
+            <div id="p-renders-selector" class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-slate-950 border border-slate-800 rounded-xl max-h-36 overflow-y-auto custom-scroll"></div>
+          </div>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+          <button type="button" onclick="closeCreateProjectModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+            Չեղարկել
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-500/25 transition flex items-center gap-2">
+            <i data-lucide="check" class="w-4 h-4"></i> Պահպանել և Ստեղծել Պորտալը
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
