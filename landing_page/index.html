@@ -20,13 +20,32 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=37.0" />
+  <link rel="stylesheet" href="assets/css/style.css?v=38.0" />
 </head>
 <body class="flagship-home">
 
-  <!-- Ambient Luxury Glows -->
+  <!-- Ambient Luxury Glows & Cyber Orbits -->
   <div class="ambient-bg">
-    <canvas id="web-pattern-canvas" class="web-pattern-canvas"></canvas>
+    <div class="ambient-cyber-orbit">
+      <svg viewBox="0 0 1440 800" fill="none" preserveAspectRatio="none">
+        <path d="M-100,520 C300,220 850,120 1540,320" stroke="url(#orbit-grad-1)" stroke-width="1.8" />
+        <path d="M-100,570 C400,270 950,170 1540,400" stroke="url(#orbit-grad-2)" stroke-width="1.2" stroke-dasharray="8 6" />
+        <defs>
+          <linearGradient id="orbit-grad-1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="rgba(0,240,255,0)" />
+            <stop offset="30%" stop-color="rgba(0,240,255,0.45)" />
+            <stop offset="70%" stop-color="rgba(0,132,255,0.55)" />
+            <stop offset="100%" stop-color="rgba(0,240,255,0)" />
+          </linearGradient>
+          <linearGradient id="orbit-grad-2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="rgba(0,240,255,0)" />
+            <stop offset="50%" stop-color="rgba(0,240,255,0.35)" />
+            <stop offset="100%" stop-color="rgba(0,240,255,0)" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="ambient-room-glow"></div>
     <div class="ambient-grid"></div>
     <div class="ambient-glow-1"></div>
     <div class="ambient-glow-2"></div>
@@ -196,6 +215,14 @@
 
           <!-- Multi-Device Mockup Slideshow Image Container -->
           <div class="hero-device-mockup-wrapper">
+            <!-- Floating Interactive Visual Annotation -->
+            <div class="hero-annotation-badge">
+              <span>Տեսեք տարբեր գույներով</span>
+              <svg class="hand-drawn-arrow" viewBox="0 0 70 45" fill="none">
+                <path d="M60 5 C 45 10, 18 15, 8 36" stroke="rgba(0, 240, 255, 0.85)" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 3"/>
+                <path d="M4 28 L 8 36 L 16 33" stroke="rgba(0, 240, 255, 0.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
             <img id="device-slideshow-img" src="assets/images/slideshow01-88e3d442.png" alt="ArchiTek Soft Multi-Device Showroom" class="hero-device-mockup-img" />
           </div>
 
@@ -367,7 +394,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="assets/js/app.js?v=37.0"></script>
+  <script src="assets/js/app.js?v=38.0"></script>
   <!-- Floating Quick Controls Dock (Theme & Sound in Right-Middle of Screen) -->
   <aside class="floating-quick-dock" id="floating-quick-dock" aria-label="Quick Controls">
     <button class="quick-dock-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" title="Dark / Light Mode">
