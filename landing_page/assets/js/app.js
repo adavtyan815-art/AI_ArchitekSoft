@@ -65,6 +65,7 @@ const translations = {
     hero_feat_3_lbl: 'Կտրման Քարտեզներ (Раскрой)',
     hero_feat_4_val: 'Բոլոր Սարքերում',
     hero_feat_4_lbl: 'Համակարգիչ, Սմարթֆոն, VR',
+    hero_annotation_color: 'Տեսեք տարբեր գույներով 💡',
 
 
     devices_tag: 'Բազմասարք Համատեղելիություն',
@@ -195,6 +196,7 @@ const translations = {
     hero_feat_3_lbl: 'Карты Раскроя (ЧПУ)',
     hero_feat_4_val: 'Все Устройства',
     hero_feat_4_lbl: 'Компьютер, Смартфон, VR',
+    hero_annotation_color: 'Смотрите в разных цветах 💡',
 
 
     devices_tag: 'Кроссплатформенность',
@@ -324,6 +326,7 @@ const translations = {
     hero_feat_3_lbl: 'Factory CNC Cutlists',
     hero_feat_4_val: 'All Devices',
     hero_feat_4_lbl: 'Desktop, Mobile, VR',
+    hero_annotation_color: 'Explore in various colors 💡',
 
     hero_stat_3_lbl: 'Factory CNC Cutlists',
 
@@ -769,13 +772,7 @@ function setTheme(theme, save = true) {
     localStorage.setItem('architek_theme', currentTheme);
   }
 
-  // Switch hero showcase image dynamically
-  const showcaseImg = document.getElementById('device-slideshow-img');
-  if (showcaseImg) {
-    showcaseImg.src = currentTheme === 'light' 
-      ? 'assets/images/hero_showcase_light_clean.png' 
-      : 'assets/images/hero_showcase_dark_clean.png';
-  }
+
 
   // If Three.js viewer is active, adapt scene background
   if (typeof scene !== 'undefined' && scene && typeof THREE !== 'undefined') {
@@ -908,6 +905,36 @@ function initMultiDeviceSlideshow() {
     currentSlideIdx = (currentSlideIdx + 1) % slideImages.length;
     img.src = slideImages[currentSlideIdx];
   }, 1600);
+}
+
+function initHero3DRotation() {
+  const container = document.getElementById('hero-device-container');
+  const img = document.getElementById('device-slideshow-img');
+  if (!container || !img) return;
+
+  const baseRx = 8;
+  const baseRy = -14;
+  const baseRz = 20;
+
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+    const rx = baseRx - (y * 12);
+    const ry = baseRy + (x * 16);
+    const rz = baseRz + (x * 4);
+
+    img.style.setProperty('--rot-x', `${rx.toFixed(2)}deg`);
+    img.style.setProperty('--rot-y', `${ry.toFixed(2)}deg`);
+    img.style.setProperty('--rot-z', `${rz.toFixed(2)}deg`);
+  });
+
+  container.addEventListener('mouseleave', () => {
+    img.style.setProperty('--rot-x', `${baseRx}deg`);
+    img.style.setProperty('--rot-y', `${baseRy}deg`);
+    img.style.setProperty('--rot-z', `${baseRz}deg`);
+  });
 }
 
 function initBeforeAfterSlider() {
@@ -1449,6 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavbar();
   initStudio3DTilt();
   initMultiDeviceSlideshow();
+  initHero3DRotation();
   initBeforeAfterSlider();
   initContactForm();
   initScrollReveal();
