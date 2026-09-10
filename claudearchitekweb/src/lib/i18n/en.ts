@@ -6,7 +6,7 @@ export const en = {
       "ArchiTek Soft helps furniture makers, showrooms and their customers choose colours, materials and forms with confidence, in interactive 3D, before the furniture is produced.",
   },
   nav: {
-    kitchenpro: "KitchenPro",
+    kitchenpro: "Platform",
     business: "For business",
     home: "For customers",
     viewer: "Web Viewer",
@@ -102,16 +102,16 @@ export const en = {
     viewerSwatches: "Front colour",
     viewerAr: "See in my room",
     viewerCta: "I want a link like this for my project",
-    kitchenproTag: "KitchenPro",
+    kitchenproTag: "Our platform",
     kitchenproTitle: "One 3D model for choosing, presenting and producing",
     kitchenproText:
-      "KitchenPro is our platform for furniture makers. The design is created once, from real materials and hardware. From the same model the customer gets an interactive view and choices, and the maker gets exact documents when ready to produce.",
+      "Our platform is built for furniture makers. The design is created once, from real materials and hardware. From the same model the customer gets an interactive view and choices, and the maker gets exact documents when ready to produce.",
     pillars: [
       { title: "See", text: "Interactive 3D at true scale with real light and opening doors. Phone, desktop, AR." },
       { title: "Choose", text: "Fronts, worktops, handles and hardware from real manufacturers: EGGER, Blum, Hettich." },
       { title: "Hand to the maker", text: "From the approved version: drawings, cut list, hardware list. The maker builds exactly what was approved." },
     ],
-    kitchenproCta: "More about KitchenPro",
+    kitchenproCta: "More about the platform",
     stepsTag: "How it works",
     stepsTitle: "Three steps from a sketch to a decision",
     steps: [
@@ -189,7 +189,7 @@ export const en = {
     cta: "Get my Web Viewer link",
   },
   kitchenpro: {
-    title: "KitchenPro — from selection to production documents",
+    title: "The platform — from selection to production documents",
     subtitle:
       "A platform for furniture makers. Kitchens, wardrobes, bathroom, living room, office. One model for the customer choices, the quotation and the workshop documents. The maker produces; we make sure they produce exactly what was approved.",
     problemTitle: "The problem",
@@ -198,7 +198,7 @@ export const en = {
     solutionTitle: "The solution",
     solutionText:
       "Design once with real products. The customer chooses and approves in 3D, and the quotation and production documents follow from the same model, with your workshop rules built in.",
-    capabilitiesTitle: "What KitchenPro does",
+    capabilitiesTitle: "What the platform does",
     capabilities: [
       { title: "3D design with real products", text: "Parametric cabinets, doors, shelves, worktops. Sizes exact to the millimetre, construction real." },
       { title: "Real material and hardware catalog", text: "EGGER, Kronospan, Kastamonu, Cleaf; Blum, Hettich, Häfele, GTV. Real codes, thicknesses, local suppliers and prices." },
@@ -225,7 +225,7 @@ export const en = {
     b2cText: "Request, status, 3D on their device, allowed options and price, comparison, questions, approval, documents, product passport.",
     statusTitle: "Today and tomorrow",
     statusText:
-      "Today we deliver KitchenPro as a service: our team prepares the 3D, the Web Viewer link and the documents for your orders. Self-service access for makers opens in stages.",
+      "Today we deliver the platform as a service: our team prepares the 3D, the Web Viewer link and the documents for your orders. Self-service access for makers opens in stages.",
     cta: "Discuss your project",
   },
   business: {
@@ -238,7 +238,7 @@ export const en = {
       { title: "The customer cannot picture the result", text: "Static images and catalogs leave questions. In the Web Viewer the customer rotates, opens, changes and understands." },
       { title: "The colour changes after the order", text: "Decor and handle are confirmed in 3D, before buying boards. An option changes in one click, not in days." },
       { title: "Slow approval", text: "The customer approves from the phone the same day. You receive the deposit sooner." },
-      { title: "Remakes and waste", text: "Exactly the approved version is produced. With KitchenPro documents, the cut list and hardware list come from the same model." },
+      { title: "Remakes and waste", text: "Exactly the approved version is produced. With the platform's documents, the cut list and hardware list come from the same model." },
     ],
     offerTitle: "What you get",
     offer: [
@@ -258,7 +258,7 @@ export const en = {
     packages: [
       { name: "Pilot", for: "Your first real order", items: ["1 project in 3D", "Web Viewer link + AR", "2 colour options", "In 48 hours"], cta: "Start the pilot" },
       { name: "Studio", for: "Monthly, for showrooms and studios", items: ["Up to 10 projects a month", "Branded Web Viewer links", "Unlimited colour options", "Control panel and approvals", "Priority production"], cta: "Discuss", featured: true },
-      { name: "Showroom+", for: "For manufacturers and showrooms", items: ["Everything in Studio", "Live 3D presentations (hourly quota)", "Showroom mode on screen / website", "KitchenPro documents: cut list and hardware", "Team access"], cta: "Book a meeting" },
+      { name: "Showroom+", for: "For manufacturers and showrooms", items: ["Everything in Studio", "Live 3D presentations (hourly quota)", "Showroom mode on screen / website", "Production documents: cut list and hardware", "Team access"], cta: "Book a meeting" },
     ],
     cta: "Order a pilot project",
   },
@@ -288,7 +288,7 @@ export const en = {
     addons: [
       { title: "Extra option", text: "One more colour or layout to compare" },
       { title: "On-site survey", text: "Our specialist measures the room (Yerevan)" },
-      { title: "Documents for the maker", text: "Cut list and hardware list with KitchenPro, if the maker wants them" },
+      { title: "Documents for the maker", text: "Cut list and hardware list through our platform, if the maker wants them" },
     ],
     needTitle: "What you need to start",
     cta: "Start in 5 minutes",
@@ -314,7 +314,7 @@ export const en = {
       { n: "01", title: "Sketch and survey", text: "Digitising a hand sketch or measurements; a room model with windows, doors and utilities.", out: "Exact room model" },
       { n: "02", title: "Web Viewer and colour options", text: "Your furniture in 3D with real decors. Rotate, open, change colour, see in AR. Phone and desktop.", out: "Personal link" },
       { n: "03", title: "Approval", text: "Choose the option, ask, approve from the phone. The approved version becomes a decision sheet.", out: "Approved version" },
-      { n: "04", title: "To the maker", text: "A decision sheet for any maker. For businesses, KitchenPro production documents: cut list, hardware, drawings.", out: "PDF / DXF / CSV" },
+      { n: "04", title: "To the maker", text: "A decision sheet for any maker. For businesses, production documents from the platform: cut list, hardware, drawings.", out: "PDF / DXF / CSV" },
     ],
     timelineTitle: "Timeline",
     timeline: [
@@ -330,7 +330,7 @@ export const en = {
         ["Viewing", "Static image", "Rotate, zoom, open doors"],
         ["Colour change", "Hours for a new render", "Instant, one click"],
         ["In your room", "Not possible", "AR by phone, 1:1"],
-        ["For the maker", "A picture and a verbal explanation", "Decision sheet with decor codes, KitchenPro documents"],
+        ["For the maker", "A picture and a verbal explanation", "Decision sheet with decor codes, platform documents"],
       ],
     },
   },
@@ -390,7 +390,7 @@ export const en = {
       volume: "Projects per month",
       volumes: { v1: "1–3", v2: "4–10", v3: "10–30", v4: "30+" },
       service: "What interests you",
-      services: { kitchenpro: "KitchenPro: 3D + production documents", showroom: "Web Viewer links for customers", live: "Live 3D presentation for the showroom", cnc: "Cut list and CNC", real_estate: "Real estate presentation", custom: "Custom solution" },
+      services: { kitchenpro: "3D + production documents", showroom: "Web Viewer links for customers", live: "Live 3D presentation for the showroom", cnc: "Cut list and CNC", real_estate: "Real estate presentation", custom: "Custom solution" },
     },
     files: {
       title: "Files",
@@ -494,7 +494,7 @@ export const en = {
   },
   homeCompact: {
     intro: "ArchiTek Soft is a technology company that helps furniture makers, showrooms and their customers choose colour, material and form with confidence in interactive 3D, before the furniture is made.",
-    kitchenproCta: "Meet KitchenPro",
+    kitchenproCta: "Meet the platform",
     viewerCard: { title: "Try the Web Viewer", text: "Rotate, change the colour, see it in your room. This is the link every customer receives.", cta: "Open the example" },
     liveCard: { title: "Live 3D for showrooms", text: "A cinematic presentation that opens from a link, for demos and key clients.", cta: "Learn more" },
     proofTitle: "Selected work",
@@ -510,7 +510,7 @@ export const en = {
     title: "A technology partner for the furniture industry",
     subtitle: "ArchiTek Soft is an Armenian company building 3D selection and presentation tools. We do not make or sell furniture; we make the decision exact.",
     whatTitle: "What we do",
-    whatText: "We turn a furniture design into interactive 3D with real manufacturer materials. The customer views, chooses and approves from the phone. The maker receives the approved option and, when needed, production documents through KitchenPro.",
+    whatText: "We turn a furniture design into interactive 3D with real manufacturer materials. The customer views, chooses and approves from the phone. The maker receives the approved option and, when needed, production documents through our platform.",
     approachTitle: "How we work",
     approach: [
       { title: "Show, do not tell", text: "The work speaks: an interactive link instead of marketing copy." },
@@ -534,7 +534,7 @@ export const en = {
     subtitle: "Short answers about price, timing, files and Live 3D. Did not find your question? Write to us.",
     more: [
       { q: "Who makes the furniture?", a: "The maker you choose or the company already serving you. You hand them the approved option with the decision sheet. On request we recommend partner makers." },
-      { q: "What does the maker get with KitchenPro?", a: "From the approved model: drawings, cut list, edge banding, drilling coordinates, hardware and material lists as PDF/DXF/CSV." },
+      { q: "What does the maker get through our platform?", a: "From the approved model: drawings, cut list, edge banding, drilling coordinates, hardware and material lists as PDF/DXF/CSV." },
       { q: "Can I change the colour after receiving the link?", a: "Yes, yourself in the Web Viewer. Layout or dimension changes are done by us, usually the same day." },
       { q: "Are my data and photos safe?", a: "Client pages open only from a personal link, optionally with a code and expiry. We never publish files without your consent." },
     ],

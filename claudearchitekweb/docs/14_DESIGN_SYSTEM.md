@@ -111,7 +111,7 @@ Known limits: long Armenian display words can still break mid-word below 640 px 
 
 ## 12. Interactive showcase (home)
 
-`src/components/site/showcase.tsx` — one stage, three demonstrations: **01 sketch → finished picture** (comparison
+`src/components/site/showcase.tsx` — sits in the first screen (statement above, stage below, three option tiles under the stage; the selected tile grows to ~1.9× and carries the progress line). One stage, three demonstrations: **01 sketch → finished picture** (comparison
 slider), **02 Web Viewer** (rotate, change colour; AR on phones), **03 Live 3D** (a 10 s cinematic walkthrough clip).
 Rules: clear manual controls (tabs with progress line, prev/next, ← → keys); auto-advance after **5 s** of no
 interaction and keep cycling while idle; any click, drag, key or tab stops auto mode for good (the visitor can restart

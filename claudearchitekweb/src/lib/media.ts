@@ -222,7 +222,7 @@ export async function generatePoster(opts: {
   const sizes = { "1:1": [1080, 1080], "4:5": [1080, 1350], "16:9": [1920, 1080], "9:16": [1080, 1920] } as const;
   const [w, h] = sizes[opts.ratio];
   const src = absPath(opts.sourceRelPath);
-  const brand = (opts.brand ?? "ArchiTek Soft • KitchenPro").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const brand = (opts.brand ?? "ArchiTek Soft").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   const headline = (opts.headline ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   const sub = (opts.sub ?? "architeksoft.com").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   const pad = Math.round(w * 0.055);

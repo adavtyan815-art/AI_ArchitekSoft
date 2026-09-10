@@ -1,10 +1,10 @@
-# ArchiTek Soft — Web System (KitchenPro site, client pages, admin dashboard, SMM automation)
+# ArchiTek Soft — Web System (marketing site, client pages, admin dashboard, SMM automation)
 
 A single, self-contained system built for local testing first and production later:
 
 | Part | URL (local) | What it is |
 |---|---|---|
-| Client website | http://localhost:3100 (hy), /ru, /en | KitchenPro-first marketing site with clear B2B / B2C journeys and a 5-minute order intake wizard |
+| Client website | http://localhost:3100 (hy), /ru, /en | Platform-first marketing site (interactive 3D for furniture) with clear B2B / B2C journeys and a 5-minute order intake wizard |
 | Client pages | http://localhost:3100/p/`slug`?k=`token` | The individual link a client receives: Web Viewer (`/v/slug`), renders, video, sketch→3D, PDF, AR, premium Live 3D, approve / request changes |
 | Admin dashboard | http://localhost:3100/admin | Armenian by default (English switch). CRM (leads, individuals, companies), projects, media library, client pages, Live 3D links, SMM studio, analytics, settings |
 | Worker | runs inside the app | Scheduler + Telegram bot: approval workflow, notifications, daily brief, publishing |

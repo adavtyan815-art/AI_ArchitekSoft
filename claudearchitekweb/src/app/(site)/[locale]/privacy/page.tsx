@@ -10,7 +10,7 @@ const TEXT: Record<Locale, PrivacyText> = {
   hy: {
     title: "Գաղտնիության քաղաքականություն",
     updated: "Թարմացվել է՝ 2026 թ. սեպտեմբեր",
-    intro: "ArchiTek Soft-ը հարգում է Ձեր գաղտնիությունը։ Այս էջը բացատրում է, թե ինչ տվյալներ ենք հավաքում կայքի և KitchenPro ծառայության միջոցով և ինչպես ենք դրանք օգտագործում։",
+    intro: "ArchiTek Soft-ը հարգում է Ձեր գաղտնիությունը։ Այս էջը բացատրում է, թե ինչ տվյալներ ենք հավաքում կայքի և մեր ծառայության միջոցով և ինչպես ենք դրանք օգտագործում։",
     sections: [
       { h: "Ինչ տվյալներ ենք հավաքում", p: "Հարցում ուղարկելիս՝ անուն, հեռախոս, Telegram, էլ. փոստ, ընկերության անվանում և նախագծի նկարագրություն, ինչպես նաև Ձեր կցած ֆայլերը (չափեր, էսքիզներ, լուսանկարներ)։" },
       { h: "Ինչպես ենք օգտագործում", p: "Միայն Ձեզ հետ կապվելու, նախագիծը պատրաստելու և 3D հղումը տրամադրելու համար։ Տվյալները չենք վաճառում և չենք փոխանցում երրորդ անձանց, բացի արտադրության համար անհրաժեշտ գործընկերներից՝ Ձեր համաձայնությամբ։" },
@@ -22,7 +22,7 @@ const TEXT: Record<Locale, PrivacyText> = {
   ru: {
     title: "Политика конфиденциальности",
     updated: "Обновлено: сентябрь 2026",
-    intro: "ArchiTek Soft уважает вашу конфиденциальность. На этой странице описано, какие данные мы собираем через сайт и сервис KitchenPro и как их используем.",
+    intro: "ArchiTek Soft уважает вашу конфиденциальность. На этой странице описано, какие данные мы собираем через сайт и наш сервис и как их используем.",
     sections: [
       { h: "Какие данные мы собираем", p: "При отправке заявки: имя, телефон, Telegram, e-mail, название компании и описание проекта, а также прикреплённые файлы (размеры, эскизы, фотографии)." },
       { h: "Как мы их используем", p: "Только для связи с вами, подготовки проекта и предоставления 3D-ссылки. Мы не продаём данные и не передаём их третьим лицам, кроме партнёров по производству — с вашего согласия." },
@@ -34,7 +34,7 @@ const TEXT: Record<Locale, PrivacyText> = {
   en: {
     title: "Privacy Policy",
     updated: "Updated: September 2026",
-    intro: "ArchiTek Soft respects your privacy. This page explains which data we collect through the website and the KitchenPro service, and how we use it.",
+    intro: "ArchiTek Soft respects your privacy. This page explains which data we collect through the website and our service, and how we use it.",
     sections: [
       { h: "What we collect", p: "When you send a request: name, phone, Telegram, e-mail, company name and project description, plus the files you attach (dimensions, sketches, photos)." },
       { h: "How we use it", p: "Only to contact you, prepare your project and deliver the 3D link. We do not sell your data or share it with third parties, except production partners — with your consent." },

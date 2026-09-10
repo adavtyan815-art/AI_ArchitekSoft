@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 /** Sketch → 3D comparison slider. Mono labels, hairline handle, no pills. */
-export function BeforeAfter({ before, after, labels = ["Before", "After"], aspect = "aspect-[16/10]", ariaLabel }: { before: string; after: string; labels?: [string, string]; aspect?: string; ariaLabel?: string }) {
+export function BeforeAfter({ before, after, labels = ["Before", "After"], aspect = "aspect-[16/10]", ariaLabel, labelsAt = "top" }: { before: string; after: string; labels?: [string, string]; aspect?: string; ariaLabel?: string; labelsAt?: "top" | "bottom" }) {
   const [pos, setPos] = useState(55);
   const ref = useRef<HTMLDivElement>(null);
   const update = (clientX: number) => {
@@ -47,8 +47,8 @@ export function BeforeAfter({ before, after, labels = ["Before", "After"], aspec
           </svg>
         </div>
       </div>
-      <span className="absolute top-3 left-3 rounded-sm bg-[#17150f]/70 px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur">{labels[0]}</span>
-      <span className="absolute top-3 right-3 rounded-sm bg-[#17150f]/70 px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur">{labels[1]}</span>
+      <span className={`absolute ${labelsAt === "bottom" ? "bottom-3" : "top-3"} left-3 rounded-sm bg-[#17150f]/70 px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur`}>{labels[0]}</span>
+      <span className={`absolute ${labelsAt === "bottom" ? "bottom-3" : "top-3"} right-3 rounded-sm bg-[#17150f]/70 px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur`}>{labels[1]}</span>
     </div>
   );
 }

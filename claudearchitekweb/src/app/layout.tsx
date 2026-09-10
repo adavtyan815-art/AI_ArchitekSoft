@@ -14,7 +14,7 @@ const armenian = Noto_Sans_Armenian({ subsets: ["armenian"], variable: "--font-a
 const mono = JetBrains_Mono({ subsets: ["latin", "cyrillic"], variable: "--font-jetbrains", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "ArchiTek Soft — KitchenPro",
+  title: "ArchiTek Soft — 3D for furniture",
   description: "Choose colours, materials and forms with confidence, in interactive 3D, before the furniture is produced.",
   metadataBase: new URL(process.env.APP_URL || "http://localhost:3100"),
   icons: { icon: "/brand/favicon.png", apple: "/brand/apple-touch-icon.png" },

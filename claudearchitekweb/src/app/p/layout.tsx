@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
-  title: "ArchiTek Soft — KitchenPro",
+  title: "ArchiTek Soft",
 };
 
 export default function PortalRootLayout({ children }: { children: React.ReactNode }) {

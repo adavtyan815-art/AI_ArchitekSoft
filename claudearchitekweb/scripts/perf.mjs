@@ -6,7 +6,7 @@ const base = process.argv[2] || "http://localhost:3100";
 const runs = Number(process.argv[3] || 5);
 const cookie = process.env.PERF_COOKIE || "";
 const urls = [
-  "/", "/en", "/kitchenpro", "/for-business", "/for-home", "/portfolio", "/start", "/contact",
+  "/", "/en", "/platform", "/for-business", "/for-home", "/portfolio", "/start", "/contact",
   "/p/aren-living?k=p7_iF-nUOAoPqfpe",
   "/admin", "/admin/leads", "/admin/projects", "/admin/media", "/admin/smm", "/admin/analytics",
   "/api/health", "/api/admin/search?q=aren",

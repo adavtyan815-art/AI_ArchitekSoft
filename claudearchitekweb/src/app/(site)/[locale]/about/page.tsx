@@ -8,7 +8,7 @@ import { ContactChannels } from "@/components/site/contact-channels";
 import { pageMeta } from "../meta";
 import { cn } from "@/lib/utils";
 
-/** Material board — same board as the home page KitchenPro band. */
+/** Material board — same board as the home page platform band. */
 const MATERIALS: { label: string; fill: string }[] = [
   { label: "EGGER H1180", fill: "linear-gradient(135deg,#b58a5a,#8d6238)" },
   { label: "EGGER U708", fill: "#c9c3b8" },
@@ -24,7 +24,7 @@ const STACK: { k: string; v: string }[] = [
   { k: "Web", v: "Interactive viewing · any phone or computer · no installation" },
   { k: "AR", v: "In the customer's room · 1:1 scale" },
   { k: "Live 3D", v: "Cinematic presentation · 4K · showroom screens" },
-  { k: "Platform", v: "KitchenPro · client pages · production documents" },
+  { k: "Platform", v: "Client pages · approvals · production documents" },
 ];
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {

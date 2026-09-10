@@ -36,7 +36,7 @@ const T: Record<L, {
     ig: () => `Իրական նյութեր, իրական չափեր, բացվող դարակներ։ Պատվիրատուն ընտրեց գույներն ինքը և տեսավ գինը։\n\nՉափերն ուղարկեք՝ և 24–48 ժամում ստացեք Ձեր 3D հղումը։`,
     li: (t) => `Խոհանոցի վաճառքը՝ մինչև արտադրությունը\n\nԱյս ${t}ի պատվիրատուն հաստատեց նախագիծը առաջին հանդիպմանը՝ ինտերակտիվ 3D հղումով։\n• Ֆասադներ և նյութեր՝ իրական արտադրողներից\n• Կտրման քարտեզ և ֆուրնիտուրայի ցանկ՝ նույն մոդելից\n• Զրո վերագծում, ավելի քիչ խոտան\n\nԿահույք արտադրողների համար առաջարկում ենք փորձնական նախագիծ՝ մեկ իրական պատվերով։`,
     tg: (t, site) => `${t.charAt(0).toUpperCase() + t.slice(1)}՝ էսքիզից մինչև 3D և կտրման քարտեզ։ Պատվիրատուն հաստատեց հեռախոսից, արտադրողը ստացավ փաստաթղթերը նույն մոդելից։\n\nՁեր նախագիծը՝ ${site}`,
-    ytTitle: (t) => `${t.charAt(0).toUpperCase() + t.slice(1)} 3D-ով՝ մինչև պատրաստելը | KitchenPro`,
+    ytTitle: (t) => `${t.charAt(0).toUpperCase() + t.slice(1)} 3D-ով՝ մինչև պատրաստելը | ArchiTek Soft`,
     yt: (t, site) => `Ինտերակտիվ ${t}՝ Unreal Engine 5-ով, իրական նյութերով և ֆուրնիտուրայով։ Պատվիրատուն քայլում է սենյակում, բացում դարակները, փոխում ֆասադները և հաստատում։\n\nԱրտադրողը նույն մոդելից ստանում է կտրման քարտեզ, ծակման կոորդինատներ և ֆուրնիտուրայի ցանկ։\n\nՍկսել նախագիծ՝ ${site}`,
     tt: (t) => `${t.charAt(0).toUpperCase() + t.slice(1)}ը հաստատվել է հեռախոսից, մինչև պատրաստելը։`,
     ctaSite: (site) => `Ուղարկեք չափերը՝ ${site}`,
@@ -51,7 +51,7 @@ const T: Record<L, {
     ig: () => `Реальные материалы, реальные размеры, открывающиеся ящики. Клиент сам выбрал цвета и увидел цену.\n\nОтправьте размеры — и через 24–48 часов получите свою 3D-ссылку.`,
     li: (t) => `Продажа кухни до производства\n\nКлиент этой ${t} утвердил проект на первой встрече — по интерактивной 3D-ссылке.\n• Фасады и материалы реальных производителей\n• Карта раскроя и список фурнитуры из той же модели\n• Ноль перечерчивания, меньше брака\n\nПроизводителям мебели предлагаем пилотный проект на одном реальном заказе.`,
     tg: (t, site) => `${t.charAt(0).toUpperCase() + t.slice(1)}: от эскиза до 3D и карты раскроя. Клиент утвердил с телефона, производитель получил документы из той же модели.\n\nВаш проект: ${site}`,
-    ytTitle: (t) => `${t.charAt(0).toUpperCase() + t.slice(1)} в 3D до изготовления | KitchenPro`,
+    ytTitle: (t) => `${t.charAt(0).toUpperCase() + t.slice(1)} в 3D до изготовления | ArchiTek Soft`,
     yt: (t, site) => `Интерактивная ${t} на Unreal Engine 5 с реальными материалами и фурнитурой. Клиент ходит по комнате, открывает ящики, меняет фасады и утверждает.\n\nПроизводитель получает из той же модели карту раскроя, координаты присадки и список фурнитуры.\n\nНачать проект: ${site}`,
     tt: (t) => `${t.charAt(0).toUpperCase() + t.slice(1)} утверждена с телефона — до изготовления.`,
     ctaSite: (site) => `Отправьте размеры: ${site}`,
@@ -66,7 +66,7 @@ const T: Record<L, {
     ig: () => `Real materials, real sizes, drawers that open. The customer chose the colours and saw the price.\n\nSend your measurements and get your 3D link in 24–48 hours.`,
     li: (t) => `Selling the kitchen before production\n\nThe customer of this ${t} approved the design at the first meeting, from an interactive 3D link.\n• Fronts and materials from real manufacturers\n• Cut list and hardware list from the same model\n• Zero redrawing, fewer remakes\n\nFor furniture makers we offer a pilot project on one real order.`,
     tg: (t, site) => `${t.charAt(0).toUpperCase() + t.slice(1)}: from a sketch to 3D and a cut list. The customer approved from a phone; the maker received the documents from the same model.\n\nYour project: ${site}`,
-    ytTitle: (t) => `${t.charAt(0).toUpperCase() + t.slice(1)} in 3D before it is built | KitchenPro`,
+    ytTitle: (t) => `${t.charAt(0).toUpperCase() + t.slice(1)} in 3D before it is built | ArchiTek Soft`,
     yt: (t, site) => `An interactive ${t} in Unreal Engine 5 with real materials and hardware. The customer walks around, opens drawers, switches fronts and approves.\n\nThe maker gets the cut list, drilling coordinates and hardware list from the same model.\n\nStart a project: ${site}`,
     tt: (t) => `This ${t} was approved from a phone, before it was built.`,
     ctaSite: (site) => `Send your measurements: ${site}`,
@@ -88,10 +88,10 @@ export function buildTemplatePack(ctx: PostContext): PostPack {
   const all: Record<string, VariantDraft> = {
     facebook: { platform: "facebook", title: tpl.fbHead(t), text: tpl.fb(t, site), hashtags: tags.slice(0, 6), cta: tpl.ctaSite(site), format: video ? "video" : "carousel" },
     instagram: { platform: "instagram", text: `${tpl.igHook(t)}\n\n${tpl.ig(t)}`, hashtags: [...tags, "#Yerevan", "#InteriorDesign", "#KitchenDesign"].slice(0, 12), cta: tpl.ctaBio, format: video ? "reel" : "carousel" },
-    linkedin: { platform: "linkedin", title: tpl.li(t).split("\n")[0], text: tpl.li(t), hashtags: ["#KitchenPro", "#FurnitureManufacturing", "#3DVisualization", "#ArchiTekSoft"], cta: tpl.ctaB2b, format: video ? "video" : "image" },
+    linkedin: { platform: "linkedin", title: tpl.li(t).split("\n")[0], text: tpl.li(t), hashtags: ["#ArchiTekSoft", "#FurnitureManufacturing", "#3DVisualization", "#ArchiTekSoft"], cta: tpl.ctaB2b, format: video ? "video" : "image" },
     telegram: { platform: "telegram", text: tpl.tg(t, site), hashtags: [], cta: tpl.ctaSite(site), format: video ? "video" : "image" },
-    youtube: { platform: "youtube", title: tpl.ytTitle(t), text: tpl.yt(t, site), hashtags: ["#KitchenPro", "#ArchiTekSoft", "#UnrealEngine5", "#Kitchen3D", "#Shorts"], cta: tpl.ctaSite(site), format: "short" },
-    tiktok: { platform: "tiktok", text: tpl.tt(t), hashtags: ["#kitchen", "#3d", "#kitchenpro", "#architeksoft"], format: "short" },
+    youtube: { platform: "youtube", title: tpl.ytTitle(t), text: tpl.yt(t, site), hashtags: ["#ArchiTekSoft", "#Kitchen3D", "#Furniture3D", "#Shorts"], cta: tpl.ctaSite(site), format: "short" },
+    tiktok: { platform: "tiktok", text: tpl.tt(t), hashtags: ["#kitchen", "#3d", "#furniture3d", "#architeksoft"], format: "short" },
   };
 
   return {

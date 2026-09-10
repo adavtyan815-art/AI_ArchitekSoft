@@ -143,7 +143,7 @@ export default async function ArDemoPage() {
       </main>
 
       <footer className="border-t border-line">
-        <div className="caption mx-auto w-full max-w-5xl px-5 py-6 sm:px-8">© {new Date().getFullYear()} ArchiTek Soft · KitchenPro</div>
+        <div className="caption mx-auto w-full max-w-5xl px-5 py-6 sm:px-8">© {new Date().getFullYear()} ArchiTek Soft · Web Viewer</div>
       </footer>
     </div>
   );

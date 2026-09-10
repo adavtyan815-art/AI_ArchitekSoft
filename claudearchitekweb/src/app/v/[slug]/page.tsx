@@ -55,7 +55,7 @@ export async function generateMetadata({ params, searchParams }: { params: Param
   const link = getShareLinkBySlug(slug);
   // Same rule as /p: never leak the project name to someone who guessed a slug.
   const access = checkAccess(link, firstParam(sp.k) ?? "", link ? cookieStore.get(passcodeCookieName(link.id))?.value : null);
-  const title = access === "ok" && link?.title ? `${link.title} — 3D — ArchiTek Soft` : "ArchiTek Soft — KitchenPro";
+  const title = access === "ok" && link?.title ? `${link.title} — 3D — ArchiTek Soft` : "ArchiTek Soft";
   return { title, robots: { index: false, follow: false } };
 }
 

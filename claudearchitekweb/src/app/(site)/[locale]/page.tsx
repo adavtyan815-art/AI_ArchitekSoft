@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return pageMeta({ locale, path: "/", title: d.meta.title, description: d.meta.description });
 }
 
-/** Material board shown inside the KitchenPro band: real decor names, no icons. */
+/** Material board shown inside the platform band: real decor names, no icons. */
 const MATERIALS: { label: string; fill: string }[] = [
   { label: "EGGER H1180", fill: "linear-gradient(135deg,#b58a5a,#8d6238)" },
   { label: "EGGER U708", fill: "#c9c3b8" },
@@ -29,9 +29,9 @@ const MATERIALS: { label: string; fill: string }[] = [
 ];
 
 /**
- * Compact entry page. Every block ends in a link to its dedicated page:
- * 01 what we are → 02 interactive showcase (sketch → 3D, Web Viewer, Live 3D) → 03 KitchenPro
- * → 04 who it is for → 05 selected work → 06 where next.
+ * Compact entry page. The first screen carries the whole message: a two-line statement, what we do,
+ * two CTAs and the interactive showcase (sketch → 3D, Web Viewer, Live 3D) with its three option tiles.
+ * Below: proof strip → 02 the platform → 03 who it is for → 04 selected work → 05 where next.
  * Heavy content (3D model, video) is loaded only when its demonstration is opened.
  */
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -45,43 +45,44 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      {/* 01 — HERO: what ArchiTek Soft is, in one screen */}
-      <section className="container-x pt-10 sm:pt-14 lg:pt-20">
-        <div className="grid gap-8 lg:grid-cols-12 lg:gap-8">
+      {/* 01 — FIRST SCREEN: statement + what we do + the showcase */}
+      <section className="container-x pt-6 sm:pt-9 lg:pt-10">
+        <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-8">
           <div className="lg:col-span-7">
-            <div className="mb-6 flex items-center gap-3">
+            <div className="mb-4 flex items-center gap-3">
               <Index n={1} />
               <span className="eyebrow">{d.home.heroBadge}</span>
             </div>
-            <h1 className="h-display">{d.home.heroTitle}</h1>
+            <h1 className="h-display text-[2rem] sm:text-[2.9rem] lg:text-[3.1rem] xl:text-[3.4rem]">{d.home.heroTitle}</h1>
           </div>
-          <div className="flex flex-col justify-end lg:col-span-5 lg:pb-2">
-            <p className="lead max-w-[34rem]">{c.intro}</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <ButtonLink href={p("/start")} size="lg">
+          <div className="lg:col-span-5 lg:pb-1">
+            <p className="hidden text-[15.5px] leading-relaxed text-fg-2 sm:block lg:max-w-[30rem]">{c.intro}</p>
+            <div className="flex flex-row gap-2.5 sm:mt-5">
+              <ButtonLink href={p("/start")} className="w-full sm:w-auto">
                 {d.home.heroPrimary}
-                <ArrowUpRight size={18} />
+                <ArrowUpRight size={16} />
               </ButtonLink>
-              <ButtonLink href={p("/viewer")} variant="secondary" size="lg">
+              <ButtonLink href={p("/viewer")} variant="secondary" className="hidden sm:inline-flex">
                 {d.home.heroSecondary}
               </ButtonLink>
             </div>
-            <p className="caption mt-5">{d.home.heroNote}</p>
           </div>
         </div>
-      </section>
 
-      {/* 02 — INTERACTIVE SHOWCASE */}
-      <div className="mt-14 sm:mt-20">
-        <Showcase
-          locale={locale}
-          index={2}
-          s={d.showcase}
-          viewerLabels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }}
-          compareLabels={[d.portal.before, d.portal.after]}
-          media={{ before: "/demo/sketch.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/wardrobe.webp" }}
-        />
-      </div>
+        <div className="mt-4 sm:mt-6">
+          <Showcase
+            locale={locale}
+            s={d.showcase}
+            viewerLabels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }}
+            compareLabels={[d.portal.before, d.portal.after]}
+            media={{ before: "/demo/sketch.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/wardrobe.webp" }}
+          />
+        </div>
+
+        {/* Phones: the intro reads after the showcase */}
+        <p className="mt-5 text-[15px] leading-relaxed text-fg-2 sm:hidden">{c.intro}</p>
+        <p className="caption mt-4">{d.home.heroNote}</p>
+      </section>
 
       {/* Proof strip on a ruler */}
       <section className="container-x mt-14 sm:mt-20">
@@ -95,19 +96,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </ul>
       </section>
 
-      {/* 03 — KITCHENPRO (inverse band) */}
+      {/* 02 — THE PLATFORM (inverse band) */}
       <section className="mt-20 sm:mt-28">
         <div className="inverse">
           <div className="container-x py-16 sm:py-24">
             <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
               <div className="lg:col-span-5">
                 <div className="mb-6 flex items-center gap-3">
-                  <Index n={3} />
+                  <Index n={2} />
                   <span className="eyebrow">{d.home.kitchenproTag}</span>
                 </div>
                 <h2 className="h-section">{d.home.kitchenproTitle}</h2>
                 <p className="mt-6 text-[16px] leading-relaxed text-fg-2">{d.home.kitchenproText}</p>
-                <ButtonLink href={p("/kitchenpro")} className="mt-8 bg-inverse-fg text-inverse-bg hover:bg-inverse-fg/90">
+                <ButtonLink href={p("/platform")} className="mt-8 bg-inverse-fg text-inverse-bg hover:bg-inverse-fg/90">
                   {c.kitchenproCta}
                   <ArrowRight size={16} />
                 </ButtonLink>
@@ -139,9 +140,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      {/* 04 — WHO IT IS FOR */}
+      {/* 03 — WHO IT IS FOR */}
       <section className="container-x section-tight">
-        <SectionHeading index={4} eyebrow={d.home.splitTitle} title={d.home.splitTitle} text={d.home.splitSubtitle} />
+        <SectionHeading index={3} eyebrow={d.home.splitTitle} title={d.home.splitTitle} text={d.home.splitSubtitle} />
         <div className="mt-10 grid gap-10 md:grid-cols-2 md:gap-8 lg:mt-14">
           {[
             { card: d.home.b2bCard, href: p("/for-business"), img: "/demo/kitchen-walnut.webp", code: "B2B" },
@@ -173,11 +174,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      {/* 05 — SELECTED WORK */}
+      {/* 04 — SELECTED WORK */}
       {work.length ? (
         <section className="container-x section-tight">
           <SectionHeading
-            index={5}
+            index={4}
             eyebrow={d.home.portfolioTag}
             title={c.proofTitle}
             action={
@@ -193,12 +194,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </section>
       ) : null}
 
-      {/* 06 — WHERE NEXT + CTA */}
+      {/* 05 — WHERE NEXT + CTA */}
       <section className="container-x section-tight">
         <div className="grid gap-10 border-t border-line pt-8 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <div className="flex items-center gap-3">
-              <Index n={6} />
+              <Index n={5} />
               <span className="eyebrow">{c.linksTitle}</span>
             </div>
             <ul className="mt-6 divide-y divide-line border-y border-line">

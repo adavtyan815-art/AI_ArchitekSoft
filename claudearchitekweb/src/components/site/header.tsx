@@ -24,7 +24,7 @@ export type HeaderNav = {
 };
 
 /**
- * Site header v3: wordmark · KitchenPro · Solutions ▾ · How it works · Work · About · Contact · lang · theme · CTA.
+ * Site header v3: wordmark · Platform · Solutions ▾ · How it works · Work · About · Contact · lang · theme · CTA.
  * Hairline bottom border, no pills; the Solutions panel is a two-column editorial menu.
  * Mobile: full-screen sheet with serif links and a mono index.
  */
@@ -89,7 +89,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
           </Link>
 
           <nav className="hidden h-full items-center lg:flex" aria-label="Primary">
-            <Link href={p("/kitchenpro")} className={linkCls(isActive(p("/kitchenpro")))}>
+            <Link href={p("/platform")} className={linkCls(isActive(p("/platform")))}>
               {nav.kitchenpro}
             </Link>
             <div ref={menuRef} className="relative flex h-full items-center" onMouseEnter={() => setMenu(true)} onMouseLeave={() => setMenu(false)}>
@@ -153,7 +153,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
       {/* Mobile sheet */}
       <div id="mobile-menu" className={cn("fixed inset-0 top-16 z-[35] flex flex-col bg-bg transition-opacity duration-200 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open}>
         <nav className="container-x flex flex-1 flex-col overflow-y-auto pt-2 pb-6" aria-label="Mobile">
-          <Link href={p("/kitchenpro")} className="flex items-center justify-between border-b border-line py-4 font-display text-[1.75rem] text-fg">
+          <Link href={p("/platform")} className="flex items-center justify-between border-b border-line py-4 font-display text-[1.75rem] text-fg">
             {nav.kitchenpro}
             <ArrowUpRight size={20} className="text-faint" />
           </Link>

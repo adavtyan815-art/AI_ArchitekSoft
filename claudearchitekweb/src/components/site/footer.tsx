@@ -14,7 +14,7 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
   const cols = [
     {
       title: dict.siteNav.solutions,
-      links: [[p("/kitchenpro"), dict.nav.kitchenpro], ...dict.siteNav.solutionsMenu.map((m) => [p(m.href), m.title] as [string, string])],
+      links: [[p("/platform"), dict.nav.kitchenpro], ...dict.siteNav.solutionsMenu.map((m) => [p(m.href), m.title] as [string, string])],
     },
     {
       title: dict.footer.company,
@@ -112,7 +112,7 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
             © {new Date().getFullYear()} {brand.name} · {dict.footer.rights}
           </div>
           <div className="flex items-center gap-4">
-            <span>Yerevan · 3D · AR · KitchenPro</span>
+            <span>Yerevan · 3D · AR · Web Viewer</span>
             <Link href="/admin" className="transition-colors hover:text-fg">
               {dict.footer.admin}
             </Link>

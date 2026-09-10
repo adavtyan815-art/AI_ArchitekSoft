@@ -38,7 +38,7 @@ Why this ladder works commercially:
 2. **Studio is recurring revenue** aligned with their order volume; the branded link makes you invisible to their customer (they keep the relationship, you keep the retainer).
 3. **Showroom+ monetises Live 3D correctly** — hours are the cost driver, so they are sold as a quota, not unlimited.
 
-Add-ons for any tier: extra colour/layout option, on-site survey, rush 24 h, KitchenPro production documents, embed on their website, a public showroom link with a small monthly quota.
+Add-ons for any tier: extra colour/layout option, on-site survey, rush 24 h, production documents, embed on their website, a public showroom link with a small monthly quota.
 
 Sales motion: LinkedIn (EN) + direct outreach to makers with a pilot offer; Instagram/Facebook (HY/RU) showcases feed the makers' customers who then ask their maker for "the 3D link".
 
@@ -53,7 +53,7 @@ Audience: households ordering a kitchen or storage furniture from any maker.
 - 4K images
 - **Decision sheet for the maker** (approved option with images, dimensions, decor codes: e.g. EGGER H1180 ST37) — any maker understands it
 
-Add-ons: extra option, on-site survey (Yerevan), KitchenPro documents if the maker wants a cut list.
+Add-ons: extra option, on-site survey (Yerevan), production documents if the maker wants a cut list.
 
 Positioning safeguard on every B2C page: **"We do not sell or make furniture. The furniture is made by the maker you choose; on request we recommend partners."** This turns a possible objection ("are you a furniture shop?") into the value proposition (independent, on the client's side) and opens a partner-referral revenue line with makers.
 
@@ -72,4 +72,4 @@ Price logic: fixed by room size (small / medium / large) and number of options; 
 - New `/viewer` page and `/v/<slug>` per-project Web Viewer; client page primary action = Web Viewer, Live 3D secondary/premium.
 - Packages renamed and restructured (Pilot / Studio / Showroom+; Decision package + add-ons).
 - Admin stage labels: "Documents to the maker", "Production (at the maker)".
-- Intake wizard services: Web Viewer links, Live 3D presentation for the showroom, KitchenPro documents, etc.
+- Intake wizard services: Web Viewer links, Live 3D presentation for the showroom, production documents, etc.

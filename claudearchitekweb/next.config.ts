@@ -31,6 +31,13 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  async redirects() {
+    // The product page moved from /kitchenpro (the name of a third-party tool) to /platform.
+    return [
+      { source: "/kitchenpro", destination: "/platform", permanent: true },
+      { source: "/:locale(ru|en)/kitchenpro", destination: "/:locale/platform", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

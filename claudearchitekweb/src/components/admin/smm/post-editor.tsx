@@ -426,7 +426,7 @@ function VariantCard({
             <Textarea value={v.text} onChange={(e) => onChange({ text: e.target.value })} className="min-h-[180px] font-normal" />
           </label>
           <Field label={L.hashtags} hint={L.hashtagsHint}>
-            <Input value={v.hashtags} onChange={(e) => onChange({ hashtags: e.target.value })} placeholder="#KitchenPro #ArchiTekSoft" />
+            <Input value={v.hashtags} onChange={(e) => onChange({ hashtags: e.target.value })} placeholder="#ArchiTekSoft #Furniture3D" />
           </Field>
           <Field label={L.cta}>
             <Input value={v.cta} onChange={(e) => onChange({ cta: e.target.value })} maxLength={300} />

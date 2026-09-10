@@ -22,7 +22,7 @@ export function pageMeta({
   images,
 }: {
   locale: Locale;
-  /** Locale-less path, e.g. "/kitchenpro". */
+  /** Locale-less path, e.g. "/platform". */
   path: string;
   title: string;
   description?: string;

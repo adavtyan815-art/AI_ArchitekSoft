@@ -5,7 +5,7 @@
 ## Goals
 
 - A visitor understands **in ten seconds** what ArchiTek Soft does, whether it is for them, and what to do next.
-- KitchenPro is the headline; other solutions are one clear section, not competing headlines.
+- The platform (interactive 3D for furniture: choose, present, produce) is the headline; other solutions are one clear section, not competing headlines. **KitchenPro is the name of a third-party tool we use internally and is never presented as our product on the public site.**
 - B2B and B2C each get their own door, promise, proof, and form.
 - Armenian first, Russian and English complete. Calm, minimal, professional; the work speaks.
 
@@ -19,12 +19,12 @@ that answers "what is this, who is it for, where do I go" and hands the visitor 
 on its own page, and is never repeated on the homepage.
 
 ```
-Header:  KitchenPro · Solutions ▾ · How it works · Work · About · Contact · [hy/ru/en] [theme] [Start]
+Header:  Platform · Solutions ▾ · How it works · Work · About · Contact · [hy/ru/en] [theme] [Start]
          Solutions ▾  →  For business · For home · Web Viewer · Live 3D · Other industries
-Footer:  Solutions (KitchenPro + the five above) · Company (How it works, Work, About, FAQ, Contact, Privacy) · Contact
+Footer:  Solutions (Platform + the five above) · Company (How it works, Work, About, FAQ, Contact, Privacy) · Contact
 
-/                 entry point (hero, proof, KitchenPro intro, B2B/B2C doors, Viewer/Live entry, 3 works, where next)
-├── /kitchenpro   the product
+/                 first screen = statement + showcase; then proof, platform intro, B2B/B2C doors, 3 works, where next
+├── /platform     the product (/kitchenpro redirects here)
 ├── /for-business B2B offer + packages            ─┐
 ├── /for-home     B2C journey                      │ "Solutions" group
 ├── /viewer       Web Viewer demo (interactive 3D) │
@@ -44,8 +44,8 @@ loaded only when its showcase tab is opened (and on `/viewer` / project pages); 
 
 | URL (hy) | ru / en | Purpose | Primary CTA |
 |---|---|---|---|
-| `/` | `/ru`, `/en` | **Compact entry point**: statement + intro + CTAs, then the **interactive showcase** (sketch → 3D comparison, Web Viewer, Live 3D walkthrough in one stage: manual tabs/arrows/keyboard, auto-advance every 5 s while idle, stops on any interaction, fullscreen), proof strip, KitchenPro intro (3 pillars → /kitchenpro), B2B / B2C doors, 3 featured works, "where next" links + contact | Start a project / Try the Web Viewer |
-| `/kitchenpro` | | The maker platform: problem → solution, 8 capabilities, workflow 0–6 (the maker produces), B2B/B2C views, honest status | Discuss your project |
+| `/` | `/ru`, `/en` | **First screen carries the message**: two-line statement, one paragraph on what we do, two CTAs and the **interactive showcase** (sketch → 3D comparison, Web Viewer, Live 3D walkthrough on one stage with three always-visible option tiles — the selected tile is larger; prev/next, ← →, fullscreen; auto-advance every 5 s while idle, stops on any interaction). Then proof strip, platform intro (3 pillars → /platform), B2B / B2C doors, 3 featured works, "where next" links + contact | Start a project / Try the Web Viewer |
+| `/platform` | | The maker platform (old `/kitchenpro` URL redirects): problem → solution, 8 capabilities, workflow 0–6 (the maker produces), B2B/B2C views, honest status | Discuss your project |
 | `/viewer` | | Web Viewer: live demo (rotate, colour swatches, AR), features, Web Viewer vs Live 3D table | Get my Web Viewer link |
 | `/for-business` | | B2B: pains, offer, how we start (pilot), packages (Project / Studio / Factory) | Order a pilot project |
 | `/for-home` | | B2C: benefits, 4 steps, what you need, price note | Start in 5 minutes |
@@ -59,7 +59,7 @@ loaded only when its showcase tab is opened (and on `/viewer` / project pages); 
 | `/faq` | | All questions (home FAQ + extended), sticky contact card | Start a project |
 | `/privacy` | | Privacy note | — |
 
-Header: KitchenPro · For business · For home · Other solutions · Work · How it works · Contact · language switch · **Start a project**.
+Header: Platform · For business · For home · Other solutions · Work · How it works · Contact · language switch · **Start a project**.
 
 ## Customer journeys
 

@@ -37,7 +37,7 @@ export async function generateMetadata({ params, searchParams }: { params: Param
   // Only reveal the project name once the link actually opens: otherwise anyone
   // who guesses a slug can read the client's project title from the tab title.
   const access = checkAccess(link, firstParam(sp.k) ?? "", link ? cookieStore.get(passcodeCookieName(link.id))?.value : null);
-  const title = access === "ok" && link?.title ? `${link.title} — ArchiTek Soft` : "ArchiTek Soft — KitchenPro";
+  const title = access === "ok" && link?.title ? `${link.title} — ArchiTek Soft` : "ArchiTek Soft";
   return { title, robots: { index: false, follow: false } };
 }
 

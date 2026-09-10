@@ -170,7 +170,7 @@ async function main() {
   [r1, r2, r3].filter(Boolean).forEach((a, i) => db.insert(schema.postAssets).values({ postId, assetId: a!.id, role: "media", sortOrder: i }).run());
 
   // Some analytics history so charts are not empty
-  const paths = ["/", "/kitchenpro", "/for-business", "/for-home", "/portfolio", "/start", "/contact"];
+  const paths = ["/", "/platform", "/for-business", "/for-home", "/portfolio", "/start", "/contact"];
   for (let d = 29; d >= 0; d--) {
     const day = new Date(Date.now() - d * 86400_000);
     const n = 8 + Math.floor(Math.random() * 20);

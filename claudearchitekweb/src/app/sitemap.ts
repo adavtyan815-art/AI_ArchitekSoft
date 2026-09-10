@@ -5,7 +5,7 @@ import { getPortfolio } from "@/lib/public-data";
 
 const ROUTES: { path: string; priority: number; changeFrequency: "weekly" | "monthly" | "yearly" }[] = [
   { path: "/", priority: 1, changeFrequency: "weekly" },
-  { path: "/kitchenpro", priority: 0.9, changeFrequency: "monthly" },
+  { path: "/platform", priority: 0.9, changeFrequency: "monthly" },
   { path: "/for-business", priority: 0.9, changeFrequency: "monthly" },
   { path: "/for-home", priority: 0.9, changeFrequency: "monthly" },
   { path: "/solutions", priority: 0.7, changeFrequency: "monthly" },

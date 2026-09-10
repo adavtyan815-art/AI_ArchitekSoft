@@ -17,7 +17,7 @@ Start with `start_local.bat` (or `npm run dev`). Everything below works with **n
 | FAQ | /faq | All questions + sticky contact card |
 | Design check | any page | Serif headlines (also in Armenian), mono index numbers and captions, hairlines instead of boxes, monochrome logo; toggle light/dark and resize to a phone — nothing should look like a generic template |
 | Russian / English | /ru · /en | Language switch keeps the page; all text translated |
-| KitchenPro | /kitchenpro | Problem → solution, capabilities, stages 0–6 |
+| Platform | /platform | Problem → solution, capabilities, stages 0–6 |
 | B2B / B2C | /for-business · /for-home | Different promise, proof and CTA for each audience |
 | Other solutions | /solutions | Real estate, showrooms, AR/VR, custom |
 | Portfolio | /portfolio → open a project | Gallery lightbox, video, "Open 3D" when a live link exists |

@@ -20,7 +20,7 @@ The v2 visual layer was audited page by page (screenshots in light/dark, desktop
 
 ## What was asked (v1)
 
-A complete, testable web ecosystem for ArchiTek Soft: a simple, beautiful, professional client website that presents KitchenPro first (with a clear B2B / B2C split and a separate section for other business solutions), plus a private dashboard with client analytics (companies vs individuals), CRM, order/project management, render/video upload, individual client links, Pixel Streaming links, and a sales + SMM automation system with Telegram approval before publishing.
+A complete, testable web ecosystem for ArchiTek Soft: a simple, beautiful, professional client website that presents the platform (internally powered by the KitchenPro tool, which is never named publicly) first (with a clear B2B / B2C split and a separate section for other business solutions), plus a private dashboard with client analytics (companies vs individuals), CRM, order/project management, render/video upload, individual client links, Pixel Streaming links, and a sales + SMM automation system with Telegram approval before publishing.
 
 ## What was built
 

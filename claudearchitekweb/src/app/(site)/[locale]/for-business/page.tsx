@@ -86,7 +86,7 @@ export default async function ForBusinessPage({ params }: { params: Promise<{ lo
             <p className="caption mt-5">{d.home.heroNote}</p>
           </div>
           <div className="lg:col-span-6">
-            <Frame marks aspect="aspect-[4/3] sm:aspect-[16/11]" caption="KitchenPro · Web Viewer · AR" captionRight="B2B">
+            <Frame marks aspect="aspect-[4/3] sm:aspect-[16/11]" caption="Web Viewer · AR · 3D" captionRight="B2B">
               <Image src="/demo/kitchen-walnut.jpg" alt="" fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
             </Frame>
           </div>

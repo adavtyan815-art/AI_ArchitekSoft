@@ -118,7 +118,7 @@ export async function generatePosterAction(input: z.infer<typeof PosterSchema>) 
   const src = getDb().select().from(schema.assets).where(eq(schema.assets.id, data.sourceAssetId)).get();
   if (!src || !src.mime.startsWith("image/")) return { ok: false as const, error: (await M()).sourceImage };
   const brand = getSetting("brand");
-  const row = await generatePoster({ sourceRelPath: src.relPath, ratio: data.ratio, headline: data.headline, brand: `${brand.name} • KitchenPro`, sub: brand.website.replace(/^https?:\/\/(www\.)?/, ""), projectId: data.projectId ?? src.projectId ?? null });
+  const row = await generatePoster({ sourceRelPath: src.relPath, ratio: data.ratio, headline: data.headline, brand: brand.name, sub: brand.website.replace(/^https?:\/\/(www\.)?/, ""), projectId: data.projectId ?? src.projectId ?? null });
   const asset = getDb().select().from(schema.assets).where(eq(schema.assets.id, row.id)).get()!;
   if (data.postId) {
     const full = getPostFull(data.postId);

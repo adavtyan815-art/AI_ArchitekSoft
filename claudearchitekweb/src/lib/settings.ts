@@ -57,7 +57,7 @@ export type LiveSettings = {
 const DEFAULTS: { brand: BrandSettings; smm: SmmSettings; telegram: TelegramSettings; live: LiveSettings } = {
   brand: {
     name: "ArchiTek Soft",
-    tagline: "KitchenPro — from sketch to production",
+    tagline: "3D for furniture — from sketch to production",
     phone: "+374 41 184909",
     phone2: "+374 98 484909",
     email: "architeksoft@gmail.com",
@@ -77,9 +77,9 @@ const DEFAULTS: { brand: BrandSettings; smm: SmmSettings; telegram: TelegramSett
     defaultPlatforms: ["facebook", "instagram", "linkedin", "telegram"],
     approvalLeadMinutes: 120,
     autoPublishAfterApproval: true,
-    hashtagsHy: ["#ArchiTekSoft", "#KitchenPro", "#Խոհանոց", "#Կահույք", "#3DՎիզուալիզացիա", "#Երևան"],
-    hashtagsEn: ["#ArchiTekSoft", "#KitchenPro", "#KitchenDesign", "#3DVisualization", "#UnrealEngine5", "#Armenia"],
-    hashtagsRu: ["#ArchiTekSoft", "#KitchenPro", "#Кухни", "#3DВизуализация", "#Ереван"],
+    hashtagsHy: ["#ArchiTekSoft", "#Խոհանոց", "#Կահույք", "#3DՎիզուալիզացիա", "#Երևան"],
+    hashtagsEn: ["#ArchiTekSoft", "#KitchenDesign", "#3DVisualization", "#Furniture3D", "#Armenia"],
+    hashtagsRu: ["#ArchiTekSoft", "#Кухни", "#3DВизуализация", "#Ереван"],
     brandVoice:
       "Professional, calm, precise. Show, don't tell. Speak like an engineer who respects the reader's time. No hype, no emojis walls, no clickbait. Trust and expertise over likes.",
     postingDays: [2, 4, 6],
