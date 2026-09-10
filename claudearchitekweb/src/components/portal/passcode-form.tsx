@@ -41,6 +41,7 @@ export function PasscodeForm({ slug, token, labels }: { slug: string; token: str
         className="input mt-5 text-center text-2xl tracking-[0.4em]"
         inputMode="numeric"
         autoComplete="one-time-code"
+        aria-label={labels.title}
         autoFocus
         maxLength={12}
         value={code}
@@ -50,7 +51,7 @@ export function PasscodeForm({ slug, token, labels }: { slug: string; token: str
         }}
         aria-invalid={state === "wrong"}
       />
-      {state === "wrong" || state === "error" ? <p className="mt-2 text-sm text-danger-500">{labels.wrong}</p> : null}
+      {state === "wrong" || state === "error" ? <p role="alert" className="mt-2 text-sm text-danger-500">{labels.wrong}</p> : null}
       <button type="submit" disabled={!code.trim() || state === "sending"} className="btn-primary btn-lg mt-4 w-full">
         {labels.button}
       </button>

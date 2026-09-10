@@ -63,7 +63,9 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
     <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-ink-100 sm:aspect-[4/3]">
       {open ? (
         <>
-          <Script src={MODEL_VIEWER_SRC} type="module" strategy="afterInteractive" onReady={() => setReady(true)} onLoad={() => setReady(true)} />
+          {/* crossOrigin keeps Next's preload hint in the same CORS mode as the
+              module fetch — without it the browser downloads the file twice. */}
+          <Script src={MODEL_VIEWER_SRC} type="module" crossOrigin="anonymous" strategy="afterInteractive" onReady={() => setReady(true)} onLoad={() => setReady(true)} />
           <model-viewer
             src={glbUrl ?? undefined}
             ios-src={usdzUrl ?? undefined}
@@ -95,11 +97,13 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
   );
 
   if (inline) {
+    // Stacked: the inline variant lives in a narrow card, and putting the QR
+    // beside the viewer squeezed the 3D model down to a thumbnail.
     return (
       <div className={className}>
-        <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
+        <div className="grid gap-5">
           {viewer}
-          {qrDataUrl ? <QrPanel qrDataUrl={qrDataUrl} note={note} hidden={mobile} /> : null}
+          {qrDataUrl ? <QrPanel qrDataUrl={qrDataUrl} note={note} hidden={mobile} className="mx-auto" /> : null}
         </div>
       </div>
     );
@@ -132,10 +136,10 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
   );
 }
 
-function QrPanel({ qrDataUrl, note, hidden }: { qrDataUrl: string; note: string; hidden?: boolean }) {
+function QrPanel({ qrDataUrl, note, hidden, className }: { qrDataUrl: string; note: string; hidden?: boolean; className?: string }) {
   if (hidden) return null;
   return (
-    <div className="hidden flex-col items-center gap-2 rounded-2xl border border-line bg-paper-2 p-4 md:flex">
+    <div className={`hidden w-fit flex-col items-center gap-2 rounded-2xl border border-line bg-paper-2 p-4 md:flex ${className ?? ""}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={qrDataUrl} alt="QR" width={176} height={176} className="h-44 w-44 rounded-xl bg-white p-2" />
       <span className="max-w-[12rem] text-center text-xs text-ink-500">{note}</span>

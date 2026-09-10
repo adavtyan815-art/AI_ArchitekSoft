@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-export function BeforeAfter({ before, after, labels = ["Before", "After"], aspect = "aspect-[16/10]" }: { before: string; after: string; labels?: [string, string]; aspect?: string }) {
+export function BeforeAfter({ before, after, labels = ["Before", "After"], aspect = "aspect-[16/10]", ariaLabel }: { before: string; after: string; labels?: [string, string]; aspect?: string; ariaLabel?: string }) {
   const [pos, setPos] = useState(55);
   const ref = useRef<HTMLDivElement>(null);
   const update = (clientX: number) => {
@@ -14,16 +14,20 @@ export function BeforeAfter({ before, after, labels = ["Before", "After"], aspec
   return (
     <div
       ref={ref}
-      className={`relative w-full select-none overflow-hidden bg-ink-100 ${aspect}`}
+      // touch-action:pan-y lets the browser keep vertical scrolling while we
+      // handle the horizontal drag — without it the handle is unusable on phones.
+      className={`relative w-full cursor-ew-resize touch-pan-y select-none overflow-hidden bg-ink-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${aspect}`}
       onPointerDown={(e) => {
         (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
         update(e.clientX);
       }}
       onPointerMove={(e) => e.buttons === 1 && update(e.clientX)}
       role="slider"
+      aria-label={ariaLabel ?? `${labels[0]} / ${labels[1]}`}
       aria-valuenow={Math.round(pos)}
       aria-valuemin={0}
       aria-valuemax={100}
+      aria-valuetext={`${Math.round(pos)}% ${labels[0]}`}
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "ArrowLeft") setPos((p) => Math.max(2, p - 4));

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { StartWizard } from "@/components/site/start-wizard";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const d = getDictionary((isLocale(raw) ? raw : "hy") as Locale);
-  return { title: d.start.tag, description: d.start.subtitle };
+  const locale = (isLocale(raw) ? raw : "hy") as Locale;
+  const d = getDictionary(locale);
+  return pageMeta({ locale, path: "/start", title: d.start.tag, description: d.start.subtitle });
 }
 
 export default async function StartPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {

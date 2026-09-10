@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { Clock, MapPin } from "lucide-react";
-import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
+import { getDictionary, isLocale, pickLang, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { getSetting } from "@/lib/settings";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { ContactForm } from "@/components/site/contact-form";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const d = getDictionary((isLocale(raw) ? raw : "hy") as Locale);
-  return { title: d.nav.contact, description: d.contact.subtitle };
+  const locale = (isLocale(raw) ? raw : "hy") as Locale;
+  const d = getDictionary(locale);
+  return pageMeta({ locale, path: "/contact", title: d.nav.contact, description: d.contact.subtitle });
 }
 
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -38,7 +40,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                 </span>
                 <span className="min-w-0">
                   <span className="block text-xs font-semibold uppercase tracking-wide text-ink-500">{c.addressLabel}</span>
-                  <span className="block text-sm font-medium text-ink-900">{brand.address}</span>
+                  <span className="block text-sm font-medium text-ink-900">{pickLang(brand.address, locale, brand.address)}</span>
                 </span>
               </div>
             ) : null}
@@ -49,7 +51,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                 </span>
                 <span className="min-w-0">
                   <span className="block text-xs font-semibold uppercase tracking-wide text-ink-500">{c.hoursLabel}</span>
-                  <span className="block text-sm font-medium text-ink-900">{brand.workingHours}</span>
+                  <span className="block text-sm font-medium text-ink-900">{pickLang(brand.workingHours, locale, brand.workingHours)}</span>
                 </span>
               </div>
             ) : null}

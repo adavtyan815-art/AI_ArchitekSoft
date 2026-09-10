@@ -58,13 +58,19 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
           <Link href={p("/start")} className="btn-primary hidden md:inline-flex">
             {dict.nav.start}
           </Link>
-          <button className="btn-ghost -mr-2 lg:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu">
+          <button
+            className="btn-ghost -mr-2 lg:hidden"
+            onClick={() => setOpen((o) => !o)}
+            aria-label={dict.nav.menu}
+            aria-expanded={open}
+            aria-controls="site-mobile-nav"
+          >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
       {open ? (
-        <div className="border-t border-line bg-paper lg:hidden">
+        <div id="site-mobile-nav" className="border-t border-line bg-paper lg:hidden">
           <div className="container-x flex flex-col gap-1 py-4">
             {nav.map((n) => (
               <Link key={n.href} href={n.href} className={cn("rounded-xl px-3 py-2.5 text-base font-medium", isActive(n.href) ? "bg-ink-100 text-ink-950" : "text-ink-700")}>

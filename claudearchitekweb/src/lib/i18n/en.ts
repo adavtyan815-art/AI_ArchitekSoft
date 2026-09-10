@@ -16,6 +16,7 @@ export const en = {
     start: "Start a project",
     demo: "Try 3D",
     language: "Language",
+    menu: "Menu",
   },
   common: {
     learnMore: "Learn more",
@@ -41,6 +42,10 @@ export const en = {
     free: "free",
     yes: "Yes",
     no: "No",
+    close: "Close",
+    prevImage: "Previous",
+    nextImage: "Next",
+    image: "Image",
   },
   home: {
     heroBadge: "KitchenPro • 3D showroom + production documents",
@@ -356,7 +361,7 @@ export const en = {
     },
     submit: "Send request",
     successTitle: "Received",
-    successText: "Thank you. We will contact you within 15 minutes during working hours. Your request number:",
+    successText: "Thank you. We will contact you within 15 minutes during working hours.",
     successCta: "Meanwhile, open the 3D showroom",
   },
   footer: {

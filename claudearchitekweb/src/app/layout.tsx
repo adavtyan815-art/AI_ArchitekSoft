@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Armenian } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter", display: "swap" });
@@ -13,9 +14,11 @@ export const metadata: Metadata = {
   openGraph: { siteName: "ArchiTek Soft", images: ["/brand/share.jpg"] },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const h = await headers();
+  const lang = h.get("x-locale") || "hy";
   return (
-    <html lang="hy" className={`${inter.variable} ${armenian.variable}`}>
+    <html lang={lang} className={`${inter.variable} ${armenian.variable}`}>
       <body>{children}</body>
     </html>
   );

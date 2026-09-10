@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { localePath, type Dictionary, type Locale } from "@/lib/i18n";
+import { localePath, pickLang, type Dictionary, type Locale } from "@/lib/i18n";
 import type { BrandSettings } from "@/lib/settings";
 import { ContactChannels } from "./contact-channels";
 
@@ -37,8 +37,8 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
             <ContactChannels brand={brand} dict={dict} compact />
           </div>
           <div className="mt-4 text-sm text-ink-600">
-            <div>{brand.address}</div>
-            <div>{brand.workingHours}</div>
+            <div>{pickLang(brand.address, locale, brand.address)}</div>
+            <div>{pickLang(brand.workingHours, locale, brand.workingHours)}</div>
           </div>
         </div>
       </div>

@@ -45,7 +45,7 @@ export function StageStepper({ current, labels, statusLabel }: { current: string
               >
                 {done ? <Check size={14} strokeWidth={3} /> : i + 1}
               </span>
-              <span className={cn("mt-2 px-1 text-[11px] leading-tight lg:text-xs", active ? "font-semibold text-ink-950" : done ? "text-ink-700" : "text-ink-400")}>{labels[s] ?? s}</span>
+              <span className={cn("mt-2 px-1 text-[11px] leading-tight lg:text-xs", active ? "font-semibold text-ink-950" : done ? "text-ink-700" : "text-ink-500")}>{labels[s] ?? s}</span>
             </li>
           );
         })}

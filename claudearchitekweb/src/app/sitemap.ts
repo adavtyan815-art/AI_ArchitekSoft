@@ -19,16 +19,10 @@ const ROUTES: { path: string; priority: number; changeFrequency: "weekly" | "mon
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = env.appUrl;
   const now = new Date();
-  const entry = (path: string, priority: number, changeFrequency: (typeof ROUTES)[number]["changeFrequency"]): MetadataRoute.Sitemap => [
-    {
-      url: `${base}${localePath("hy", path)}`,
-      lastModified: now,
-      priority,
-      changeFrequency,
-      alternates: { languages: Object.fromEntries(LOCALES.map((l) => [l, `${base}${localePath(l, path)}`])) },
-    },
-    ...LOCALES.filter((l) => l !== "hy").map((l) => ({ url: `${base}${localePath(l, path)}`, lastModified: now, priority, changeFrequency })),
-  ];
+  const entry = (path: string, priority: number, changeFrequency: (typeof ROUTES)[number]["changeFrequency"]): MetadataRoute.Sitemap => {
+    const languages = Object.fromEntries(LOCALES.map((l) => [l, `${base}${localePath(l, path)}`]));
+    return LOCALES.map((l) => ({ url: `${base}${localePath(l, path)}`, lastModified: now, priority: l === "hy" ? priority : Math.max(0.1, priority - 0.1), changeFrequency, alternates: { languages } }));
+  };
 
   const out: MetadataRoute.Sitemap = ROUTES.flatMap((r) => entry(r.path, r.priority, r.changeFrequency));
   try {

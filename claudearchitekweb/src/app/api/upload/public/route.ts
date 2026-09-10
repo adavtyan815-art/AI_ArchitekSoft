@@ -6,7 +6,28 @@ export const runtime = "nodejs";
 const MAX_FILES = 8;
 const MAX_BYTES = 50 * 1024 * 1024; // 50 MB per file for public uploads
 
+// This endpoint is unauthenticated (the start wizard uses it before a lead
+// exists), so cap how often one address can push 50 MB files at us.
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60_000;
+const hits = new Map<string, { count: number; reset: number }>();
+
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const cur = hits.get(ip);
+  if (!cur || cur.reset < now) {
+    hits.set(ip, { count: 1, reset: now + RATE_WINDOW_MS });
+    if (hits.size > 5000) for (const [k, v] of hits) if (v.reset < now) hits.delete(k);
+    return false;
+  }
+  cur.count++;
+  return cur.count > RATE_LIMIT;
+}
+
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "local";
+  if (rateLimited(ip)) return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+
   let form: FormData;
   try {
     form = await req.formData();

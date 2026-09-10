@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { getPortfolio } from "@/lib/public-data";
 import { ButtonLink, Empty } from "@/components/ui";
 import { PortfolioGrid } from "@/components/site/portfolio-grid";
@@ -9,8 +10,9 @@ import { cn } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const d = getDictionary((isLocale(raw) ? raw : "hy") as Locale);
-  return { title: d.nav.portfolio, description: d.portfolio.subtitle };
+  const locale = (isLocale(raw) ? raw : "hy") as Locale;
+  const d = getDictionary(locale);
+  return pageMeta({ locale, path: "/portfolio", title: d.nav.portfolio, description: d.portfolio.subtitle });
 }
 
 export default async function PortfolioPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ c?: string }> }) {
@@ -52,7 +54,7 @@ export default async function PortfolioPage({ params, searchParams }: { params: 
                   className={cn("badge px-3.5 py-1.5 text-sm transition-colors", isActive ? "border-ink-950 bg-ink-950 text-white" : "border-ink-200 bg-white text-ink-700 hover:border-ink-300")}
                 >
                   {filters[k]}
-                  <span className={cn("ml-1 text-xs", isActive ? "text-ink-300" : "text-ink-400")}>{n}</span>
+                  <span className={cn("ml-1 text-xs", isActive ? "text-ink-300" : "text-ink-500")}>{n}</span>
                 </Link>
               );
             })}

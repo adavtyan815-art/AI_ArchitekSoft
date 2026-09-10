@@ -1,4 +1,4 @@
-import { getDictionary, isLocale, LOCALE_LABELS, type Locale } from "@/lib/i18n";
+import { getDictionary, isLocale, LOCALE_LABELS, pickLang, type Locale } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { getShareLinkBySlug } from "@/lib/portal";
 import { HtmlLang } from "@/components/site/html-lang";
@@ -23,7 +23,7 @@ export default async function PortalLayout({ children, params }: { children: Rea
             <img src="/brand/logo.png" alt={brand.name} className="h-7 w-auto" />
           </a>
           <div className="flex items-center gap-3">
-            <span className="hidden text-xs font-medium text-ink-500 sm:inline">{brand.tagline}</span>
+            <span className="hidden text-xs font-medium text-ink-500 sm:inline">{pickLang(brand.tagline, locale, brand.tagline)}</span>
             <span className="badge border-ink-200 bg-white text-ink-700">{LOCALE_LABELS[locale].short}</span>
           </div>
         </div>

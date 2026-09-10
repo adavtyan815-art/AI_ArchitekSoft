@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { ArrowRight, BadgeCheck, Eye, Palette, Smartphone } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { ButtonLink, CheckList, SectionHeading } from "@/components/ui";
 import { BeforeAfter } from "@/components/site/before-after";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const d = getDictionary((isLocale(raw) ? raw : "hy") as Locale);
-  return { title: d.nav.home, description: d.homeSegment.subtitle };
+  const locale = (isLocale(raw) ? raw : "hy") as Locale;
+  const d = getDictionary(locale);
+  return pageMeta({ locale, path: "/for-home", title: d.nav.home, description: d.homeSegment.subtitle });
 }
 
 export default async function ForHomePage({ params }: { params: Promise<{ locale: string }> }) {

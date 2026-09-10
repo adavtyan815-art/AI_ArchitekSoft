@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowRight, Check, Clock, Eye, LayoutDashboard, Link2, Monitor, Package, RefreshCw, Scissors } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { getSetting } from "@/lib/settings";
 import { ButtonLink, SectionHeading } from "@/components/ui";
 import { ContactChannels } from "@/components/site/contact-channels";
@@ -8,8 +9,9 @@ import { cn } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const d = getDictionary((isLocale(raw) ? raw : "hy") as Locale);
-  return { title: d.nav.business, description: d.business.subtitle };
+  const locale = (isLocale(raw) ? raw : "hy") as Locale;
+  const d = getDictionary(locale);
+  return pageMeta({ locale, path: "/for-business", title: d.nav.business, description: d.business.subtitle });
 }
 
 export default async function ForBusinessPage({ params }: { params: Promise<{ locale: string }> }) {

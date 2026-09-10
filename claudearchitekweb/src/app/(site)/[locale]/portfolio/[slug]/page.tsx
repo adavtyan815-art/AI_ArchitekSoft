@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { getPortfolioItem } from "@/lib/public-data";
+import { pageMeta } from "../../meta";
 import { ButtonLink } from "@/components/ui";
 import { Lightbox } from "@/components/site/lightbox";
 
@@ -14,7 +15,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const locale = (isLocale(raw) ? raw : "hy") as Locale;
   const item = getPortfolioItem(locale, slug);
   if (!item) return {};
-  return { title: item.title, description: item.summary || undefined, openGraph: item.cover ? { images: [item.cover] } : undefined };
+  return pageMeta({
+    locale,
+    path: `/portfolio/${slug}`,
+    title: item.title,
+    description: item.summary || undefined,
+    images: item.cover ? [item.cover] : undefined,
+  });
 }
 
 export default async function PortfolioItemPage({ params }: { params: Params }) {
@@ -70,7 +77,7 @@ export default async function PortfolioItemPage({ params }: { params: Params }) 
       {gallery.length ? (
         <section className="container-x pb-12">
           <div className="eyebrow mb-3">{d.portal.gallery}</div>
-          <Lightbox images={gallery} alt={item.title} />
+          <Lightbox images={gallery} alt={item.title} labels={{ close: d.common.close, prev: d.common.prevImage, next: d.common.nextImage }} />
         </section>
       ) : null}
 

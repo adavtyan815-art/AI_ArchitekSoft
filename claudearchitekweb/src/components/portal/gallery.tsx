@@ -5,7 +5,10 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 export type GalleryImage = { src: string; thumb: string; caption?: string | null; width?: number | null; height?: number | null };
 
-export function Gallery({ images, title }: { images: GalleryImage[]; title?: string }) {
+export type GalleryLabels = { close: string; prev: string; next: string };
+
+export function Gallery({ images, title, labels }: { images: GalleryImage[]; title?: string; labels?: GalleryLabels }) {
+  const l = labels ?? { close: "Close", prev: "Previous", next: "Next" };
   const [open, setOpen] = useState<number | null>(null);
   const count = images.length;
 
@@ -68,7 +71,7 @@ export function Gallery({ images, title }: { images: GalleryImage[]; title?: str
               </span>
               {current.caption ? <span className="ml-3 truncate">{current.caption}</span> : null}
             </div>
-            <button type="button" onClick={() => setOpen(null)} className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20" aria-label="Close">
+            <button type="button" onClick={() => setOpen(null)} className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20" aria-label={l.close}>
               <X size={20} />
             </button>
           </div>
@@ -84,7 +87,7 @@ export function Gallery({ images, title }: { images: GalleryImage[]; title?: str
                     prev();
                   }}
                   className="absolute top-1/2 left-2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 sm:left-4"
-                  aria-label="Previous"
+                  aria-label={l.prev}
                 >
                   <ChevronLeft size={24} />
                 </button>
@@ -95,7 +98,7 @@ export function Gallery({ images, title }: { images: GalleryImage[]; title?: str
                     next();
                   }}
                   className="absolute top-1/2 right-2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 sm:right-4"
-                  aria-label="Next"
+                  aria-label={l.next}
                 >
                   <ChevronRight size={24} />
                 </button>

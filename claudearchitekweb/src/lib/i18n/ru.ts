@@ -16,6 +16,7 @@ export const ru = {
     start: "Начать проект",
     demo: "Попробовать 3D",
     language: "Язык",
+    menu: "Меню",
   },
   common: {
     learnMore: "Подробнее",
@@ -41,6 +42,10 @@ export const ru = {
     free: "бесплатно",
     yes: "Да",
     no: "Нет",
+    close: "Закрыть",
+    prevImage: "Предыдущее",
+    nextImage: "Следующее",
+    image: "Изображение",
   },
   home: {
     heroBadge: "KitchenPro • 3D-шоурум + производственная документация",
@@ -356,7 +361,7 @@ export const ru = {
     },
     submit: "Отправить заявку",
     successTitle: "Принято",
-    successText: "Спасибо. Свяжемся с вами в рабочее время в течение 15 минут. Номер вашей заявки:",
+    successText: "Спасибо. Свяжемся с вами в рабочее время в течение 15 минут.",
     successCta: "А пока — откройте 3D-шоурум",
   },
   footer: {

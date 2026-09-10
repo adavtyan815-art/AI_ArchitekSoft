@@ -29,10 +29,13 @@ const LOCAL: Record<Locale, { view: string; approvedOn: string; error: string; c
   en: { view: "View", approvedOn: "Approved", error: "Could not send. Please try again or message us.", close: "Close", note: "Message", project: "Project", changeRequested: "Change requested", questionAsked: "Question" },
 };
 
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params, searchParams }: { params: Params; searchParams: Search }): Promise<Metadata> {
+  const [{ slug }, sp, cookieStore] = await Promise.all([params, searchParams, cookies()]);
   const link = getShareLinkBySlug(slug);
-  const title = link?.title ? `${link.title} — ArchiTek Soft` : "ArchiTek Soft — KitchenPro";
+  // Only reveal the project name once the link actually opens: otherwise anyone
+  // who guesses a slug can read the client's project title from the tab title.
+  const access = checkAccess(link, firstParam(sp.k) ?? "", link ? cookieStore.get(passcodeCookieName(link.id))?.value : null);
+  const title = access === "ok" && link?.title ? `${link.title} — ArchiTek Soft` : "ArchiTek Soft — KitchenPro";
   return { title, robots: { index: false, follow: false } };
 }
 
@@ -173,7 +176,7 @@ export default async function PortalPage({ params, searchParams }: { params: Par
         <section className="mt-10">
           <h2 className="text-xl font-semibold tracking-tight text-ink-950 sm:text-2xl">{d.portal.gallery}</h2>
           <div className="mt-4">
-            <Gallery title={d.portal.gallery} images={renders.map((a) => ({ src: mediaUrl(a.relPath), thumb: mediaUrl(a.thumbRelPath ?? a.relPath), caption: a.caption, width: a.width, height: a.height }))} />
+            <Gallery title={d.portal.gallery} labels={{ close: d.common.close, prev: d.common.prevImage, next: d.common.nextImage }} images={renders.map((a) => ({ src: mediaUrl(a.relPath), thumb: mediaUrl(a.thumbRelPath ?? a.relPath), caption: a.caption, width: a.width, height: a.height }))} />
           </div>
         </section>
       ) : null}

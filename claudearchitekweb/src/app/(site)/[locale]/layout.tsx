@@ -17,8 +17,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: { default: dict.meta.title, template: "%s — ArchiTek Soft" },
     description: dict.meta.description,
-    alternates: { languages: Object.fromEntries(LOCALES.map((l) => [l, localePath(l, "/")])) },
-    openGraph: { title: dict.meta.title, description: dict.meta.description, locale, type: "website" },
+    alternates: { canonical: localePath(locale, "/"), languages: Object.fromEntries(LOCALES.map((l) => [l, localePath(l, "/")])) },
+    // A nested `openGraph` replaces this object wholesale, so every page that
+    // sets its own must repeat siteName/images (see ./meta.ts).
+    openGraph: {
+      title: dict.meta.title,
+      description: dict.meta.description,
+      url: localePath(locale, "/"),
+      siteName: "ArchiTek Soft",
+      locale,
+      type: "website",
+      images: ["/brand/share.jpg"],
+    },
+    twitter: { card: "summary_large_image", title: dict.meta.title, description: dict.meta.description, images: ["/brand/share.jpg"] },
   };
 }
 

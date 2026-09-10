@@ -95,7 +95,7 @@ export function ContactForm({ locale, dict, className }: { locale: Locale; dict:
         <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
       </div>
 
-      {state === "error" ? <p className="text-sm text-danger-500">{c.error}</p> : null}
+      {state === "error" ? <p role="alert" className="text-sm text-danger-500">{c.error}</p> : null}
 
       <Button type="submit" size="lg" disabled={state === "sending"} className="w-full sm:w-auto">
         {state === "sending" ? dict.common.sending : dict.common.send}

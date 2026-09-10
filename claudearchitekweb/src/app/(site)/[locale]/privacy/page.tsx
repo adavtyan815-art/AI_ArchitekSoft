@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { getSetting } from "@/lib/settings";
 
 type PrivacyText = { title: string; updated: string; intro: string; sections: { h: string; p: string }[]; contact: string };
@@ -46,7 +47,7 @@ const TEXT: Record<Locale, PrivacyText> = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
   const locale = (isLocale(raw) ? raw : "hy") as Locale;
-  return { title: TEXT[locale].title };
+  return pageMeta({ locale, path: "/privacy", title: TEXT[locale].title, description: TEXT[locale].intro });
 }
 
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {

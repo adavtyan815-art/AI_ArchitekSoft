@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { ArrowRight, Box, Calculator, ClipboardList, Cpu, FileText, Layers, Settings2, SlidersHorizontal } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { ButtonLink, SectionHeading } from "@/components/ui";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const d = getDictionary((isLocale(raw) ? raw : "hy") as Locale);
-  return { title: d.nav.kitchenpro, description: d.kitchenpro.subtitle };
+  const locale = (isLocale(raw) ? raw : "hy") as Locale;
+  const d = getDictionary(locale);
+  return pageMeta({ locale, path: "/kitchenpro", title: d.nav.kitchenpro, description: d.kitchenpro.subtitle });
 }
 
 export default async function KitchenProPage({ params }: { params: Promise<{ locale: string }> }) {

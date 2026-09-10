@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { ArrowRight, Check, Minus } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { ButtonLink, SectionHeading } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const d = getDictionary((isLocale(raw) ? raw : "hy") as Locale);
-  return { title: d.nav.howItWorks, description: d.howItWorks.subtitle };
+  const locale = (isLocale(raw) ? raw : "hy") as Locale;
+  const d = getDictionary(locale);
+  return pageMeta({ locale, path: "/how-it-works", title: d.nav.howItWorks, description: d.howItWorks.subtitle });
 }
 
 export default async function HowItWorksPage({ params }: { params: Promise<{ locale: string }> }) {

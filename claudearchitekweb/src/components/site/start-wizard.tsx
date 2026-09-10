@@ -210,7 +210,7 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
           return (
             <li key={label} className="min-w-0">
               <div className={cn("h-1 rounded-full", done || active ? "bg-brand-500" : "bg-ink-200")} />
-              <div className={cn("mt-2 truncate text-xs font-semibold", active ? "text-ink-950" : done ? "text-brand-600" : "text-ink-400")}>
+              <div className={cn("mt-2 truncate text-xs font-semibold", active ? "text-ink-950" : done ? "text-brand-600" : "text-ink-500")}>
                 <span className="sm:hidden">{i + 1}</span>
                 <span className="hidden sm:inline">{label}</span>
               </div>
@@ -326,7 +326,7 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
                     ).map(([label, val, set]) => (
                       <label key={label} className="block">
                         <Input type="number" inputMode="decimal" min={0} step={0.01} placeholder={label} value={val} onChange={(e) => set(e.target.value)} aria-label={label} />
-                        <span className="mt-1 block truncate text-xs text-ink-400">{label}</span>
+                        <span className="mt-1 block truncate text-xs text-ink-500">{label}</span>
                       </label>
                     ))}
                   </div>
@@ -472,7 +472,7 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
           </div>
         ) : null}
 
-        {error ? <p className="mt-5 text-sm text-danger-500">{error}</p> : null}
+        {error ? <p role="alert" className="mt-5 text-sm text-danger-500">{error}</p> : null}
 
         {/* nav */}
         <div className="mt-8 flex items-center justify-between gap-3 border-t border-line pt-6">

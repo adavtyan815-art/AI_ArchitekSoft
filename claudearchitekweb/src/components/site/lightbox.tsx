@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
+export type LightboxLabels = { close: string; prev: string; next: string };
+
 /** Thumbnail grid + full-screen viewer with keyboard navigation. */
-export function Lightbox({ images, alt = "" }: { images: string[]; alt?: string }) {
+export function Lightbox({ images, alt = "", labels }: { images: string[]; alt?: string; labels?: LightboxLabels }) {
+  const l = labels ?? { close: "Close", prev: "Previous", next: "Next" };
   const [idx, setIdx] = useState<number | null>(null);
   const close = useCallback(() => setIdx(null), []);
   const prev = useCallback(() => setIdx((i) => (i === null ? i : (i - 1 + images.length) % images.length)), [images.length]);
@@ -39,7 +42,7 @@ export function Lightbox({ images, alt = "" }: { images: string[]; alt?: string 
 
       {idx !== null ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/95 p-4" role="dialog" aria-modal="true" onClick={close}>
-          <button type="button" onClick={close} className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20" aria-label="Close">
+          <button type="button" onClick={close} className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20" aria-label={l.close}>
             <X size={20} />
           </button>
           {images.length > 1 ? (
@@ -51,7 +54,7 @@ export function Lightbox({ images, alt = "" }: { images: string[]; alt?: string 
                   prev();
                 }}
                 className="absolute top-1/2 left-3 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:left-6"
-                aria-label="Previous"
+                aria-label={l.prev}
               >
                 <ChevronLeft size={22} />
               </button>
@@ -62,7 +65,7 @@ export function Lightbox({ images, alt = "" }: { images: string[]; alt?: string 
                   next();
                 }}
                 className="absolute top-1/2 right-3 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:right-6"
-                aria-label="Next"
+                aria-label={l.next}
               >
                 <ChevronRight size={22} />
               </button>

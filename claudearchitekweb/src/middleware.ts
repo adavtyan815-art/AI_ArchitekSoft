@@ -27,11 +27,15 @@ export function middleware(req: NextRequest) {
       url.pathname = pathname.replace(/^\/hy/, "") || "/";
       return NextResponse.redirect(url, 308);
     }
-    return NextResponse.next();
+    const headers = new Headers(req.headers);
+    headers.set("x-locale", first);
+    return NextResponse.next({ request: { headers } });
   }
   const url = req.nextUrl.clone();
   url.pathname = `/hy${pathname === "/" ? "" : pathname}`;
-  return NextResponse.rewrite(url);
+  const headers = new Headers(req.headers);
+  headers.set("x-locale", "hy");
+  return NextResponse.rewrite(url, { request: { headers } });
 }
 
 export const config = { matcher: ["/((?!_next/static|_next/image).*)"], runtime: "nodejs" };

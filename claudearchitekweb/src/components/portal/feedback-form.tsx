@@ -92,11 +92,11 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
           />
           <label className="block">
             <span className="label">
-              {labels.contact} <span className="font-normal normal-case tracking-normal text-ink-400">({labels.optional})</span>
+              {labels.contact} <span className="font-normal normal-case tracking-normal text-ink-500">({labels.optional})</span>
             </span>
             <input className="input text-base" value={contact} onChange={(e) => setContact(e.target.value)} maxLength={200} autoComplete="tel" />
           </label>
-          {state === "error" ? <p className="text-sm text-danger-500">{labels.error}</p> : null}
+          {state === "error" ? <p role="alert" className="text-sm text-danger-500">{labels.error}</p> : null}
           <button type="submit" disabled={!canSend || state === "sending"} className={`btn-lg w-full sm:w-auto ${kind === "approve" ? "btn bg-green-600 text-white hover:bg-green-700" : "btn-primary"}`}>
             {state === "sending" ? labels.sending : kind === "approve" ? labels.approve : labels.send}
           </button>

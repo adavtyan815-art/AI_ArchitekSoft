@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
+import { pageMeta } from "../meta";
 import { ButtonLink, CheckList } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -8,8 +9,9 @@ const IMAGES = ["/demo/cottage.jpg", "/demo/interior.jpg", "/demo/living.jpg", "
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const d = getDictionary((isLocale(raw) ? raw : "hy") as Locale);
-  return { title: d.nav.solutions, description: d.solutions.subtitle };
+  const locale = (isLocale(raw) ? raw : "hy") as Locale;
+  const d = getDictionary(locale);
+  return pageMeta({ locale, path: "/solutions", title: d.nav.solutions, description: d.solutions.subtitle });
 }
 
 export default async function SolutionsPage({ params }: { params: Promise<{ locale: string }> }) {
