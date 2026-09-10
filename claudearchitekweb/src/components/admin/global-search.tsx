@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
-type Hit = { type: string; id: string; title: string; subtitle?: string; href: string };
+type Hit = { type: string; typeLabel?: string; id: string; title: string; subtitle?: string; href: string };
 
-export function GlobalSearch() {
+export function GlobalSearch({ placeholder = "…" }: { placeholder?: string }) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
@@ -44,24 +44,24 @@ export function GlobalSearch() {
 
   return (
     <div ref={box} className="relative w-full max-w-md">
-      <Search size={15} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-400" />
-      <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => hits.length && setOpen(true)} placeholder="Search leads, clients, projects, posts…" className="input h-9 rounded-full pl-9 text-sm" />
+      <Search size={15} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint" />
+      <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => hits.length && setOpen(true)} placeholder={placeholder} className="input h-9 rounded-full pl-9 text-sm" />
       {open && hits.length ? (
-        <div className="absolute top-11 left-0 z-30 w-full overflow-hidden rounded-xl border border-line bg-white shadow-card">
+        <div className="absolute top-11 left-0 z-30 w-full overflow-hidden rounded-xl border border-line bg-surface shadow-card">
           {hits.map((h) => (
             <button
               key={`${h.type}-${h.id}`}
-              className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-ink-50"
+              className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-2"
               onClick={() => {
                 setOpen(false);
                 setQ("");
                 router.push(h.href);
               }}
             >
-              <span className="rounded-md bg-ink-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-500">{h.type}</span>
+              <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-muted">{h.typeLabel ?? h.type}</span>
               <span className="min-w-0 flex-1 truncate">
-                <span className="font-medium text-ink-900">{h.title}</span>
-                {h.subtitle ? <span className="ml-2 text-ink-500">{h.subtitle}</span> : null}
+                <span className="font-medium text-fg">{h.title}</span>
+                {h.subtitle ? <span className="ml-2 text-muted">{h.subtitle}</span> : null}
               </span>
             </button>
           ))}

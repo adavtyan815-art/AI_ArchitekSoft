@@ -34,7 +34,7 @@ export function toAssetLite(a: Asset): AssetLite {
     name: a.originalName,
     caption: a.caption,
     url: mediaUrl(a.relPath),
-    thumbUrl: mediaUrl(a.thumbRelPath || (a.mime.startsWith("image/") ? a.relPath : null)),
+    thumbUrl: mediaUrl(a.thumbRelPath || (a.mime.startsWith("image/") ? a.relPath : null), 320),
     width: a.width,
     height: a.height,
     durationSec: a.durationSec,
@@ -52,7 +52,7 @@ export function listProjectsLite(): ProjectLite[] {
   const covers = coverIds.length ? db.select().from(schema.assets).where(inArray(schema.assets.id, coverIds)).all() : [];
   return rows.map((p) => {
     const c = covers.find((a) => a.id === p.coverAssetId);
-    return { id: p.id, code: p.code, title: p.title, type: p.type, segment: p.segment, stage: p.stage, status: p.status, coverUrl: c ? mediaUrl(c.thumbRelPath || c.relPath) : "", coverAssetId: p.coverAssetId, liveUrl: p.liveUrl, description: p.description };
+    return { id: p.id, code: p.code, title: p.title, type: p.type, segment: p.segment, stage: p.stage, status: p.status, coverUrl: c ? mediaUrl(c.thumbRelPath || c.relPath, 320) : "", coverAssetId: p.coverAssetId, liveUrl: p.liveUrl, description: p.description };
   });
 }
 

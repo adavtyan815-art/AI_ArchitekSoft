@@ -5,7 +5,9 @@ import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { shareUrl } from "@/lib/crm";
 import { env } from "@/lib/env";
-import { formatDate, relativeTime } from "@/lib/utils";
+import { relTime } from "@/lib/admin-helpers";
+import { getAdminDict, local } from "@/lib/i18n/admin";
+import { formatDate } from "@/lib/utils";
 import { PageHeader, StatCard } from "@/components/admin/shell";
 import { Badge, Empty } from "@/components/ui";
 import { CopyButton } from "@/components/admin/copy-button";
@@ -16,6 +18,8 @@ export const dynamic = "force-dynamic";
 
 export default async function ClientPagesPage() {
   await requireUser();
+  const { t, locale } = await getAdminDict();
+  const G = t.pages;
   const db = getDb();
   const rows = db
     .select({
@@ -30,41 +34,58 @@ export default async function ClientPagesPage() {
     .limit(500)
     .all();
 
-  const views30 = db
-    .select({ c: sql<number>`count(*)` })
-    .from(schema.shareEvents)
-    .where(sql`${schema.shareEvents.type} = 'view' and ${schema.shareEvents.createdAt} >= ${new Date(Date.now() - 30 * 86400_000).toISOString()}`)
-    .get()?.c ?? 0;
+  const views30 =
+    db
+      .select({ c: sql<number>`count(*)` })
+      .from(schema.shareEvents)
+      .where(sql`${schema.shareEvents.type} = 'view' and ${schema.shareEvents.createdAt} >= ${new Date(Date.now() - 30 * 86400_000).toISOString()}`)
+      .get()?.c ?? 0;
+
+  const sentViaNames: Record<string, string> = local(
+    {
+      hy: { copy: "պատճենում", telegram: "Telegram", whatsapp: "WhatsApp", email: "էլ. փոստ" },
+      en: { copy: "copy", telegram: "Telegram", whatsapp: "WhatsApp", email: "email" },
+    },
+    locale
+  );
 
   const active = rows.filter((r) => r.link.isActive).length;
   const totalViews = rows.reduce((s, r) => s + r.link.viewsCount, 0);
 
   return (
     <>
-      <PageHeader title="Client pages" subtitle="Personal links you send to clients — one page per project, with Live 3D, renders and feedback." />
+      <PageHeader title={G.title} subtitle={G.subtitle} />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <StatCard label="Links" value={rows.length} hint={`${active} active`} />
-        <StatCard label="Total views" value={totalViews} />
-        <StatCard label="Views (30 d)" value={views30} tone={views30 ? "brand" : undefined} />
+        <StatCard label={G.links} value={rows.length} hint={G.activeHint(active)} />
+        <StatCard label={G.totalViews} value={totalViews} />
+        <StatCard label={G.views30} value={views30} tone={views30 ? "brand" : undefined} />
       </div>
 
       {rows.length === 0 ? (
-        <Empty title="No client pages yet" text="Open a project and create a client page from its “Client page” tab." action={<Link href="/admin/projects" className="btn-primary btn-sm">Go to projects</Link>} />
+        <Empty
+          title={G.emptyTitle}
+          text={G.emptyText}
+          action={
+            <Link href="/admin/projects" className="btn-primary btn-sm">
+              {G.emptyAction}
+            </Link>
+          }
+        />
       ) : (
-        <div className="card overflow-x-auto">
-          <table className="table-admin">
+        <div className="card overflow-x-auto max-md:overflow-visible max-md:border-none max-md:bg-transparent max-md:shadow-none">
+          <table className="table-admin table-responsive">
             <thead>
               <tr>
-                <th>Project</th>
-                <th>Slug / URL</th>
-                <th>Lang</th>
-                <th className="text-right">Views</th>
-                <th>Last viewed</th>
-                <th>Expires</th>
-                <th>Sent</th>
-                <th>State</th>
-                <th className="text-right">Actions</th>
+                <th>{G.colProject}</th>
+                <th>{G.colUrl}</th>
+                <th className="max-md:hidden!">{t.common.language}</th>
+                <th className="text-right">{G.colViews}</th>
+                <th>{G.colLastViewed}</th>
+                <th className="max-md:hidden!">{G.colExpires}</th>
+                <th className="max-md:hidden!">{G.colSent}</th>
+                <th>{G.colState}</th>
+                <th className="text-right">{t.common.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -73,41 +94,51 @@ export default async function ClientPagesPage() {
                 const expired = l.expiresAt ? new Date(l.expiresAt).getTime() < Date.now() : false;
                 return (
                   <tr key={l.id}>
-                    <td className="whitespace-nowrap">
+                    <td data-label={G.colProject} className="whitespace-nowrap">
                       {projectId ? (
-                        <Link href={`/admin/projects/${projectId}?tab=client`} className="font-medium text-ink-900 hover:text-brand-600">
+                        <Link href={`/admin/projects/${projectId}?tab=client`} className="font-medium text-fg transition-colors hover:text-accent">
                           {title}
                         </Link>
                       ) : (
-                        <span className="text-ink-500">— deleted project —</span>
+                        <span className="text-muted">{G.deletedProject}</span>
                       )}
-                      <div className="font-mono text-xs text-ink-500">{code ?? ""}</div>
+                      <div className="font-mono text-xs text-muted">{code ?? ""}</div>
                     </td>
-                    <td>
-                      <div className="font-mono text-xs text-ink-900">/p/{l.slug}</div>
-                      <div className="max-w-[22rem] truncate font-mono text-[11px] text-ink-400" title={url}>
+                    <td data-label={G.colUrl}>
+                      <div className="font-mono text-xs text-fg">/p/{l.slug}</div>
+                      <div className="max-w-[22rem] truncate font-mono text-[11px] text-faint" title={url}>
                         {url}
                       </div>
                     </td>
-                    <td className="uppercase text-ink-600">{l.language}</td>
-                    <td className="text-right tabular-nums">{l.viewsCount}</td>
-                    <td className="whitespace-nowrap text-ink-500">{l.lastViewedAt ? relativeTime(l.lastViewedAt) : "—"}</td>
-                    <td className="whitespace-nowrap text-ink-600">{l.expiresAt ? formatDate(l.expiresAt) : "—"}</td>
-                    <td className="whitespace-nowrap text-xs text-ink-500">{l.sentAt ? `${l.sentVia} · ${relativeTime(l.sentAt)}` : "—"}</td>
-                    <td>
-                      <Badge tone={expired ? "warning" : l.isActive ? "success" : "neutral"}>{expired ? "expired" : l.isActive ? "active" : "off"}</Badge>
-                      {l.passcode ? <div className="mt-0.5 text-[11px] text-ink-500">code {l.passcode}</div> : null}
+                    <td data-label={t.common.language} className="uppercase max-md:hidden!">
+                      {l.language}
                     </td>
-                    <td>
+                    <td data-label={G.colViews} className="text-right tabular-nums">
+                      {l.viewsCount}
+                    </td>
+                    <td data-label={G.colLastViewed} className="whitespace-nowrap text-muted">
+                      {l.lastViewedAt ? relTime(l.lastViewedAt, locale) : "—"}
+                    </td>
+                    <td data-label={G.colExpires} className="whitespace-nowrap max-md:hidden!">
+                      {l.expiresAt ? formatDate(l.expiresAt) : "—"}
+                    </td>
+                    <td data-label={G.colSent} className="text-xs whitespace-nowrap text-muted max-md:hidden!">
+                      {l.sentAt ? `${sentViaNames[l.sentVia ?? ""] ?? l.sentVia} · ${relTime(l.sentAt, locale)}` : "—"}
+                    </td>
+                    <td data-label={G.colState}>
+                      <Badge tone={expired ? "warning" : l.isActive ? "success" : "neutral"}>{expired ? G.expired : l.isActive ? G.activeState : G.off}</Badge>
+                      {l.passcode ? <div className="mt-0.5 text-[11px] text-muted">{G.codeHint(l.passcode)}</div> : null}
+                    </td>
+                    <td data-label="">
                       <div className="flex items-center justify-end gap-1">
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="btn-ghost btn-sm" title="Open">
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="btn-ghost btn-sm" title={t.common.open} aria-label={t.common.open}>
                           <ExternalLink size={14} />
                         </a>
-                        <CopyButton text={url} label="Copy link" iconOnly className="btn-ghost btn-sm" />
+                        <CopyButton text={url} label={t.projects.copyLink} copiedLabel={t.common.copied} iconOnly className="btn-ghost btn-sm" />
                         <form action={toggleShareLinkAction}>
                           <input type="hidden" name="id" value={l.id} />
-                          <ConfirmButton message={l.isActive ? "Deactivate this client page?" : "Activate this client page?"} className="btn-ghost btn-sm">
-                            {l.isActive ? "Off" : "On"}
+                          <ConfirmButton message={l.isActive ? G.deactivateConfirm : G.activateConfirm} className="btn-ghost btn-sm">
+                            {l.isActive ? G.offBtn : G.on}
                           </ConfirmButton>
                         </form>
                       </div>

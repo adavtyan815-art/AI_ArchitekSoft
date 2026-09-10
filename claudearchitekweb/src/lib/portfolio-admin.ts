@@ -30,7 +30,7 @@ export function listPortfolioItems(): PortfolioRow[] {
   const covers = coverIds.length ? db.select().from(schema.assets).where(inArray(schema.assets.id, coverIds)).all() : [];
   return rows.map((r) => {
     const c = covers.find((a) => a.id === r.item.coverAssetId);
-    return { ...r.item, titleObj: toI18n(r.item.title), summaryObj: toI18n(r.item.summary), assetIdList: parseJson<string[]>(r.item.assetIds, []), coverUrl: c ? mediaUrl(c.thumbRelPath || c.relPath) : "", projectTitle: r.projectTitle, projectCode: r.projectCode };
+    return { ...r.item, titleObj: toI18n(r.item.title), summaryObj: toI18n(r.item.summary), assetIdList: parseJson<string[]>(r.item.assetIds, []), coverUrl: c ? mediaUrl(c.thumbRelPath || c.relPath, 320) : "", projectTitle: r.projectTitle, projectCode: r.projectCode };
   });
 }
 

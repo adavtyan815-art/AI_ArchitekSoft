@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { liveConfigured, liveLinkFor, listLiveInstances } from "@/lib/live";
 import { getSetting } from "@/lib/settings";
 import { fmtYerevan } from "@/lib/tz";
+import { getAdminDict } from "@/lib/i18n/admin";
 import { PageHeader, Panel, StatCard, StatusBadge } from "@/components/admin/shell";
 import { Notice } from "@/components/admin/notice";
 import { CopyButton } from "@/components/admin/copy-button";
@@ -23,6 +24,8 @@ function hours(sec: number | undefined) {
 
 export default async function LivePage({ searchParams }: { searchParams: Promise<SP> }) {
   await requireUser();
+  const { t } = await getAdminDict();
+  const L = t.live;
   const sp = await searchParams;
   const live = getSetting("live");
   const configured = liveConfigured();
@@ -32,70 +35,76 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
   return (
     <>
       <PageHeader
-        title="Live 3D"
-        subtitle="Personal pixel-streaming links for clients: the backend starts a GPU instance on demand and enforces the time quotas."
+        title={L.title}
+        subtitle={L.subtitle}
         actions={
           <a href={live.backendUrl} target="_blank" rel="noreferrer" className="btn-secondary btn-sm">
-            <ExternalLink size={14} /> Open backend
+            <ExternalLink size={14} /> {L.openBackend}
           </a>
         }
       />
       <Notice text={sp.notice} tone={sp.tone} />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="Instances" value={r.instances.length} hint={configured ? "from the backend" : "backend not reachable"} />
-        <StatCard label="Running / starting" value={running} tone={running ? "brand" : undefined} />
-        <StatCard label="Backend" value={configured ? "connected" : "dry-run"} tone={configured ? "success" : "warning"} hint={live.backendUrl.replace(/^https?:\/\//, "")} />
+        <StatCard label={L.stats.instances} value={r.instances.length} hint={configured ? L.fromBackend : L.unreachable} />
+        <StatCard label={L.stats.running} value={running} tone={running ? "brand" : undefined} />
+        <StatCard label={L.stats.backend} value={configured ? L.connected : L.dryRun} tone={configured ? "success" : "warning"} hint={live.backendUrl.replace(/^https?:\/\//, "")} />
       </div>
 
       {!r.ok ? (
         <div className="mt-5">
-          <Panel title="Backend not configured">
-            <p className="text-sm text-ink-600">{r.error}</p>
-            <ul className="mt-3 space-y-1.5 text-sm text-ink-600">
-              <li><code className="font-mono text-xs">LIVE_BACKEND_URL</code> — admin API base, currently <b>{live.backendUrl}</b> (change it in <Link href="/admin/settings?tab=live" className="text-brand-600">Settings → Live 3D</Link>).</li>
-              <li><code className="font-mono text-xs">LIVE_ADMIN_USERNAME</code> / <code className="font-mono text-xs">LIVE_ADMIN_PASSWORD</code> — the express-session admin login of the streaming backend.</li>
+          <Panel title={L.notConfigured}>
+            <p className="text-sm text-fg-2">{r.error}</p>
+            <ul className="mt-3 space-y-1.5 text-sm text-fg-2">
+              <li>
+                <code className="font-mono text-xs">LIVE_BACKEND_URL</code> — {L.envBackend} <b>{live.backendUrl}</b> ({L.envBackend2}{" "}
+                <Link href="/admin/settings?tab=live" className="font-medium text-accent hover:underline">{L.settingsLink}</Link>).
+              </li>
+              <li>
+                <code className="font-mono text-xs">LIVE_ADMIN_USERNAME</code> / <code className="font-mono text-xs">LIVE_ADMIN_PASSWORD</code> — {L.envCreds}
+              </li>
             </ul>
-            <p className="mt-3 text-xs text-ink-500">
-              Without the credentials the form below runs as a <b>dry-run</b>: nothing is created on the backend, but the link shape <code>{live.backendUrl}/?instanceUuid=…</code> is shown so the client-page flow can still be tested.
-            </p>
+            <p className="mt-3 text-xs text-muted">{L.notConfiguredNote} <code className="font-mono">{live.backendUrl}/?instanceUuid=…</code></p>
           </Panel>
         </div>
       ) : (
         <div className="mt-5">
-          <Panel title="Instances">
+          <Panel title={L.panel}>
             {r.instances.length === 0 ? (
-              <p className="text-sm text-ink-500">No instances on the backend yet.</p>
+              <p className="text-sm text-muted">{L.none}</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="table-admin">
+                <table className="table-admin table-responsive">
                   <thead>
                     <tr>
-                      <th>Assigned to</th>
-                      <th>Instance</th>
-                      <th>Status</th>
-                      <th>Display used / limit</th>
-                      <th>Real used / limit</th>
-                      <th>Expires</th>
-                      <th className="text-right">Actions</th>
+                      <th>{L.table.assignedTo}</th>
+                      <th>{L.table.instance}</th>
+                      <th>{L.table.status}</th>
+                      <th>{L.table.display}</th>
+                      <th>{L.table.real}</th>
+                      <th>{L.table.expires}</th>
+                      <th className="text-right">{L.table.actions}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {r.instances.map((i) => (
                       <tr key={i.uuid}>
-                        <td className="font-medium text-ink-900">{i.assignedTo ?? "—"}</td>
-                        <td className="font-mono text-[11px] text-ink-600">{i.instanceId}<div className="text-ink-400">{i.uuid.slice(0, 12)}…</div></td>
-                        <td><StatusBadge value={i.status} /></td>
-                        <td className="text-xs">{hours(i.displayTimeUsedSeconds)} / {i.displayLimitHours}h</td>
-                        <td className="text-xs">{hours(i.realTimeUsedSeconds)} / {i.realLimitHours}h</td>
-                        <td className="whitespace-nowrap text-xs">{fmtYerevan(i.expiresAt)}</td>
-                        <td>
+                        <td data-label={L.table.assignedTo} className="font-medium text-fg">{i.assignedTo ?? "—"}</td>
+                        <td data-label={L.table.instance} className="font-mono text-[11px] text-fg-2">
+                          {i.instanceId}
+                          <div className="text-faint">{i.uuid.slice(0, 12)}…</div>
+                        </td>
+                        <td data-label={L.table.status}><StatusBadge value={i.status} label={L.statuses[i.status as keyof typeof L.statuses] ?? i.status} /></td>
+                        <td data-label={L.table.display} className="text-xs tabular-nums">{hours(i.displayTimeUsedSeconds)} / {i.displayLimitHours}h</td>
+                        <td data-label={L.table.real} className="text-xs tabular-nums">{hours(i.realTimeUsedSeconds)} / {i.realLimitHours}h</td>
+                        <td data-label={L.table.expires} className="text-xs whitespace-nowrap">{fmtYerevan(i.expiresAt)}</td>
+                        <td data-label="">
                           <div className="flex flex-wrap items-center justify-end gap-1">
-                            <CopyButton text={liveLinkFor(i.uuid)} label="Copy link" />
-                            <a href={liveLinkFor(i.uuid)} target="_blank" rel="noreferrer" className="btn-ghost btn-sm"><ExternalLink size={14} /></a>
+                            <CopyButton text={liveLinkFor(i.uuid)} label={L.copyLink} />
+                            <a href={liveLinkFor(i.uuid)} target="_blank" rel="noreferrer" className="btn-ghost btn-sm" aria-label={L.open}><ExternalLink size={14} /></a>
                             <form action={stopLiveInstanceForm} className="inline">
                               <input type="hidden" name="uuid" value={i.uuid} />
-                              <ConfirmSubmit message={`Stop the instance assigned to ${i.assignedTo ?? "this client"}?`}>Stop</ConfirmSubmit>
+                              <ConfirmSubmit message={L.stopConfirm}>{L.stop}</ConfirmSubmit>
                             </form>
                           </div>
                         </td>
@@ -110,30 +119,33 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
       )}
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-        <Panel title="Create an instance link">
+        <Panel title={L.createPanel}>
           <form action={createLiveInstanceForm} className="grid gap-4 sm:grid-cols-2">
-            <Field label="Assigned to" required hint="Client or project name — shown in the backend admin." className="sm:col-span-2">
-              <Input name="assignedTo" required placeholder="Aren · kitchen 2026" />
+            <Field label={L.form.assignedTo} required hint={L.form.assignedToHint} className="sm:col-span-2">
+              <Input name="assignedTo" required placeholder="Aren · 2026" />
             </Field>
-            <Field label="Display limit (hours)" hint="What the client sees as their balance.">
+            <Field label={L.form.displayLimit} hint={L.form.displayHint}>
               <Input name="displayLimitHours" type="number" step="0.5" min={0.5} defaultValue={live.defaultDisplayHours} />
             </Field>
-            <Field label="Real limit (hours)" hint="Actual GPU time before the instance stops.">
+            <Field label={L.form.realLimit} hint={L.form.realHint}>
               <Input name="realLimitHours" type="number" step="0.5" min={0.5} defaultValue={live.defaultRealHours} />
             </Field>
-            <Field label="Link lifetime (days)"><Input name="days" type="number" min={1} defaultValue={live.defaultDays} /></Field>
-            <Field label="Explicit instance id" hint="Optional: bind to an existing AWS instance id."><Input name="explicitInstanceId" placeholder="i-0abc…" /></Field>
-            <div className="sm:col-span-2"><SubmitButton pendingText="Creating…">Create link</SubmitButton></div>
+            <Field label={L.form.days}><Input name="days" type="number" min={1} defaultValue={live.defaultDays} /></Field>
+            <Field label={L.form.instanceId} hint={L.form.instanceIdHint}><Input name="explicitInstanceId" placeholder="i-0abc…" /></Field>
+            <div className="sm:col-span-2"><SubmitButton variant="brand" pendingText={L.creating}>{L.create}</SubmitButton></div>
           </form>
         </Panel>
 
-        <Panel title="How the streaming works">
-          <ul className="space-y-2 text-sm text-ink-600">
-            <li><b className="text-ink-900">Backend:</b> the existing <code>live.architeksoft.com</code> service (Node + Pixel Streaming signalling) already runs in production.</li>
-            <li><b className="text-ink-900">On demand:</b> when a client opens their link, the backend starts an AWS <code>g4dn</code> GPU instance, waits for the Unreal application, and streams the scene into the browser.</li>
-            <li><b className="text-ink-900">Quotas:</b> each link carries a display-time balance (what the client sees), a real-time budget (actual GPU minutes) and an expiry date; when either runs out the session stops.</li>
-            <li><b className="text-ink-900">Link:</b> <code>{live.backendUrl}/?instanceUuid=…</code> — share it directly or attach it to a client page in <Link href="/admin/pages" className="text-brand-600">Client pages</Link>.</li>
-            <li><b className="text-ink-900">Cost control:</b> stopping an instance here terminates the GPU session immediately; idle instances are stopped by the backend itself.</li>
+        <Panel title={L.how}>
+          <ul className="space-y-2 text-sm text-fg-2">
+            <li><b className="text-fg">{L.howItems.backend}:</b> <code className="font-mono text-xs">{live.backendUrl.replace(/^https?:\/\//, "")}</code> — {L.howItems.backendText}</li>
+            <li><b className="text-fg">{L.howItems.onDemand}:</b> {L.howItems.onDemandText}</li>
+            <li><b className="text-fg">{L.howItems.quotas}:</b> {L.howItems.quotasText}</li>
+            <li>
+              <b className="text-fg">{L.howItems.link}:</b> <code className="font-mono text-xs">{live.backendUrl}/?instanceUuid=…</code> — {L.howItems.linkText}{" "}
+              <Link href="/admin/pages" className="font-medium text-accent hover:underline">{L.howItems.linkPages}</Link>.
+            </li>
+            <li><b className="text-fg">{L.howItems.cost}:</b> {L.howItems.costText}</li>
           </ul>
         </Panel>
       </div>

@@ -5,60 +5,81 @@ import { ContactChannels } from "./contact-channels";
 
 export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dictionary; brand: BrandSettings }) {
   const p = (path: string) => localePath(locale, path);
+  const cols = [
+    {
+      title: dict.footer.product,
+      links: [
+        [p("/kitchenpro"), dict.nav.kitchenpro],
+        [p("/for-business"), dict.nav.business],
+        [p("/for-home"), dict.nav.home],
+        [p("/viewer"), dict.nav.viewer],
+        [p("/solutions"), dict.nav.solutions],
+      ],
+    },
+    {
+      title: dict.footer.company,
+      links: [
+        [p("/how-it-works"), dict.nav.howItWorks],
+        [p("/portfolio"), dict.nav.portfolio],
+        [p("/contact"), dict.nav.contact],
+        [p("/privacy"), dict.footer.privacy],
+      ],
+    },
+  ];
+  const socials = [
+    ["Instagram", brand.instagram],
+    ["Facebook", brand.facebook],
+    ["LinkedIn", brand.linkedin],
+    ["YouTube", brand.youtube],
+  ].filter(([, url]) => url);
+
   return (
-    <footer className="mt-24 border-t border-line bg-paper-2">
-      <div className="container-x grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+    <footer className="mt-24 border-t border-line bg-surface-2/60 pb-20 md:pb-0">
+      <div className="container-x grid gap-10 py-14 md:grid-cols-[1.5fr_1fr_1fr_1.3fr] lg:py-20">
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo.png" alt="ArchiTek Soft" className="h-7 w-auto" />
-          <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-600">{dict.footer.tagline}</p>
+          <img src="/brand/logo.png" alt="ArchiTek Soft" width={125} height={40} className="h-7 w-auto dark:brightness-[1.35]" />
+          <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-muted">{dict.footer.tagline}</p>
         </div>
+        {cols.map((c) => (
+          <div key={c.title}>
+            <div className="kicker">{c.title}</div>
+            <ul className="mt-4 space-y-2.5 text-[15px]">
+              {c.links.map(([href, label]) => (
+                <li key={href}>
+                  <Link className="text-fg-2 transition-colors hover:text-fg" href={href}>
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-ink-500">{dict.footer.product}</div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li><Link className="text-ink-700 hover:text-ink-950" href={p("/kitchenpro")}>{dict.nav.kitchenpro}</Link></li>
-            <li><Link className="text-ink-700 hover:text-ink-950" href={p("/for-business")}>{dict.nav.business}</Link></li>
-            <li><Link className="text-ink-700 hover:text-ink-950" href={p("/for-home")}>{dict.nav.home}</Link></li>
-            <li><Link className="text-ink-700 hover:text-ink-950" href={p("/solutions")}>{dict.nav.solutions}</Link></li>
-          </ul>
-        </div>
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-ink-500">{dict.footer.company}</div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li><Link className="text-ink-700 hover:text-ink-950" href={p("/how-it-works")}>{dict.nav.howItWorks}</Link></li>
-            <li><Link className="text-ink-700 hover:text-ink-950" href={p("/portfolio")}>{dict.nav.portfolio}</Link></li>
-            <li><Link className="text-ink-700 hover:text-ink-950" href={p("/contact")}>{dict.nav.contact}</Link></li>
-            <li><Link className="text-ink-700 hover:text-ink-950" href={p("/privacy")}>{dict.footer.privacy}</Link></li>
-          </ul>
-        </div>
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-ink-500">{dict.footer.contact}</div>
-          <div className="mt-3">
+          <div className="kicker">{dict.footer.contact}</div>
+          <div className="mt-4">
             <ContactChannels brand={brand} dict={dict} compact />
           </div>
-          <div className="mt-4 text-sm text-ink-600">
-            <div>{pickLang(brand.address, locale, brand.address)}</div>
-            <div>{pickLang(brand.workingHours, locale, brand.workingHours)}</div>
+          <div className="mt-5 text-sm text-muted">
+            <div>{String(pickLang(brand.address, locale, brand.address))}</div>
+            <div>{String(pickLang(brand.workingHours, locale, brand.workingHours))}</div>
           </div>
         </div>
       </div>
       <div className="border-t border-line">
-        <div className="container-x flex flex-col items-start justify-between gap-3 py-5 text-xs text-ink-500 sm:flex-row sm:items-center">
-          <div>© {new Date().getFullYear()} {brand.name}. {dict.footer.rights}</div>
-          <div className="flex items-center gap-4">
-            {[
-              ["Instagram", brand.instagram],
-              ["Facebook", brand.facebook],
-              ["LinkedIn", brand.linkedin],
-              ["YouTube", brand.youtube],
-            ]
-              .filter(([, url]) => url)
-              .map(([name, url]) => (
-                <a key={name} href={url} target="_blank" rel="noopener noreferrer" className="hover:text-ink-900">
-                  {name}
-                </a>
-              ))}
-            <Link href="/admin" className="hover:text-ink-900">{dict.footer.admin}</Link>
+        <div className="container-x flex flex-col items-start justify-between gap-3 py-5 text-xs text-muted sm:flex-row sm:items-center">
+          <div>
+            © {new Date().getFullYear()} {brand.name}. {dict.footer.rights}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {socials.map(([name, url]) => (
+              <a key={name} href={url} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-fg">
+                {name}
+              </a>
+            ))}
+            <Link href="/admin" className="transition-colors hover:text-fg">
+              {dict.footer.admin}
+            </Link>
           </div>
         </div>
       </div>

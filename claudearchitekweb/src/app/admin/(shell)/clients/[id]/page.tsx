@@ -4,8 +4,9 @@ import { and, desc, eq } from "drizzle-orm";
 import { Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { clientLabel, companyOptions } from "@/lib/admin-helpers";
-import { formatDate, formatMoney, parseJson, relativeTime } from "@/lib/utils";
+import { clientLabel, companyOptions, relTime } from "@/lib/admin-helpers";
+import { getAdminDict, labelFor } from "@/lib/i18n/admin";
+import { formatDate, formatMoney, parseJson } from "@/lib/utils";
 import { KV, PageHeader, Panel, StatusBadge } from "@/components/admin/shell";
 import { Badge } from "@/components/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
@@ -18,6 +19,8 @@ export const dynamic = "force-dynamic";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireUser();
+  const { t, locale } = await getAdminDict();
+  const C = t.crm.clients;
   const { id } = await params;
   const db = getDb();
   const client = db.select().from(schema.clients).where(eq(schema.clients.id, id)).get();
@@ -26,66 +29,80 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const projects = db.select().from(schema.projects).where(eq(schema.projects.clientId, id)).orderBy(desc(schema.projects.createdAt)).all();
   const leads = db.select().from(schema.leads).where(eq(schema.leads.clientId, id)).orderBy(desc(schema.leads.createdAt)).all();
   const activities = db.select().from(schema.activities).where(and(eq(schema.activities.entityType, "client"), eq(schema.activities.entityId, id))).orderBy(desc(schema.activities.createdAt)).all();
-  const users = Object.fromEntries(db.select({ id: schema.users.id, name: schema.users.name }).from(schema.users).all().map((u) => [u.id, u.name]));
+  const users = Object.fromEntries(
+    db
+      .select({ id: schema.users.id, name: schema.users.name })
+      .from(schema.users)
+      .all()
+      .map((u) => [u.id, u.name])
+  );
   const tags = parseJson<string[]>(client.tags, []);
   const name = clientLabel(client);
   const quoted = projects.reduce((s, p) => s + (p.quoteAmount ?? 0), 0);
   const paid = projects.reduce((s, p) => s + (p.paidAmount ?? 0), 0);
 
+  const subtitle = [company?.name ?? null, client.position ?? null, t.crm.leads.createdAgo(relTime(client.createdAt, locale))].filter(Boolean).join(" · ");
+
   return (
     <>
       <PageHeader
-        crumbs={[{ label: "Clients", href: "/admin/clients" }, { label: name }]}
+        crumbs={[{ label: C.title, href: "/admin/clients" }, { label: name }]}
         title={
           <span className="flex flex-wrap items-center gap-2">
             {name}
-            <StatusBadge value={client.status} />
-            {client.kind === "contact" ? <Badge tone="neutral">contact</Badge> : null}
+            <StatusBadge value={client.status} label={labelFor(t, "clientStatus", client.status)} />
+            {client.kind === "contact" ? <Badge tone="neutral">{C.contactBadge}</Badge> : null}
           </span>
         }
-        subtitle={`${company ? `${company.name} · ` : ""}${client.position ? `${client.position} · ` : ""}created ${relativeTime(client.createdAt)}`}
+        subtitle={subtitle}
         actions={
           <Link href={`/admin/projects/new?clientId=${client.id}${client.companyId ? `&companyId=${client.companyId}` : ""}`} className="btn-primary btn-sm">
-            <Plus size={14} /> New project
+            <Plus size={14} /> {C.newProject}
           </Link>
         }
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <Panel title="Profile">
+          <Panel title={C.profile}>
             <ClientForm client={client} action={updateClientAction} companies={companyOptions()} />
           </Panel>
 
-          <Panel title={`Projects (${projects.length})`}>
+          <Panel title={C.projects(projects.length)} bodyClassName={projects.length ? "p-0 sm:p-0" : undefined}>
             {projects.length === 0 ? (
-              <div className="text-sm text-ink-500">No projects yet.</div>
+              <div className="text-sm text-muted">{C.noProjects}</div>
             ) : (
-              <div className="-mx-5 overflow-x-auto">
-                <table className="table-admin">
+              <div className="overflow-x-auto max-md:p-3">
+                <table className="table-admin table-responsive">
                   <thead>
                     <tr>
-                      <th>Code</th>
-                      <th>Title</th>
-                      <th>Stage</th>
-                      <th className="text-right">Quote</th>
-                      <th>Updated</th>
+                      <th>{t.projects.colCode}</th>
+                      <th>{t.projects.colTitle}</th>
+                      <th>{t.common.stage}</th>
+                      <th className="text-right">{t.projects.quote}</th>
+                      <th>{t.common.updated}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {projects.map((p) => (
                       <tr key={p.id}>
-                        <td className="whitespace-nowrap font-mono text-xs text-ink-600">{p.code}</td>
-                        <td>
-                          <Link href={`/admin/projects/${p.id}`} className="font-medium text-ink-900 hover:text-brand-600">
+                        <td data-label={t.projects.colCode} className="font-mono text-xs whitespace-nowrap text-muted">
+                          {p.code}
+                        </td>
+                        <td data-label={t.projects.colTitle}>
+                          <Link href={`/admin/projects/${p.id}`} className="font-medium text-fg transition-colors hover:text-accent">
                             {p.title}
                           </Link>
                         </td>
-                        <td>
-                          <StatusBadge value={p.stage} />
+                        <td data-label={t.common.stage}>
+                          <StatusBadge value={p.stage} label={labelFor(t, "projectStage", p.stage)} />
                         </td>
-                        <td className="text-right tabular-nums">{formatMoney(p.quoteAmount, p.currency)}</td>
-                        <td className="whitespace-nowrap text-ink-500">{relativeTime(p.updatedAt)}</td>
+                        <td data-label={t.projects.quote} className="text-right tabular-nums">
+                          {formatMoney(p.quoteAmount, p.currency)}
+                        </td>
+                        <td data-label={t.common.updated} className="whitespace-nowrap text-muted">
+                          {relTime(p.updatedAt, locale)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -94,34 +111,34 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             )}
           </Panel>
 
-          <Panel title={`Leads (${leads.length})`}>
+          <Panel title={C.leads(leads.length)}>
             {leads.length === 0 ? (
-              <div className="text-sm text-ink-500">No leads linked to this client.</div>
+              <div className="text-sm text-muted">{C.noLeads}</div>
             ) : (
               <ul className="divide-y divide-line">
                 {leads.map((l) => (
-                  <li key={l.id} className="flex items-center justify-between gap-3 py-2.5">
-                    <Link href={`/admin/leads/${l.id}`} className="min-w-0 text-sm font-medium text-ink-900 hover:text-brand-600">
+                  <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                    <Link href={`/admin/leads/${l.id}`} className="min-w-0 text-sm font-medium text-fg transition-colors hover:text-accent">
                       {l.name}
-                      <span className="ml-2 text-xs font-normal text-ink-500">
-                        {l.source} · {relativeTime(l.createdAt)}
+                      <span className="ml-2 text-xs font-normal text-muted">
+                        {labelFor(t, "leadSources", l.source)} · {relTime(l.createdAt, locale)}
                       </span>
                     </Link>
-                    <StatusBadge value={l.status} />
+                    <StatusBadge value={l.status} label={labelFor(t, "leadStatus", l.status)} />
                   </li>
                 ))}
               </ul>
             )}
           </Panel>
 
-          <Panel title="Timeline">
+          <Panel title={t.crm.activity.title}>
             <ActivityTimeline entityType="client" entityId={client.id} items={activities} users={users} />
           </Panel>
         </div>
 
         <div className="space-y-4">
-          <Panel title="Contact">
-            <div className="space-y-1 text-sm">
+          <Panel title={t.crm.contact.title}>
+            <div className="space-y-1 text-sm break-all text-fg-2">
               {client.phone ? <div>{client.phone}</div> : null}
               {client.telegram ? <div>{client.telegram}</div> : null}
               {client.whatsapp ? <div>{client.whatsapp}</div> : null}
@@ -132,29 +149,49 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             </div>
           </Panel>
 
-          <Panel title="Summary">
-            <KV label="Company">{company ? <Link href={`/admin/companies/${company.id}`} className="text-brand-600">{company.name}</Link> : "—"}</KV>
-            <KV label="City">{client.city}</KV>
-            <KV label="Address">{client.address}</KV>
-            <KV label="Source">{client.source}</KV>
-            <KV label="Quoted total">{formatMoney(quoted)}</KV>
-            <KV label="Paid total">{formatMoney(paid)}</KV>
-            <KV label="Tags">{tags.length ? <span className="flex flex-wrap gap-1">{tags.map((t) => <Badge key={t} tone="neutral">{t}</Badge>)}</span> : "—"}</KV>
-            <KV label="Created">{formatDate(client.createdAt, true)}</KV>
-            <KV label="Updated">{formatDate(client.updatedAt, true)}</KV>
+          <Panel title={C.summary}>
+            <KV label={t.crm.form.company}>
+              {company ? (
+                <Link href={`/admin/companies/${company.id}`} className="text-accent">
+                  {company.name}
+                </Link>
+              ) : (
+                "—"
+              )}
+            </KV>
+            <KV label={t.common.city}>{client.city ?? "—"}</KV>
+            <KV label={t.common.address}>{client.address ?? "—"}</KV>
+            <KV label={t.common.source}>{client.source ? labelFor(t, "leadSources", client.source) : "—"}</KV>
+            <KV label={C.quotedTotal}>{formatMoney(quoted)}</KV>
+            <KV label={C.paidTotal}>{formatMoney(paid)}</KV>
+            <KV label={t.common.tags}>
+              {tags.length ? (
+                <span className="flex flex-wrap gap-1">
+                  {tags.map((tag) => (
+                    <Badge key={tag} tone="neutral">
+                      {tag}
+                    </Badge>
+                  ))}
+                </span>
+              ) : (
+                "—"
+              )}
+            </KV>
+            <KV label={t.common.created}>{formatDate(client.createdAt, true)}</KV>
+            <KV label={t.common.updated}>{formatDate(client.updatedAt, true)}</KV>
           </Panel>
 
           {client.notes ? (
-            <Panel title="Notes">
-              <div className="whitespace-pre-wrap text-sm text-ink-800">{client.notes}</div>
+            <Panel title={t.common.notes}>
+              <div className="text-sm whitespace-pre-wrap text-fg-2">{client.notes}</div>
             </Panel>
           ) : null}
 
-          <Panel title="Danger zone">
+          <Panel title={t.crm.leads.danger}>
             <form action={deleteClientAction}>
               <input type="hidden" name="id" value={client.id} />
-              <ConfirmButton message="Delete this client? Projects stay but lose the link." className="btn-ghost btn-sm text-danger-500">
-                Delete client
+              <ConfirmButton message={C.deleteConfirm} className="btn-ghost btn-sm text-danger">
+                {C.delete}
               </ConfirmButton>
             </form>
           </Panel>

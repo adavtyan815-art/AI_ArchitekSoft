@@ -58,27 +58,27 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
   const t = TEXT[locale];
 
   return (
-    <section className="container-x pt-14 pb-20 sm:pt-20">
-      <div className="max-w-2xl">
-        <div className="eyebrow mb-4">{d.footer.privacy}</div>
-        <h1 className="h-section sm:text-5xl">{t.title}</h1>
-        <p className="mt-3 text-sm text-ink-500">{t.updated}</p>
-        <p className="lead mt-6">{t.intro}</p>
-        <div className="mt-10 space-y-8">
-          {t.sections.map((s) => (
-            <div key={s.h}>
-              <h2 className="text-xl font-semibold tracking-tight text-ink-950">{s.h}</h2>
-              <p className="mt-2 leading-relaxed text-ink-600">{s.p}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-10 text-ink-600">
-          {t.contact}{" "}
-          <a href={`mailto:${brand.email}`} className="font-semibold text-brand-600 hover:underline">
-            {brand.email}
-          </a>
-        </p>
+    <section className="container-narrow pt-10 pb-16 sm:pt-16 sm:pb-24">
+      <div className="eyebrow mb-4">{d.footer.privacy}</div>
+      <h1 className="h-section">{t.title}</h1>
+      <p className="mt-3 text-sm text-faint">{t.updated}</p>
+      <p className="lead mt-6">{t.intro}</p>
+
+      <div className="mt-10 space-y-4">
+        {t.sections.map((s) => (
+          <div key={s.h} className="card p-5 sm:p-6">
+            <h2 className="h-card">{s.h}</h2>
+            <p className="prose-lite mt-2">{s.p}</p>
+          </div>
+        ))}
       </div>
+
+      <p className="mt-10 text-[15px] text-fg-2">
+        {t.contact}{" "}
+        <a href={`mailto:${brand.email}`} className="font-semibold text-accent hover:underline">
+          {brand.email}
+        </a>
+      </p>
     </section>
   );
 }

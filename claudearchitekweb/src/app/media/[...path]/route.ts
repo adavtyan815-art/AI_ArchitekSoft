@@ -1,11 +1,16 @@
 /**
- * Serves uploaded media from UPLOAD_DIR with HTTP Range support (video seeking).
- * Access: assets are addressed by unguessable ids; this route is public so
- * client pages and social platforms (Instagram fetches by URL) can load them.
+ * Serves uploaded media from UPLOAD_DIR.
+ *  - Images: optional `?w=<width>` (and `&q=`) returns a resized WebP (or AVIF when the client
+ *    accepts it), generated once with sharp and cached under UPLOAD_DIR/.cache. Allowed widths
+ *    are a fixed ladder so the cache cannot be flooded.
+ *  - Videos/others: HTTP Range support (seeking), long immutable cache headers.
+ * Access: files are addressed by unguessable ids; the route is public so client pages and
+ * social platforms (Instagram fetches by URL) can load them.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
+import sharp from "sharp";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
 
@@ -15,24 +20,49 @@ const MIME: Record<string, string> = {
   ".pdf": "application/pdf", ".glb": "model/gltf-binary", ".gltf": "model/gltf+json", ".usdz": "model/vnd.usdz+zip",
   ".dwg": "application/acad", ".dxf": "application/dxf", ".zip": "application/zip", ".csv": "text/csv",
 };
+const RESIZABLE = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
+const WIDTHS = [160, 320, 480, 640, 960, 1280, 1600, 1920];
+const IMMUTABLE = "public, max-age=31536000, immutable";
+
+function pickWidth(raw: string | null): number | null {
+  if (!raw) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return WIDTHS.find((w) => w >= n) ?? WIDTHS[WIDTHS.length - 1];
+}
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
   const { path: parts } = await ctx.params;
   const rel = parts.join("/");
-  if (rel.includes("..")) return new NextResponse("Bad path", { status: 400 });
+  if (rel.includes("..") || rel.startsWith(".cache")) return new NextResponse("Bad path", { status: 400 });
   const abs = path.resolve(env.uploadDir, rel);
   if (!abs.startsWith(env.uploadDir) || !fs.existsSync(abs) || !fs.statSync(abs).isFile()) return new NextResponse("Not found", { status: 404 });
 
-  const stat = fs.statSync(abs);
   const ext = path.extname(abs).toLowerCase();
+  const width = RESIZABLE.has(ext) ? pickWidth(req.nextUrl.searchParams.get("w")) : null;
+
+  // ---- resized image variant -------------------------------------------------
+  if (width) {
+    const accept = req.headers.get("accept") ?? "";
+    const format: "avif" | "webp" = accept.includes("image/avif") ? "avif" : "webp";
+    const q = Math.min(90, Math.max(40, Number(req.nextUrl.searchParams.get("q")) || (format === "avif" ? 55 : 78)));
+    const cacheRel = path.join(".cache", rel.replace(/\//g, "_") + `.w${width}.q${q}.${format}`);
+    const cacheAbs = path.join(env.uploadDir, cacheRel);
+    if (!fs.existsSync(cacheAbs)) {
+      fs.mkdirSync(path.dirname(cacheAbs), { recursive: true });
+      const pipeline = sharp(abs, { failOn: "none" }).rotate().resize({ width, withoutEnlargement: true });
+      const buf = format === "avif" ? await pipeline.avif({ quality: q, effort: 3 }).toBuffer() : await pipeline.webp({ quality: q }).toBuffer();
+      fs.writeFileSync(cacheAbs, buf);
+    }
+    const buf = fs.readFileSync(cacheAbs);
+    return new NextResponse(buf, { status: 200, headers: { "Content-Type": `image/${format}`, "Content-Length": String(buf.length), "Cache-Control": IMMUTABLE, Vary: "Accept", "X-Content-Type-Options": "nosniff" } });
+  }
+
+  // ---- original file (with Range) ---------------------------------------------
+  const stat = fs.statSync(abs);
   const type = MIME[ext] ?? "application/octet-stream";
   const download = req.nextUrl.searchParams.get("download");
-  const baseHeaders: Record<string, string> = {
-    "Content-Type": type,
-    "Accept-Ranges": "bytes",
-    "Cache-Control": "public, max-age=31536000, immutable",
-    "X-Content-Type-Options": "nosniff",
-  };
+  const baseHeaders: Record<string, string> = { "Content-Type": type, "Accept-Ranges": "bytes", "Cache-Control": IMMUTABLE, "X-Content-Type-Options": "nosniff" };
   if (download) baseHeaders["Content-Disposition"] = `attachment; filename="${download.replace(/[^\w.\-]+/g, "_")}"`;
 
   const range = req.headers.get("range");
@@ -43,10 +73,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ path: strin
       const end = m[2] ? Math.min(Number(m[2]), stat.size - 1) : Math.min(start + 4 * 1024 * 1024 - 1, stat.size - 1);
       if (start >= stat.size) return new NextResponse(null, { status: 416, headers: { "Content-Range": `bytes */${stat.size}` } });
       const stream = fs.createReadStream(abs, { start, end });
-      return new NextResponse(Readable.toWeb(stream) as unknown as ReadableStream, {
-        status: 206,
-        headers: { ...baseHeaders, "Content-Range": `bytes ${start}-${end}/${stat.size}`, "Content-Length": String(end - start + 1) },
-      });
+      return new NextResponse(Readable.toWeb(stream) as unknown as ReadableStream, { status: 206, headers: { ...baseHeaders, "Content-Range": `bytes ${start}-${end}/${stat.size}`, "Content-Length": String(end - start + 1) } });
     }
   }
   const stream = fs.createReadStream(abs);

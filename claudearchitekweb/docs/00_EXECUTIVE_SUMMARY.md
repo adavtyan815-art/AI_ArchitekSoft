@@ -1,8 +1,20 @@
 # Executive summary
 
-**Date:** 9 September 2026 · **Branch:** `claude` · **Folder:** `claudearchitekweb/`
+**Date:** 10 September 2026 (v2) · **Branch:** `claude` · **Folder:** `claudearchitekweb/`
 
-## What was asked
+## Corrected positioning (v2)
+
+ArchiTek Soft **does not sell or manufacture furniture**. It helps furniture makers, showrooms and their customers choose colours, materials, form and configuration with confidence in interactive 3D, before production. The **Web Viewer** link is the default deliverable for every client; **Live 3D (Pixel Streaming)** is a premium B2B presentation with a time quota. Every page, package and CTA was rewritten with this in mind (see `12_OFFERS_AND_POSITIONING.md`).
+
+## What changed in v2
+
+- Design system rebuilt: semantic tokens, Manrope + Inter + Noto Sans Armenian, intentional **light and dark modes** (toggle in header/admin, cookie + system preference), stronger hierarchy and spacing, mobile-first layouts (sheet menu, sticky CTA bar, card-style tables in the admin, bottom tab bar).
+- **Admin in Armenian** by default (English switch in the top bar), plain wording for CRM, projects, clients, SMM, analytics, settings, tasks, media, client pages.
+- **Web Viewer**: interactive demo on the home page and `/viewer` (rotate, colour swatches, AR), per-project `/v/<slug>` viewer, client page primary action.
+- **Performance**: Turbopack dev, image optimisation, trimmed client payloads, lazy charts, SQLite tuning, caches; measured before/after in `13_PERFORMANCE.md`.
+- **Infrastructure plan** with costs and migration thresholds: `11_INFRASTRUCTURE_PLAN.md`.
+
+## What was asked (v1)
 
 A complete, testable web ecosystem for ArchiTek Soft: a simple, beautiful, professional client website that presents KitchenPro first (with a clear B2B / B2C split and a separate section for other business solutions), plus a private dashboard with client analytics (companies vs individuals), CRM, order/project management, render/video upload, individual client links, Pixel Streaming links, and a sales + SMM automation system with Telegram approval before publishing.
 

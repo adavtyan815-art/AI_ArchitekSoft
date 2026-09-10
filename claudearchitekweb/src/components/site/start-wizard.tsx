@@ -11,6 +11,10 @@ import { cn, formatBytes } from "@/lib/utils";
 type Segment = "b2c" | "b2b";
 type Upload = { key: string; name: string; size: number; progress: number; status: "uploading" | "done" | "error"; id?: string; thumb?: string; preview?: string };
 
+/** Only what the wizard renders — the whole dictionary never reaches the client. */
+export type StartStrings = Dictionary["start"];
+export type StartCommon = Pick<Dictionary["common"], "back" | "next" | "sending">;
+
 /** Strings that are not in the shared dictionaries (wizard-only helper text). */
 type Local = { stepOf: string; of: string; chooseSegment: string; needContact: string; needConsent: string; uploadFailed: string; tooLarge: string; remove: string; uploading: string; choose: string; error: string; waitUploads: string; requestNo: string };
 const LOCAL: Record<Locale, Local> = {
@@ -45,8 +49,23 @@ function uploadFile(file: File, onProgress: (pct: number) => void): Promise<{ id
   });
 }
 
-export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Locale; dict: Dictionary; initialSegment?: string; utm?: Record<string, string> }) {
-  const s = dict.start;
+export function StartWizard({
+  locale,
+  strings,
+  common,
+  messageLabel,
+  initialSegment,
+  utm,
+}: {
+  locale: Locale;
+  strings: StartStrings;
+  common: StartCommon;
+  /** dict.contact.message — the only string borrowed from the contact block. */
+  messageLabel: string;
+  initialSegment?: string;
+  utm?: Record<string, string>;
+}) {
+  const s = strings;
   const t = LOCAL[locale];
   const p = (path: string) => localePath(locale, path);
 
@@ -137,7 +156,7 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
     if (uploads.some((u) => u.status === "uploading")) return setError(t.waitUploads);
     setError(null);
     setSending(true);
-    const isB2b = segment === "b2b";
+    const isB2bNow = segment === "b2b";
     const body = {
       segment,
       name,
@@ -149,14 +168,12 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
       pagePath: window.location.pathname,
       source: "website",
       website,
-      companyName: isB2b ? companyName : undefined,
-      service: isB2b ? service : "kitchenpro",
-      roomType: isB2b ? undefined : roomType,
-      budget: isB2b ? undefined : budget || undefined,
-      message: isB2b ? message : undefined,
-      details: isB2b
-        ? { companyType, volume }
-        : { dims: width || depth || height ? { width, depth, height } : undefined, style, appliances, deadline },
+      companyName: isB2bNow ? companyName : undefined,
+      service: isB2bNow ? service : "kitchenpro",
+      roomType: isB2bNow ? undefined : roomType,
+      budget: isB2bNow ? undefined : budget || undefined,
+      message: isB2bNow ? message : undefined,
+      details: isB2bNow ? { companyType, volume } : { dims: width || depth || height ? { width, depth, height } : undefined, style, appliances, deadline },
       files: uploads.filter((u) => u.status === "done" && u.id).map((u) => u.id as string),
       utm: utm && Object.keys(utm).length ? utm : undefined,
     };
@@ -172,23 +189,23 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
     }
   };
 
-  /* ---------- success ---------- */
+  /* ─────────────────────────── success ─────────────────────────── */
   if (result) {
     return (
-      <div className="card mx-auto max-w-xl p-8 text-center sm:p-10">
-        <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white">
-          <Check size={26} strokeWidth={3} />
+      <div className="card mx-auto max-w-xl p-7 text-center sm:p-10">
+        <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success">
+          <Check size={28} strokeWidth={3} />
         </span>
-        <h2 className="mt-6 text-3xl font-semibold tracking-tight text-ink-950">{s.successTitle}</h2>
-        <p className="mt-4 text-ink-600">{s.successText}</p>
+        <h2 className="mt-6 font-display text-3xl font-bold tracking-tight text-fg">{s.successTitle}</h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-muted">{s.successText}</p>
         {result.code ? (
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-line bg-paper-2 px-4 py-2 text-sm">
-            <span className="text-ink-500">{t.requestNo}</span>
-            <span className="font-mono font-semibold text-ink-950">{result.code}</span>
+          <div className="card-inset mt-5 inline-flex items-center gap-2 px-4 py-2 text-sm">
+            <span className="text-muted">{t.requestNo}</span>
+            <span className="font-mono font-semibold text-fg">{result.code}</span>
           </div>
         ) : null}
         <div className="mt-8">
-          <Link href={p("/portfolio")} className="btn-secondary">
+          <Link href={p("/viewer")} className="btn-secondary w-full sm:w-auto">
             {s.successCta}
             <ArrowRight size={16} />
           </Link>
@@ -200,69 +217,93 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
   const isB2b = segment === "b2b";
   const entries = (o: Record<string, string>) => Object.entries(o);
 
+  /* Back / Next controls — rendered twice: inline (desktop) and sticky (mobile). */
+  const backBtn =
+    step > 0 ? (
+      <Button type="button" variant="secondary" onClick={() => go(step - 1)} disabled={sending} className="flex-none">
+        <ArrowLeft size={16} />
+        {common.back}
+      </Button>
+    ) : (
+      <span className="hidden sm:block" />
+    );
+  const nextBtn =
+    step < total - 1 ? (
+      <Button type="button" onClick={next} size="lg" className="flex-1 sm:flex-none">
+        {common.next}
+        <ArrowRight size={18} />
+      </Button>
+    ) : (
+      <Button type="button" onClick={submit} size="lg" disabled={sending} className="flex-1 sm:flex-none">
+        {sending ? <Loader2 size={18} className="animate-spin" /> : null}
+        {sending ? common.sending : s.submit}
+        {!sending ? <ArrowRight size={18} /> : null}
+      </Button>
+    );
+
   return (
-    <div className="mx-auto max-w-2xl" onFocusCapture={onFormStart}>
-      {/* progress */}
-      <ol className="mb-8 grid grid-cols-4 gap-2">
-        {s.stepLabels.map((label, i) => {
-          const done = i < step;
-          const active = i === step;
-          return (
-            <li key={label} className="min-w-0">
-              <div className={cn("h-1 rounded-full", done || active ? "bg-brand-500" : "bg-ink-200")} />
-              <div className={cn("mt-2 truncate text-xs font-semibold", active ? "text-ink-950" : done ? "text-brand-600" : "text-ink-500")}>
-                <span className="sm:hidden">{i + 1}</span>
-                <span className="hidden sm:inline">{label}</span>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">
-        {t.stepOf} {step + 1} {t.of} {total}
+    <div className="mx-auto max-w-2xl pb-24 md:pb-0" onFocusCapture={onFormStart}>
+      {/* ── segmented progress ── */}
+      <div className="mb-6">
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <span className="kicker">
+            {t.stepOf} {step + 1} {t.of} {total}
+          </span>
+          <span className="text-[13px] font-semibold text-fg sm:hidden">{s.stepLabels[step]}</span>
+        </div>
+        <ol className="grid grid-cols-4 gap-1.5 sm:gap-2">
+          {s.stepLabels.map((label, i) => {
+            const done = i < step;
+            const active = i === step;
+            return (
+              <li key={label} className="min-w-0">
+                <div className={cn("h-1.5 rounded-full transition-colors", done ? "bg-accent" : active ? "bg-fg" : "bg-surface-3")} />
+                <div className={cn("mt-2 hidden truncate text-xs font-semibold sm:block", active ? "text-fg" : done ? "text-accent" : "text-faint")}>{label}</div>
+              </li>
+            );
+          })}
+        </ol>
       </div>
 
-      <div className="card p-6 sm:p-8">
-        {/* STEP 1: who */}
+      <div className="card p-5 sm:p-8">
+        {/* ── STEP 1 · who ── */}
         {step === 0 ? (
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-ink-950">{s.who.title}</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{s.who.title}</h2>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {(
                 [
                   ["b2c", s.who.b2c, Home],
                   ["b2b", s.who.b2b, Building2],
                 ] as [Segment, { title: string; text: string }, typeof Home][]
-              ).map(([val, card, Icon]) => {
-                const on = segment === val;
-                return (
-                  <button
-                    key={val}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    onClick={() => {
+              ).map(([val, card, Icon]) => (
+                <label key={val} className="choice flex-col gap-0 p-5">
+                  <input
+                    type="radio"
+                    name="segment"
+                    value={val}
+                    className="sr-only"
+                    checked={segment === val}
+                    onChange={() => {
                       setSegment(val);
                       setError(null);
                     }}
-                    className={cn("rounded-2xl border p-5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400", on ? "border-ink-950 bg-ink-950 text-white" : "border-ink-200 bg-white hover:border-ink-300")}
-                  >
-                    <span className={cn("inline-flex h-10 w-10 items-center justify-center rounded-full", on ? "bg-white/10 text-brand-300" : "bg-brand-50 text-brand-600")}>
-                      <Icon size={18} />
-                    </span>
-                    <div className="mt-4 text-base font-semibold">{card.title}</div>
-                    <div className={cn("mt-1 text-sm", on ? "text-ink-300" : "text-ink-500")}>{card.text}</div>
-                  </button>
-                );
-              })}
+                  />
+                  <span className={cn("inline-flex h-11 w-11 items-center justify-center rounded-xl transition-colors", segment === val ? "bg-accent text-accent-fg" : "bg-accent-soft text-accent-soft-fg")}>
+                    <Icon size={20} />
+                  </span>
+                  <span className="mt-4 block h-card">{card.title}</span>
+                  <span className="mt-1 block text-sm leading-relaxed text-muted">{card.text}</span>
+                </label>
+              ))}
             </div>
           </div>
         ) : null}
 
-        {/* STEP 2: project */}
+        {/* ── STEP 2 · project ── */}
         {step === 1 ? (
           <div className="space-y-5">
-            <h2 className="text-2xl font-semibold tracking-tight text-ink-950">{s.project.title}</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{s.project.title}</h2>
             {isB2b ? (
               <>
                 <Field label={s.project.companyName}>
@@ -290,33 +331,43 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
                     </Select>
                   </Field>
                 </div>
-                <Field label={s.project.service}>
-                  <Select value={service} onChange={(e) => setService(e.target.value)}>
+                <div>
+                  <span className="label">{s.project.service}</span>
+                  <div className="grid gap-2 sm:grid-cols-2">
                     {entries(s.project.services).map(([k, v]) => (
-                      <option key={k} value={k}>
+                      <label key={k} className="choice items-center gap-3 p-3.5 text-[15px] leading-snug text-fg">
+                        <input type="radio" name="service" value={k} className="sr-only" checked={service === k} onChange={() => setService(k)} />
+                        <span className={cn("inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border transition-colors", service === k ? "border-accent bg-accent" : "border-line-strong")}>
+                          {service === k ? <Check size={11} strokeWidth={3} className="text-accent-fg" /> : null}
+                        </span>
                         {v}
-                      </option>
+                      </label>
                     ))}
-                  </Select>
-                </Field>
-                <Field label={dict.contact.message}>
+                  </div>
+                </div>
+                <Field label={messageLabel}>
                   <Textarea value={message} onChange={(e) => setMessage(e.target.value)} maxLength={4000} />
                 </Field>
               </>
             ) : (
               <>
-                <Field label={s.project.roomType}>
-                  <Select value={roomType} onChange={(e) => setRoomType(e.target.value)}>
+                <div>
+                  <span className="label">{s.project.roomType}</span>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {entries(s.project.rooms).map(([k, v]) => (
-                      <option key={k} value={k}>
+                      <label key={k} className="choice items-center gap-2.5 p-3 text-sm leading-snug text-fg">
+                        <input type="radio" name="roomType" value={k} className="sr-only" checked={roomType === k} onChange={() => setRoomType(k)} />
+                        <span className={cn("inline-flex h-4.5 w-4.5 flex-none items-center justify-center rounded-full border transition-colors", roomType === k ? "border-accent bg-accent" : "border-line-strong")}>
+                          {roomType === k ? <Check size={10} strokeWidth={3} className="text-accent-fg" /> : null}
+                        </span>
                         {v}
-                      </option>
+                      </label>
                     ))}
-                  </Select>
-                </Field>
+                  </div>
+                </div>
                 <div>
                   <span className="label">{s.project.dims}</span>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     {(
                       [
                         [s.project.width, width, setWidth],
@@ -325,8 +376,8 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
                       ] as [string, string, (v: string) => void][]
                     ).map(([label, val, set]) => (
                       <label key={label} className="block">
-                        <Input type="number" inputMode="decimal" min={0} step={0.01} placeholder={label} value={val} onChange={(e) => set(e.target.value)} aria-label={label} />
-                        <span className="mt-1 block truncate text-xs text-ink-500">{label}</span>
+                        <span className="mb-1 block truncate text-xs text-muted">{label}</span>
+                        <Input type="number" inputMode="decimal" min={0} step={0.01} placeholder="0.00" value={val} onChange={(e) => set(e.target.value)} aria-label={label} />
                       </label>
                     ))}
                   </div>
@@ -357,11 +408,11 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
           </div>
         ) : null}
 
-        {/* STEP 3: files */}
+        {/* ── STEP 3 · files ── */}
         {step === 2 ? (
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-ink-950">{s.files.title}</h2>
-            <p className="mt-2 text-ink-600">{s.files.text}</p>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{s.files.title}</h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted">{s.files.text}</p>
             <div
               role="button"
               tabIndex={0}
@@ -377,13 +428,16 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
                 setDragging(false);
                 if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
               }}
-              className={cn("mt-6 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400", dragging ? "border-brand-400 bg-brand-50" : "border-ink-200 bg-paper-2 hover:border-ink-300")}
+              className={cn(
+                "mt-6 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-5 py-10 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:py-12",
+                dragging ? "border-accent bg-accent-soft" : "border-line-strong bg-surface-2 hover:border-accent",
+              )}
             >
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand-600 shadow-soft">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent-soft-fg">
                 <UploadCloud size={22} />
               </span>
-              <div className="mt-4 text-base font-semibold text-ink-950">{s.files.drop}</div>
-              <div className="mt-1 text-sm text-ink-500">{s.files.hint}</div>
+              <span className="mt-4 block h-card">{s.files.drop}</span>
+              <span className="mt-1 block text-sm text-muted">{s.files.hint}</span>
               <input
                 ref={fileInput}
                 type="file"
@@ -400,8 +454,8 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
             {uploads.length ? (
               <ul className="mt-5 space-y-2">
                 {uploads.map((u) => (
-                  <li key={u.key} className="flex items-center gap-3 rounded-xl border border-line bg-white p-2.5 pr-3">
-                    <span className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-lg bg-ink-100 text-ink-500">
+                  <li key={u.key} className="flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-2">
+                    <span className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-lg bg-surface-2 text-muted">
                       {u.thumb || u.preview ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={u.thumb || u.preview} alt="" className="h-full w-full object-cover" />
@@ -410,18 +464,18 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
                       )}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-ink-900">{u.name}</span>
-                      <span className="block text-xs text-ink-500">
-                        {u.status === "error" ? <span className="text-danger-500">{u.size > MAX_BYTES ? t.tooLarge : t.uploadFailed}</span> : u.status === "uploading" ? `${t.uploading} ${u.progress}%` : formatBytes(u.size)}
+                      <span className="block truncate text-sm font-medium text-fg">{u.name}</span>
+                      <span className="block text-xs text-muted">
+                        {u.status === "error" ? <span className="text-danger">{u.size > MAX_BYTES ? t.tooLarge : t.uploadFailed}</span> : u.status === "uploading" ? `${t.uploading} ${u.progress}%` : formatBytes(u.size)}
                       </span>
                       {u.status === "uploading" ? (
-                        <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-ink-100">
-                          <span className="block h-full bg-brand-500 transition-[width]" style={{ width: `${u.progress}%` }} />
+                        <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-surface-3">
+                          <span className="block h-full bg-accent transition-[width]" style={{ width: `${u.progress}%` }} />
                         </span>
                       ) : null}
                     </span>
-                    {u.status === "uploading" ? <Loader2 size={16} className="flex-none animate-spin text-ink-400" /> : u.status === "done" ? <Check size={16} className="flex-none text-brand-600" /> : null}
-                    <button type="button" onClick={() => removeUpload(u.key)} className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full text-ink-400 hover:bg-ink-100 hover:text-ink-900" aria-label={t.remove} title={t.remove}>
+                    {u.status === "uploading" ? <Loader2 size={16} className="flex-none animate-spin text-faint" /> : u.status === "done" ? <Check size={16} className="flex-none text-success" /> : null}
+                    <button type="button" onClick={() => removeUpload(u.key)} className="btn-ghost btn-icon h-10 w-10 flex-none text-faint" aria-label={t.remove} title={t.remove}>
                       <X size={16} />
                     </button>
                   </li>
@@ -429,16 +483,16 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
               </ul>
             ) : null}
 
-            <button type="button" onClick={() => go(3)} className="mt-5 text-sm font-semibold text-ink-500 underline-offset-4 hover:text-ink-900 hover:underline">
+            <button type="button" onClick={() => go(3)} className="mt-5 text-sm font-semibold text-muted underline-offset-4 hover:text-fg hover:underline">
               {s.files.skip}
             </button>
           </div>
         ) : null}
 
-        {/* STEP 4: contact */}
+        {/* ── STEP 4 · contact ── */}
         {step === 3 ? (
           <div className="space-y-5">
-            <h2 className="text-2xl font-semibold tracking-tight text-ink-950">{s.contact.title}</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{s.contact.title}</h2>
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label={s.contact.name} required>
                 <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={120} autoComplete="name" />
@@ -453,17 +507,19 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={120} autoComplete="email" />
               </Field>
             </div>
-            <Field label={s.contact.channel}>
-              <Select value={preferredChannel} onChange={(e) => setPreferredChannel(e.target.value)}>
+            <div>
+              <span className="label">{s.contact.channel}</span>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {entries(s.contact.channels).map(([k, v]) => (
-                  <option key={k} value={k}>
+                  <label key={k} className="choice items-center justify-center gap-2 p-3 text-sm font-medium text-fg">
+                    <input type="radio" name="channel" value={k} className="sr-only" checked={preferredChannel === k} onChange={() => setPreferredChannel(k)} />
                     {v}
-                  </option>
+                  </label>
                 ))}
-              </Select>
-            </Field>
-            <label className="flex cursor-pointer items-start gap-3 text-sm text-ink-700">
-              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 flex-none rounded border-ink-300 text-brand-500 focus:ring-brand-400" required />
+              </div>
+            </div>
+            <label className="choice items-start gap-3 text-[15px] leading-snug text-fg-2">
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-5 w-5 flex-none accent-[var(--accent)]" required />
               <span>{s.contact.consent}</span>
             </label>
             <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
@@ -472,30 +528,24 @@ export function StartWizard({ locale, dict, initialSegment, utm }: { locale: Loc
           </div>
         ) : null}
 
-        {error ? <p role="alert" className="mt-5 text-sm text-danger-500">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="mt-5 rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
 
-        {/* nav */}
-        <div className="mt-8 flex items-center justify-between gap-3 border-t border-line pt-6">
-          {step > 0 ? (
-            <Button type="button" variant="ghost" onClick={() => go(step - 1)} disabled={sending}>
-              <ArrowLeft size={16} />
-              {dict.common.back}
-            </Button>
-          ) : (
-            <span />
-          )}
-          {step < total - 1 ? (
-            <Button type="button" onClick={next} size="lg">
-              {dict.common.next}
-              <ArrowRight size={18} />
-            </Button>
-          ) : (
-            <Button type="button" onClick={submit} size="lg" disabled={sending}>
-              {sending ? <Loader2 size={18} className="animate-spin" /> : null}
-              {sending ? dict.common.sending : s.submit}
-              {!sending ? <ArrowRight size={18} /> : null}
-            </Button>
-          )}
+        {/* ── nav (desktop) ── */}
+        <div className="mt-8 hidden items-center justify-between gap-3 border-t border-line pt-6 md:flex">
+          {backBtn}
+          {nextBtn}
+        </div>
+      </div>
+
+      {/* ── nav (mobile, sticky) ── */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line glass pb-safe md:hidden">
+        <div className="flex items-center gap-2 px-4 py-2.5">
+          {backBtn}
+          {nextBtn}
         </div>
       </div>
     </div>

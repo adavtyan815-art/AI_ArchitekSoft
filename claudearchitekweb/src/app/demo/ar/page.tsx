@@ -4,39 +4,54 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { env } from "@/lib/env";
-import { ArButton } from "@/components/portal/ar-button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { ViewerDemo } from "@/components/site/viewer-demo";
+import { QrPanel } from "@/components/portal/ar-button";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "AR demo — ArchiTek Soft",
   description: "See a wardrobe in your room with augmented reality. Scan the QR code with your phone.",
+  robots: { index: false, follow: false },
 };
 
 const COPY = {
   hy: {
     tag: "AR ցուցադրություն",
     title: "Տեսեք կահույքը Ձեր սենյակում",
-    text: "Սկանավորեք QR կոդը հեռախոսով, սեղմեք «Տեսնել իմ սենյակում» և տեղադրեք 3D մոդելը իրական չափերով։ Աշխատում է iPhone-ի և Android-ի վրա, առանց հավելվածի։",
-    button: "Տեսնել իմ սենյակում (AR)",
-    note: "Սկանավորեք QR կոդը հեռախոսով կամ սեղմեք հեռախոսից։",
+    text: "Պտտեք մոդելը, փոխեք ֆասադի գույնը, ապա սկանավորեք QR կոդը հեռախոսով և տեղադրեք կահույքը Ձեր սենյակում իրական չափերով։ Աշխատում է iPhone-ի և Android-ի վրա, առանց հավելվածի։",
+    note: "Սկանավորեք QR կոդը հեռախոսով կամ սեղմեք «Տեսնել իմ սենյակում» հեռախոսից։",
     missing: "Ցուցադրական մոդելը դեռ բեռնված չէ։",
+    hint: "Քաշեք պտտելու համար • Ընտրեք գույնը ներքևում",
+    swatches: "Ֆասադի գույն",
+    ar: "Տեսնել իմ սենյակում",
+    reset: "Վերականգնել դիտումը",
+    theme: { light: "Բաց ռեժիմ", dark: "Մուգ ռեժիմ" },
   },
   ru: {
     tag: "AR-демо",
     title: "Посмотрите мебель в своей комнате",
-    text: "Отсканируйте QR-код телефоном, нажмите «Посмотреть в моей комнате» и поставьте 3D-модель в реальном масштабе. Работает на iPhone и Android без приложения.",
-    button: "Посмотреть в моей комнате (AR)",
-    note: "Отсканируйте QR-код телефоном или нажмите с телефона.",
+    text: "Вращайте модель, меняйте цвет фасада, затем отсканируйте QR-код телефоном и поставьте мебель в своей комнате в реальном масштабе. Работает на iPhone и Android без приложения.",
+    note: "Отсканируйте QR-код телефоном или нажмите «Посмотреть в моей комнате» с телефона.",
     missing: "Демонстрационная модель ещё не загружена.",
+    hint: "Потяните, чтобы вращать • Выберите цвет ниже",
+    swatches: "Цвет фасада",
+    ar: "Посмотреть в моей комнате",
+    reset: "Сбросить вид",
+    theme: { light: "Светлая тема", dark: "Тёмная тема" },
   },
   en: {
     tag: "AR demo",
     title: "See the furniture in your room",
-    text: "Scan the QR code with your phone, tap “See in my room” and place the 3D model at real scale. Works on iPhone and Android, no app needed.",
-    button: "See in my room (AR)",
-    note: "Scan the QR code with your phone, or tap from your phone.",
+    text: "Rotate the model, change the front colour, then scan the QR code with your phone and place the furniture in your room at real scale. Works on iPhone and Android, no app needed.",
+    note: "Scan the QR code with your phone, or tap “See in my room” from your phone.",
     missing: "The demo model is not uploaded yet.",
+    hint: "Drag to rotate • Pick a colour below",
+    swatches: "Front colour",
+    ar: "See in my room",
+    reset: "Reset the view",
+    theme: { light: "Light mode", dark: "Dark mode" },
   },
 } as const;
 
@@ -52,63 +67,76 @@ export default async function ArDemoPage() {
   let qr: string | null = null;
   if (modelExists) {
     try {
-      qr = await QRCode.toDataURL(`${base}/demo/ar#ar`, { margin: 1, width: 360, color: { dark: "#0b1220", light: "#ffffff" } });
+      // No #ar hash: the inline viewer has its own AR button, which the phone taps after landing here.
+      qr = await QRCode.toDataURL(`${base}/demo/ar`, { margin: 1, width: 360, color: { dark: "#0b1220", light: "#ffffff" } });
     } catch {
       qr = null;
     }
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
-      <header className="border-b border-line bg-paper/85 backdrop-blur">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-5 sm:px-8">
-          <a href="/" className="flex items-center gap-2.5" aria-label="ArchiTek Soft">
+    <div className="flex min-h-dvh flex-col bg-bg">
+      <header className="glass sticky top-0 z-30 border-b border-line">
+        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-5 sm:px-8">
+          <a href="/" className="flex shrink-0 items-center gap-2.5" aria-label="ArchiTek Soft">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/logo.png" alt="ArchiTek Soft" className="h-7 w-auto" />
+            <img src="/brand/logo.png" alt="ArchiTek Soft" className="h-7 w-auto dark:brightness-[1.35]" />
           </a>
-          <span className="badge border-ink-200 bg-white text-ink-700">AR</span>
+          <div className="flex items-center gap-2">
+            <span className="badge border-line bg-surface-2 text-fg-2">AR</span>
+            <ThemeToggle labels={COPY.hy.theme} />
+          </div>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-start">
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.15fr] lg:items-start">
           <div className="space-y-8">
             {(["hy", "ru", "en"] as const).map((l, i) => (
               <div key={l} lang={l} className={i === 0 ? "" : "border-t border-line pt-6"}>
                 <div className="eyebrow mb-2">{COPY[l].tag}</div>
-                <h2 className={i === 0 ? "text-3xl font-semibold leading-tight tracking-tight text-ink-950 sm:text-4xl" : "text-xl font-semibold tracking-tight text-ink-950"}>{COPY[l].title}</h2>
-                <p className={i === 0 ? "mt-3 text-lg leading-relaxed text-ink-600" : "mt-2 text-sm leading-relaxed text-ink-600"}>{COPY[l].text}</p>
+                <h2 className={i === 0 ? "h-section text-[2rem] sm:text-[2.5rem]" : "h-card text-xl"}>{COPY[l].title}</h2>
+                <p className={i === 0 ? "lead mt-3" : "mt-2 text-sm leading-relaxed text-muted"}>{COPY[l].text}</p>
               </div>
             ))}
           </div>
 
-          <div className="card p-4 sm:p-6">
+          <div className="space-y-5">
             {modelUrl ? (
-              <ArButton inline glbUrl={modelUrl} qrDataUrl={qr} label={COPY.hy.button} note={`${COPY.hy.note} · ${COPY.en.note}`} />
+              <>
+                <ViewerDemo src={modelUrl} labels={{ hint: COPY.hy.hint, swatches: COPY.hy.swatches, ar: COPY.hy.ar, reset: COPY.hy.reset }} height="h-[380px] sm:h-[480px]" />
+                {qr ? (
+                  <div className="flex justify-center">
+                    <QrPanel qrDataUrl={qr} note={COPY.hy.note} />
+                  </div>
+                ) : null}
+                <div className="card p-4 text-sm leading-relaxed text-muted sm:p-5">
+                  <p lang="hy">{COPY.hy.note}</p>
+                  <p lang="ru" className="mt-2">
+                    {COPY.ru.note}
+                  </p>
+                  <p lang="en" className="mt-2">
+                    {COPY.en.note}
+                  </p>
+                </div>
+              </>
             ) : (
-              <div className="rounded-2xl border border-dashed border-ink-300 bg-ink-50 p-10 text-center text-sm text-ink-500">
-                {COPY.hy.missing}
-                <br />
-                {COPY.ru.missing}
-                <br />
-                {COPY.en.missing}
+              <div className="card border-dashed p-10 text-center text-sm text-muted">
+                <p lang="hy">{COPY.hy.missing}</p>
+                <p lang="ru" className="mt-1">
+                  {COPY.ru.missing}
+                </p>
+                <p lang="en" className="mt-1">
+                  {COPY.en.missing}
+                </p>
               </div>
             )}
-            {modelUrl ? (
-              <p className="mt-4 text-sm text-ink-500">
-                {COPY.hy.note}
-                <br />
-                {COPY.ru.note}
-                <br />
-                {COPY.en.note}
-              </p>
-            ) : null}
           </div>
         </div>
       </main>
 
       <footer className="border-t border-line">
-        <div className="mx-auto w-full max-w-5xl px-5 py-6 text-xs text-ink-500 sm:px-8">© {new Date().getFullYear()} ArchiTek Soft · KitchenPro</div>
+        <div className="mx-auto w-full max-w-5xl px-5 py-6 text-xs text-muted sm:px-8">© {new Date().getFullYear()} ArchiTek Soft · KitchenPro</div>
       </footer>
     </div>
   );

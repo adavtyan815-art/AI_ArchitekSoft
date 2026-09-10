@@ -62,9 +62,16 @@ export function absPath(relPath: string): string {
   return p;
 }
 
-export function mediaUrl(relPath: string | null | undefined): string {
+export function mediaUrl(relPath: string | null | undefined, width?: number): string {
   if (!relPath) return "";
-  return `/media/${relPath.split(path.sep).join("/")}`;
+  const base = `/media/${relPath.split(path.sep).join("/")}`;
+  return width && /\.(jpe?g|png|webp|avif)$/i.test(relPath) ? `${base}?w=${width}` : base;
+}
+
+/** srcset for responsive <img> of an uploaded image. */
+export function mediaSrcSet(relPath: string | null | undefined, widths: number[] = [480, 960, 1280, 1920]): string {
+  if (!relPath) return "";
+  return widths.map((w) => `${mediaUrl(relPath, w)} ${w}w`).join(", ");
 }
 
 function monthDir(): string {

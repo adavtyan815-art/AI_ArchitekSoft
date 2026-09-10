@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 /** Submit button that shows a pending state while a server action runs. */
 export function SubmitButton({ children, pendingText, className, variant = "primary", ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { pendingText?: string; variant?: "primary" | "secondary" | "ghost" | "brand" | "danger" }) {
   const { pending } = useFormStatus();
-  const cls = variant === "danger" ? "btn-secondary text-red-700 hover:border-red-300 hover:bg-red-50" : `btn-${variant}`;
+  const cls = variant === "danger" ? "btn-danger" : `btn-${variant}`;
   return (
     <button type="submit" disabled={pending || rest.disabled} className={cn(cls, className)} {...rest}>
-      {pending ? (pendingText ?? "Working…") : children}
+      {pending ? (pendingText ?? "…") : children}
     </button>
   );
 }
@@ -21,7 +21,7 @@ export function ConfirmSubmit({ message, children, className, ...rest }: React.B
     <button
       type="submit"
       disabled={pending || rest.disabled}
-      className={cn("btn-secondary btn-sm text-red-700 hover:border-red-300 hover:bg-red-50", className)}
+      className={cn("btn-ghost btn-sm text-danger hover:bg-danger-soft", className)}
       onClick={(e) => {
         if (!window.confirm(message)) e.preventDefault();
       }}

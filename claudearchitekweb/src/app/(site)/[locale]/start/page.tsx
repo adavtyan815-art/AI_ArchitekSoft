@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
+import { SectionHeading } from "@/components/ui";
 import { StartWizard } from "@/components/site/start-wizard";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -24,13 +25,16 @@ export default async function StartPage({ params, searchParams }: { params: Prom
   }
 
   return (
-    <section className="container-x pt-12 pb-16 sm:pt-16 sm:pb-24">
-      <div className="mx-auto mb-10 max-w-2xl text-center">
-        <div className="eyebrow mb-4">{d.start.tag}</div>
-        <h1 className="h-section sm:text-5xl">{d.start.title}</h1>
-        <p className="lead mt-4">{d.start.subtitle}</p>
-      </div>
-      <StartWizard locale={locale} dict={d} initialSegment={segment} utm={utm} />
+    <section className="container-x pt-10 pb-16 sm:pt-14 sm:pb-24">
+      <SectionHeading eyebrow={d.start.tag} title={d.start.title} text={d.start.subtitle} align="center" className="mb-10" />
+      <StartWizard
+        locale={locale}
+        strings={d.start}
+        common={{ back: d.common.back, next: d.common.next, sending: d.common.sending }}
+        messageLabel={d.contact.message}
+        initialSegment={segment}
+        utm={utm}
+      />
     </section>
   );
 }

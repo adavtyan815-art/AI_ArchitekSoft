@@ -2,10 +2,16 @@
 
 Start with `start_local.bat` (or `npm run dev`). Everything below works with **no API keys**; integrations show what they *would* do.
 
+## 0. Look and feel (2 min)
+- Toggle **light / dark** with the sun/moon button in the header (site) and the top bar (admin). Both modes are designed separately: dark uses graphite surfaces and hairlines, not inverted colours.
+- Shrink the window to phone width: sheet menu, sticky "Start a project" bar, card-style admin tables, bottom tab bar in the admin.
+- Admin language: **Հայ / Eng** switch in the admin top bar (Armenian by default).
+
 ## 1. Client website (5 min)
 | Step | URL | What to look for |
 |---|---|---|
-| Home in Armenian | http://localhost:3100 | One promise, the sketch→3D slider, two doors (B2B / B2C), KitchenPro block, 3 steps, checklist, portfolio, FAQ |
+| Home in Armenian | http://localhost:3100 | One promise ("see the furniture before it is made"), sketch→3D slider, how we help, two doors (business / customers), **Web Viewer demo** (rotate, change colour, AR), KitchenPro, 3 steps, Live 3D as premium, work, FAQ |
+| Web Viewer page | /viewer | Full demo + Web Viewer vs Live 3D table |
 | Russian / English | /ru · /en | Language switch keeps the page; all text translated |
 | KitchenPro | /kitchenpro | Problem → solution, capabilities, stages 0–6 |
 | B2B / B2C | /for-business · /for-home | Different promise, proof and CTA for each audience |
@@ -21,7 +27,7 @@ Start with `start_local.bat` (or `npm run dev`). Everything below works with **n
 
 ## 3. Client page (5 min)
 1. Admin → Projects → *Aren* → tab **Client page** → copy the link (or use the one printed by the seed) → open it in a private window.
-2. Check: greeting, stage stepper, Live 3D button, AR (QR), sketch→3D slider, gallery, video, PDF, materials.
+2. Check: greeting, stage stepper, **Open the Web Viewer** (primary), AR (QR), Live 3D shown as premium only when set, sketch→3D slider, gallery, video, PDF, materials.
 3. Press **I want a change**, write a sentence, send. Admin → Projects → Aren → **Feedback** shows it; the server log shows the Telegram dry-run.
 4. Admin → Client pages: views count increased. Try a wrong token and an expired link (set expiry in the past) to see the friendly screens.
 

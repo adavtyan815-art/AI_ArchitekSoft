@@ -16,7 +16,7 @@ export function BeforeAfter({ before, after, labels = ["Before", "After"], aspec
       ref={ref}
       // touch-action:pan-y lets the browser keep vertical scrolling while we
       // handle the horizontal drag — without it the handle is unusable on phones.
-      className={`relative w-full cursor-ew-resize touch-pan-y select-none overflow-hidden bg-ink-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${aspect}`}
+      className={`relative w-full cursor-ew-resize touch-pan-y select-none overflow-hidden bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${aspect}`}
       onPointerDown={(e) => {
         (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
         update(e.clientX);
@@ -41,14 +41,14 @@ export function BeforeAfter({ before, after, labels = ["Before", "After"], aspec
         <img src={before} alt={labels[0]} className="absolute inset-0 h-full w-full object-cover" style={{ width: `${10000 / pos}%`, maxWidth: "none" }} draggable={false} />
       </div>
       <div className="ba-handle" style={{ left: `${pos}%` }}>
-        <div className="absolute top-1/2 left-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink-900 shadow-card">
+        <div className="absolute top-1/2 left-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-fg shadow-card">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m9 6-6 6 6 6M15 6l6 6-6 6" />
           </svg>
         </div>
       </div>
-      <span className="absolute top-3 left-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">{labels[0]}</span>
-      <span className="absolute top-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">{labels[1]}</span>
+      <span className="absolute top-3 left-3 rounded-full bg-[#0b0d10]/60 px-2.5 py-1 text-xs font-medium text-[#fff] backdrop-blur">{labels[0]}</span>
+      <span className="absolute top-3 right-3 rounded-full bg-[#0b0d10]/60 px-2.5 py-1 text-xs font-medium text-[#fff] backdrop-blur">{labels[1]}</span>
     </div>
   );
 }

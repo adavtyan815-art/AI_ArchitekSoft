@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const LOCALES = ["hy", "ru", "en"];
-const PASS = ["/admin", "/api", "/p/", "/media", "/_next", "/favicon", "/robots", "/sitemap", "/brand", "/demo", "/og"];
+const PASS = ["/admin", "/api", "/p/", "/v/", "/media", "/_next", "/favicon", "/robots", "/sitemap", "/brand", "/demo", "/og"];
 
 /**
  * - Public site: `/` and unprefixed paths are Armenian (rewritten to /hy/...), `/ru/...` and `/en/...` stay.

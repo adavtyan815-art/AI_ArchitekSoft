@@ -24,7 +24,29 @@ export type PfItem = {
   isFeatured: boolean;
 };
 
-export function PortfolioForm({ item, projects, assets, categories }: { item: PfItem; projects: PfProject[]; assets: PfAsset[]; categories: readonly string[] }) {
+export type PfLabels = {
+  basics: string; slug: string; slugHint: string; category: string; project: string; projectHint: string; none: string;
+  titleLang: string; summaryLang: string; liveUrl: string; liveUrlHint: string; video: string;
+  published: string; featured: string; cover: string; gallery: string; noImages: string; noMedia: string;
+  save: string; create: string; saving: string; cancel: string; failed: string;
+};
+
+export function PortfolioForm({
+  item,
+  projects,
+  assets,
+  categories,
+  labels,
+  categoryLabels,
+}: {
+  item: PfItem;
+  projects: PfProject[];
+  assets: PfAsset[];
+  categories: readonly string[];
+  labels: PfLabels;
+  categoryLabels: Record<string, string>;
+}) {
+  const L = labels;
   const [slug, setSlug] = useState(item.slug);
   const [category, setCategory] = useState(item.category);
   const [title, setTitle] = useState(item.title);
@@ -65,30 +87,30 @@ export function PortfolioForm({ item, projects, assets, categories }: { item: Pf
       } catch (e) {
         const m = (e as Error).message ?? "";
         if (/NEXT_REDIRECT/.test(m)) throw e;
-        setError(m || "Could not save the item.");
+        setError(m || L.failed);
       }
     });
   }
 
   return (
-    <div className="space-y-5">
-      {error ? <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p> : null}
+    <div className="min-w-0 space-y-5 pb-24 sm:pb-0">
+      {error ? <p className="rounded-xl border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p> : null}
 
-      <section className="card p-5">
+      <section className="card p-4 sm:p-5">
         <div className="grid gap-4 sm:grid-cols-3">
-          <Field label="Slug" hint="Public URL: /portfolio/<slug>. Left empty it is generated from the title.">
+          <Field label={L.slug} hint={L.slugHint}>
             <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="aren-kitchen" />
           </Field>
-          <Field label="Category">
+          <Field label={L.category}>
             <Select value={category} onChange={(e) => setCategory(e.target.value)}>
               {categories.map((c) => (
-                <option key={c} value={c}>{c.replace(/_/g, " ")}</option>
+                <option key={c} value={c}>{categoryLabels[c] ?? c}</option>
               ))}
             </Select>
           </Field>
-          <Field label="Project" hint="Optional link to the CRM project.">
+          <Field label={L.project} hint={L.projectHint}>
             <Select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-              <option value="">— none —</option>
+              <option value="">{L.none}</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>{p.code} · {p.title}</option>
               ))}
@@ -98,48 +120,53 @@ export function PortfolioForm({ item, projects, assets, categories }: { item: Pf
 
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           {(["hy", "ru", "en"] as const).map((l) => (
-            <Field key={l} label={`Title (${l.toUpperCase()})`}>
+            <Field key={l} label={`${L.titleLang} (${l.toUpperCase()})`}>
               <Input value={title[l]} onChange={(e) => setTitle({ ...title, [l]: e.target.value })} maxLength={200} />
             </Field>
           ))}
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           {(["hy", "ru", "en"] as const).map((l) => (
-            <Field key={l} label={`Summary (${l.toUpperCase()})`}>
+            <Field key={l} label={`${L.summaryLang} (${l.toUpperCase()})`}>
               <Textarea value={summary[l]} onChange={(e) => setSummary({ ...summary, [l]: e.target.value })} maxLength={1000} className="min-h-[110px]" />
             </Field>
           ))}
         </div>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <Field label="Live 3D link" hint="Optional pixel-streaming or viewer URL shown on the public page.">
+          <Field label={L.liveUrl} hint={L.liveUrlHint}>
             <Input value={liveUrl} onChange={(e) => setLiveUrl(e.target.value)} placeholder="https://live.architeksoft.com/?instanceUuid=…" />
           </Field>
-          <Field label="Video">
+          <Field label={L.video}>
             <Select value={videoAssetId} onChange={(e) => setVideoAssetId(e.target.value)}>
-              <option value="">— none —</option>
+              <option value="">{L.none}</option>
               {videos.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
             </Select>
           </Field>
-          <div className="flex items-end gap-4 pb-2">
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} className="h-4 w-4 rounded border-ink-300" /> Published</label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="h-4 w-4 rounded border-ink-300" /> Featured</label>
+          <div className="flex flex-wrap items-end gap-4 pb-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" /> {L.published}
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" /> {L.featured}
+            </label>
           </div>
         </div>
       </section>
 
       <section className="card">
-        <header className="border-b border-line px-5 py-3"><h2 className="text-sm font-semibold text-ink-900">Cover</h2></header>
-        <div className="p-5">
+        <header className="border-b border-line px-4 py-3 sm:px-5"><h2 className="text-sm font-semibold text-fg">{L.cover}</h2></header>
+        <div className="p-4 sm:p-5">
           {images.length === 0 ? (
-            <p className="text-sm text-ink-500">No images{projectId ? " for this project" : ""} yet.</p>
+            <p className="text-sm text-muted">{L.noImages}</p>
           ) : (
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-8">
               {images.map((a) => (
-                <button key={a.id} type="button" title={a.name} onClick={() => setCoverAssetId(a.id === coverAssetId ? "" : a.id)} className={cn("aspect-square overflow-hidden rounded-lg border", coverAssetId === a.id ? "border-brand-500 ring-2 ring-brand-200" : "border-line hover:border-ink-300")}>
-                  <img src={a.thumbUrl} alt={a.name} className="h-full w-full object-cover" />
+                <button key={a.id} type="button" title={a.name} onClick={() => setCoverAssetId(a.id === coverAssetId ? "" : a.id)} className={cn("aspect-square overflow-hidden rounded-lg border transition-colors", coverAssetId === a.id ? "border-accent ring-2 ring-accent-soft" : "border-line hover:border-line-strong")}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={a.thumbUrl} alt={a.name} loading="lazy" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -148,20 +175,25 @@ export function PortfolioForm({ item, projects, assets, categories }: { item: Pf
       </section>
 
       <section className="card">
-        <header className="border-b border-line px-5 py-3">
-          <h2 className="text-sm font-semibold text-ink-900">Gallery <span className="text-ink-400">({assetIds.length})</span></h2>
+        <header className="border-b border-line px-4 py-3 sm:px-5">
+          <h2 className="text-sm font-semibold text-fg">{L.gallery} <span className="text-faint">({assetIds.length})</span></h2>
         </header>
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           {scoped.length === 0 ? (
-            <p className="text-sm text-ink-500">No media available.</p>
+            <p className="text-sm text-muted">{L.noMedia}</p>
           ) : (
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-8">
               {scoped.map((a) => {
                 const idx = assetIds.indexOf(a.id);
                 return (
-                  <button key={a.id} type="button" title={a.name} onClick={() => setAssetIds((s) => (s.includes(a.id) ? s.filter((x) => x !== a.id) : [...s, a.id]))} className={cn("relative aspect-square overflow-hidden rounded-lg border", idx >= 0 ? "border-brand-500 ring-2 ring-brand-200" : "border-line hover:border-ink-300")}>
-                    {a.thumbUrl ? <img src={a.thumbUrl} alt={a.name} className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center bg-ink-100 text-[10px] text-ink-500">video</span>}
-                    {idx >= 0 ? <span className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{idx + 1}</span> : null}
+                  <button key={a.id} type="button" title={a.name} onClick={() => setAssetIds((s) => (s.includes(a.id) ? s.filter((x) => x !== a.id) : [...s, a.id]))} className={cn("relative aspect-square overflow-hidden rounded-lg border transition-colors", idx >= 0 ? "border-accent ring-2 ring-accent-soft" : "border-line hover:border-line-strong")}>
+                    {a.thumbUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={a.thumbUrl} alt={a.name} loading="lazy" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center bg-surface-2 text-[10px] text-muted">{L.video}</span>
+                    )}
+                    {idx >= 0 ? <span className="absolute top-1 right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-fg">{idx + 1}</span> : null}
                   </button>
                 );
               })}
@@ -170,9 +202,9 @@ export function PortfolioForm({ item, projects, assets, categories }: { item: Pf
         </div>
       </section>
 
-      <div className="flex gap-2">
-        <button type="button" onClick={submit} disabled={pending} className="btn-primary">{pending ? "Saving…" : item.id ? "Save item" : "Create item"}</button>
-        <a href="/admin/portfolio" className="btn-ghost">Cancel</a>
+      <div className="glass pb-safe fixed inset-x-0 bottom-[68px] z-20 flex gap-2 border-t border-line px-4 py-3 sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <button type="button" onClick={submit} disabled={pending} className="btn-brand flex-1 sm:flex-none">{pending ? L.saving : item.id ? L.save : L.create}</button>
+        <a href="/admin/portfolio" className="btn-ghost">{L.cancel}</a>
       </div>
     </div>
   );

@@ -11,6 +11,8 @@ type ModelViewerAttributes = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTML
   "ar-placement"?: string;
   "camera-controls"?: boolean;
   "auto-rotate"?: boolean;
+  "auto-rotate-delay"?: string | number;
+  "rotation-per-second"?: string;
   "touch-action"?: string;
   "shadow-intensity"?: string | number;
   exposure?: string | number;

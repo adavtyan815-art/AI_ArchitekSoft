@@ -4,9 +4,10 @@ import { Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { PROJECT_STAGES, PROJECT_TYPES } from "@/lib/crm";
-import { clientLabel } from "@/lib/admin-helpers";
-import { cn, formatDate, formatMoney, relativeTime } from "@/lib/utils";
-import { PageHeader, StatCard, StatusBadge } from "@/components/admin/shell";
+import { clientLabel, relTime } from "@/lib/admin-helpers";
+import { getAdminDict, labelFor } from "@/lib/i18n/admin";
+import { formatDate, formatMoney } from "@/lib/utils";
+import { FilterBar, PageHeader, PillTabs, StatCard, StatusBadge } from "@/components/admin/shell";
 import { Empty, Input, Select } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,8 @@ type Search = { stage?: string; status?: string; segment?: string; type?: string
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireUser();
+  const { t, locale } = await getAdminDict();
+  const P = t.projects;
   const sp = await searchParams;
   const stage = PROJECT_STAGES.includes(sp.stage as (typeof PROJECT_STAGES)[number]) ? sp.stage! : "all";
   const status = STATUSES.includes(sp.status as (typeof STATUSES)[number]) ? sp.status! : "all";
@@ -36,9 +39,28 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   }
   const rows = db.select().from(schema.projects).where(conds.length ? and(...conds) : undefined).orderBy(desc(schema.projects.updatedAt)).limit(500).all();
 
-  const clients = Object.fromEntries(db.select({ id: schema.clients.id, firstName: schema.clients.firstName, lastName: schema.clients.lastName }).from(schema.clients).all().map((c) => [c.id, clientLabel(c)]));
-  const companies = Object.fromEntries(db.select({ id: schema.companies.id, name: schema.companies.name }).from(schema.companies).all().map((c) => [c.id, c.name]));
-  const stageCounts = Object.fromEntries(db.select({ stage: schema.projects.stage, c: sql<number>`count(*)` }).from(schema.projects).groupBy(schema.projects.stage).all().map((r) => [r.stage, r.c]));
+  const clients = Object.fromEntries(
+    db
+      .select({ id: schema.clients.id, firstName: schema.clients.firstName, lastName: schema.clients.lastName })
+      .from(schema.clients)
+      .all()
+      .map((c) => [c.id, clientLabel(c)])
+  );
+  const companies = Object.fromEntries(
+    db
+      .select({ id: schema.companies.id, name: schema.companies.name })
+      .from(schema.companies)
+      .all()
+      .map((c) => [c.id, c.name])
+  );
+  const stageCounts = Object.fromEntries(
+    db
+      .select({ stage: schema.projects.stage, c: sql<number>`count(*)` })
+      .from(schema.projects)
+      .groupBy(schema.projects.stage)
+      .all()
+      .map((r) => [r.stage, r.c])
+  );
   const totalAll = Object.values(stageCounts).reduce((s: number, n) => s + (n as number), 0);
   const pipeline = rows.reduce((s, p) => s + (p.quoteAmount ?? 0), 0);
   const paid = rows.reduce((s, p) => s + (p.paidAmount ?? 0), 0);
@@ -51,121 +73,131 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     return s ? `/admin/projects?${s}` : "/admin/projects";
   };
 
+  const stageTabs = [{ key: "all", label: t.common.all, href: href({ stage: "all" }), count: totalAll }, ...PROJECT_STAGES.map((s) => ({ key: s, label: labelFor(t, "projectStage", s), href: href({ stage: s }), count: stageCounts[s] ?? 0 }))];
+
   return (
     <>
       <PageHeader
-        title="Projects"
-        subtitle="Every kitchen, wardrobe and interior job from request to handover."
+        title={P.title}
+        subtitle={P.subtitle}
         actions={
           <Link href="/admin/projects/new" className="btn-primary btn-sm">
-            <Plus size={14} /> New project
+            <Plus size={14} /> {P.new}
           </Link>
         }
       />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <StatCard label="Shown" value={rows.length} hint={`${totalAll} total`} />
-        <StatCard label="Quoted (filtered)" value={formatMoney(pipeline)} />
-        <StatCard label="Paid (filtered)" value={formatMoney(paid)} tone={paid ? "success" : undefined} />
+        <StatCard label={P.shown} value={rows.length} hint={P.totalHint(totalAll)} />
+        <StatCard label={P.quotedFiltered} value={formatMoney(pipeline)} />
+        <StatCard label={P.paidFiltered} value={formatMoney(paid)} tone={paid ? "success" : undefined} />
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
-        {[{ key: "all", label: "All", count: totalAll }, ...PROJECT_STAGES.map((s) => ({ key: s, label: s.replace(/_/g, " "), count: stageCounts[s] ?? 0 }))].map((t) => (
-          <Link key={t.key} href={href({ stage: t.key })} className={cn("-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium capitalize", stage === t.key ? "border-ink-950 text-ink-950" : "border-transparent text-ink-500 hover:text-ink-900")}>
-            {t.label}
-            <span className="ml-1.5 rounded-full bg-ink-100 px-1.5 py-0.5 text-[11px] text-ink-600">{t.count}</span>
+      <FilterBar className="flex-col items-stretch">
+        <PillTabs items={stageTabs} current={stage} />
+        <form action="/admin/projects" className="flex w-full flex-wrap items-center gap-2">
+          {stage !== "all" ? <input type="hidden" name="stage" value={stage} /> : null}
+          <Select name="status" defaultValue={status} className="w-full py-1.5 text-sm sm:w-44" aria-label={t.common.status}>
+            <option value="all">{P.anyStatus}</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {labelFor(t, "projectStatus", s)}
+              </option>
+            ))}
+          </Select>
+          <Select name="segment" defaultValue={segment} className="w-full py-1.5 text-sm sm:w-40" aria-label={t.common.segment}>
+            <option value="all">{P.anySegment}</option>
+            <option value="b2b">{t.segments.b2b}</option>
+            <option value="b2c">{t.segments.b2c}</option>
+          </Select>
+          <Select name="type" defaultValue={type} className="w-full py-1.5 text-sm sm:w-40" aria-label={t.common.type}>
+            <option value="all">{P.anyType}</option>
+            {PROJECT_TYPES.map((ty) => (
+              <option key={ty} value={ty}>
+                {labelFor(t, "rooms", ty)}
+              </option>
+            ))}
+          </Select>
+          <Input name="q" defaultValue={q} placeholder={P.searchPlaceholder} className="w-full py-1.5 sm:w-56" aria-label={t.common.search} />
+          <button type="submit" className="btn-secondary btn-sm">
+            {t.common.apply}
+          </button>
+          <Link href="/admin/projects" className="btn-ghost btn-sm">
+            {t.common.reset}
           </Link>
-        ))}
-      </div>
-
-      <form action="/admin/projects" className="mb-4 flex flex-wrap items-center gap-2">
-        {stage !== "all" ? <input type="hidden" name="stage" value={stage} /> : null}
-        <Select name="status" defaultValue={status} className="w-36 py-1.5 text-sm">
-          <option value="all">Any status</option>
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s.replace(/_/g, " ")}
-            </option>
-          ))}
-        </Select>
-        <Select name="segment" defaultValue={segment} className="w-32 py-1.5 text-sm">
-          <option value="all">Any segment</option>
-          <option value="b2b">B2B</option>
-          <option value="b2c">B2C</option>
-        </Select>
-        <Select name="type" defaultValue={type} className="w-36 py-1.5 text-sm">
-          <option value="all">Any type</option>
-          {PROJECT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </Select>
-        <Input name="q" defaultValue={q} placeholder="Search code or title…" className="w-56 py-1.5" />
-        <button type="submit" className="btn-secondary btn-sm">
-          Apply
-        </button>
-        <Link href="/admin/projects" className="btn-ghost btn-sm">
-          Reset
-        </Link>
-      </form>
+        </form>
+      </FilterBar>
 
       {rows.length === 0 ? (
-        <Empty title="No projects match" text={q ? `Nothing found for “${q}”.` : "Convert a lead or create a project manually."} action={<Link href="/admin/projects/new" className="btn-primary btn-sm">New project</Link>} />
+        <Empty
+          title={P.emptyTitle}
+          text={q ? P.emptyFound(q) : P.emptyText}
+          action={
+            <Link href="/admin/projects/new" className="btn-primary btn-sm">
+              {P.new}
+            </Link>
+          }
+        />
       ) : (
-        <div className="card overflow-x-auto">
-          <table className="table-admin">
+        <div className="card overflow-x-auto max-md:overflow-visible max-md:border-none max-md:bg-transparent max-md:shadow-none">
+          <table className="table-admin table-responsive">
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Title</th>
-                <th>Client / company</th>
-                <th>Segment</th>
-                <th>Type</th>
-                <th>Stage</th>
-                <th className="text-right">Quote / paid</th>
-                <th>Deadline</th>
-                <th>Updated</th>
-                <th>Status</th>
+                <th>{P.colCode}</th>
+                <th>{P.colTitle}</th>
+                <th>{P.colClient}</th>
+                <th className="max-md:hidden!">{t.common.segment}</th>
+                <th className="max-md:hidden!">{t.common.type}</th>
+                <th>{t.common.stage}</th>
+                <th className="text-right">{P.colQuote}</th>
+                <th className="max-md:hidden!">{P.colDeadline}</th>
+                <th className="max-md:hidden!">{t.common.updated}</th>
+                <th>{t.common.status}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((p) => (
                 <tr key={p.id}>
-                  <td className="whitespace-nowrap font-mono text-xs text-ink-600">{p.code}</td>
-                  <td>
-                    <Link href={`/admin/projects/${p.id}`} className="font-medium text-ink-900 hover:text-brand-600">
+                  <td data-label={P.colCode} className="font-mono text-xs whitespace-nowrap text-muted">
+                    {p.code}
+                  </td>
+                  <td data-label={P.colTitle}>
+                    <Link href={`/admin/projects/${p.id}`} className="font-medium text-fg transition-colors hover:text-accent">
                       {p.title}
                     </Link>
                   </td>
-                  <td className="text-xs text-ink-600">
+                  <td data-label={P.colClient} className="text-xs">
                     {p.clientId ? (
-                      <Link href={`/admin/clients/${p.clientId}`} className="block hover:text-brand-600">
+                      <Link href={`/admin/clients/${p.clientId}`} className="block transition-colors hover:text-accent">
                         {clients[p.clientId] ?? "—"}
                       </Link>
                     ) : null}
                     {p.companyId ? (
-                      <Link href={`/admin/companies/${p.companyId}`} className="block hover:text-brand-600">
+                      <Link href={`/admin/companies/${p.companyId}`} className="block transition-colors hover:text-accent">
                         {companies[p.companyId] ?? "—"}
                       </Link>
                     ) : null}
                     {!p.clientId && !p.companyId ? "—" : null}
                   </td>
-                  <td>
-                    <StatusBadge value={p.segment} />
+                  <td data-label={t.common.segment} className="max-md:hidden!">
+                    <StatusBadge value={p.segment} label={labelFor(t, "segments", p.segment)} />
                   </td>
-                  <td className="text-ink-600">{p.type}</td>
-                  <td>
-                    <StatusBadge value={p.stage} />
+                  <td data-label={t.common.type} className="max-md:hidden!">{labelFor(t, "rooms", p.type)}</td>
+                  <td data-label={t.common.stage}>
+                    <StatusBadge value={p.stage} label={labelFor(t, "projectStage", p.stage)} />
                   </td>
-                  <td className="whitespace-nowrap text-right tabular-nums">
+                  <td data-label={P.colQuote} className="text-right whitespace-nowrap tabular-nums">
                     <div>{formatMoney(p.quoteAmount, p.currency)}</div>
-                    {p.paidAmount ? <div className="text-xs text-success-500">{formatMoney(p.paidAmount, p.currency)}</div> : null}
+                    {p.paidAmount ? <div className="text-xs text-success">{formatMoney(p.paidAmount, p.currency)}</div> : null}
                   </td>
-                  <td className="whitespace-nowrap text-ink-600">{p.deadline ? formatDate(p.deadline) : "—"}</td>
-                  <td className="whitespace-nowrap text-ink-500">{relativeTime(p.updatedAt)}</td>
-                  <td>
-                    <StatusBadge value={p.status} />
+                  <td data-label={P.colDeadline} className="whitespace-nowrap max-md:hidden!">
+                    {p.deadline ? formatDate(p.deadline) : "—"}
+                  </td>
+                  <td data-label={t.common.updated} className="whitespace-nowrap text-muted max-md:hidden!">
+                    {relTime(p.updatedAt, locale)}
+                  </td>
+                  <td data-label={t.common.status}>
+                    <StatusBadge value={p.status} label={labelFor(t, "projectStatus", p.status)} />
                   </td>
                 </tr>
               ))}

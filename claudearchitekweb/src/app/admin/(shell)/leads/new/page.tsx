@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/auth";
+import { getAdminDict } from "@/lib/i18n/admin";
 import { PageHeader, Panel } from "@/components/admin/shell";
 import { LeadForm } from "@/components/admin/crm/lead-form";
 import { createLeadAction } from "@/app/admin/actions/crm-actions";
@@ -7,11 +8,13 @@ export const dynamic = "force-dynamic";
 
 export default async function NewLeadPage() {
   await requireUser();
+  const { t } = await getAdminDict();
+  const L = t.crm.leads;
   return (
     <>
-      <PageHeader title="New lead" subtitle="Manual entry for phone calls, walk-ins and messages." crumbs={[{ label: "Leads", href: "/admin/leads" }, { label: "New" }]} />
+      <PageHeader title={L.new} subtitle={L.newSubtitle} crumbs={[{ label: L.title, href: "/admin/leads" }, { label: t.common.new }]} />
       <Panel className="max-w-3xl">
-        <LeadForm action={createLeadAction} submitLabel="Create lead" />
+        <LeadForm action={createLeadAction} submitLabel={L.create} />
       </Panel>
     </>
   );

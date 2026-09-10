@@ -7,8 +7,21 @@ import { cn } from "@/lib/utils";
 
 type UploadError = { name: string; error: string };
 
+export type UploadLabels = {
+  /** Idle prompt shown inside the drop zone. */
+  label: string;
+  /** Small print under the prompt (accepted types, size limit). */
+  hint: string;
+  /** Shown while the request is in flight. */
+  busy: string;
+  /** Success template containing `{n}`. */
+  uploaded: string;
+  /** Prefix used for a failed request. */
+  failed: string;
+};
+
 /** Drag & drop / click upload zone. Posts multipart "files" to /api/admin/upload, then refreshes the page. */
-export function UploadZone({ projectId, kindHint, label = "Drop files here or click to choose", className }: { projectId?: string | null; kindHint?: string; label?: string; className?: string }) {
+export function UploadZone({ projectId, kindHint, labels, className }: { projectId?: string | null; kindHint?: string; labels: UploadLabels; className?: string }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -30,14 +43,14 @@ export function UploadZone({ projectId, kindHint, label = "Drop files here or cl
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
       const json = (await res.json()) as { assets?: unknown[]; errors?: UploadError[]; error?: string };
       if (!res.ok && json.error) {
-        setErrors([{ name: "Upload", error: json.error }]);
+        setErrors([{ name: labels.failed, error: json.error }]);
       } else {
-        setMsg(`Uploaded ${json.assets?.length ?? 0} file(s)`);
+        setMsg(labels.uploaded.replace("{n}", String(json.assets?.length ?? 0)));
         setErrors(json.errors ?? []);
         router.refresh();
       }
     } catch (e) {
-      setErrors([{ name: "Upload", error: (e as Error).message }]);
+      setErrors([{ name: labels.failed, error: (e as Error).message }]);
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -66,19 +79,19 @@ export function UploadZone({ projectId, kindHint, label = "Drop files here or cl
         onDragLeave={() => setOver(false)}
         onDrop={onDrop}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-6 py-8 text-center transition-colors",
-          over ? "border-brand-500 bg-brand-50" : "border-ink-200 bg-ink-50 hover:border-ink-300",
+          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-5 py-7 text-center transition-colors sm:px-6 sm:py-8",
+          over ? "border-accent bg-accent-soft" : "border-line-strong bg-surface-2 hover:border-accent",
           busy && "pointer-events-none opacity-60"
         )}
       >
-        <UploadCloud size={22} className="text-ink-400" />
-        <div className="text-sm font-medium text-ink-800">{busy ? "Uploading…" : label}</div>
-        <div className="text-xs text-ink-500">Images, video, PDF, GLB/USDZ, DWG — up to 1 GB per file</div>
+        <UploadCloud size={22} className="text-muted" />
+        <div className="text-sm font-medium text-fg-2">{busy ? labels.busy : labels.label}</div>
+        <div className="text-xs text-muted">{labels.hint}</div>
         <input ref={inputRef} type="file" multiple hidden onChange={(e) => e.target.files && send(e.target.files)} />
       </div>
-      {msg ? <div className="mt-2 text-xs font-medium text-success-500">{msg}</div> : null}
+      {msg ? <div className="mt-2 text-xs font-medium text-success">{msg}</div> : null}
       {errors.length ? (
-        <ul className="mt-2 space-y-0.5 text-xs text-danger-500">
+        <ul className="mt-2 space-y-0.5 text-xs text-danger">
           {errors.map((e, i) => (
             <li key={i}>
               {e.name}: {e.error}

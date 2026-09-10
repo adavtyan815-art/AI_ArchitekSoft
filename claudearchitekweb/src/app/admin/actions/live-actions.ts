@@ -5,6 +5,41 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { createLiveInstance, stopLiveInstance } from "@/lib/live";
+import { getAdminLocale, local } from "@/lib/i18n/admin";
+
+/** Notice wording for this action file. */
+async function M() {
+  const locale = await getAdminLocale();
+  return local(
+    {
+      hy: {
+        invalidForm: "Ձևը սխալ է լրացված՝",
+        dryRun: "Փորձնական ռեժիմ (LIVE_ADMIN_USERNAME/PASSWORD չկա). հղումը կունենար այս տեսքը՝",
+        created: "Սեսիան ստեղծված է",
+        forWhom: "ում համար՝",
+        linkWord: "Հղում՝",
+        missingUuid: "Սեսիայի uuid-ն բացակայում է։",
+        stopRequested: "Կանգնեցման հարցումն ուղարկված է՝",
+        cannotStop: "Չհաջողվեց կանգնեցնել",
+        refused: "սերվերը մերժեց",
+        backendError: "Live սերվերի սխալ՝",
+      },
+      en: {
+        invalidForm: "Invalid form:",
+        dryRun: "Dry run (no LIVE_ADMIN_USERNAME/PASSWORD): the link would look like",
+        created: "Session created",
+        forWhom: "for",
+        linkWord: "Link:",
+        missingUuid: "Missing session uuid.",
+        stopRequested: "Stop requested for",
+        cannotStop: "Could not stop",
+        refused: "backend refused",
+        backendError: "Live backend error:",
+      },
+    },
+    locale,
+  );
+}
 
 function back(text: string, tone: "ok" | "error" = "ok"): never {
   revalidatePath("/admin/live");
@@ -28,24 +63,26 @@ export async function createLiveInstanceForm(formData: FormData) {
       days: String(formData.get("days") ?? ""),
       explicitInstanceId: String(formData.get("explicitInstanceId") ?? "").trim() || undefined,
     });
-  if (!parsed.success) back(`Invalid form: ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
+  const m = await M();
+  if (!parsed.success) back(`${m.invalidForm} ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
   try {
     const r = await createLiveInstance(parsed.data);
-    if (r.dryRun) back(`Dry-run (no LIVE_ADMIN_USERNAME/PASSWORD): the link would look like ${r.url}`, "error");
-    back(`Instance ${r.uuid} created for ${parsed.data.assignedTo}. Link: ${r.url}`);
+    if (r.dryRun) back(`${m.dryRun} ${r.url}`, "error");
+    back(`${m.created} (${r.uuid}) ${m.forWhom} ${parsed.data.assignedTo}. ${m.linkWord} ${r.url}`);
   } catch (e) {
-    back(`Live backend error: ${(e as Error).message}`, "error");
+    back(`${m.backendError} ${(e as Error).message}`, "error");
   }
 }
 
 export async function stopLiveInstanceForm(formData: FormData) {
   await requireUser();
   const uuid = String(formData.get("uuid") ?? "");
-  if (!uuid) back("Missing instance uuid.", "error");
+  const m = await M();
+  if (!uuid) back(m.missingUuid, "error");
   try {
     const r = await stopLiveInstance(uuid);
-    back(r.ok ? `Stop requested for ${uuid}.` : `Could not stop ${uuid}: ${"error" in r ? r.error : "backend refused"}`, r.ok ? "ok" : "error");
+    back(r.ok ? `${m.stopRequested} ${uuid}.` : `${m.cannotStop} ${uuid}: ${"error" in r ? r.error : m.refused}`, r.ok ? "ok" : "error");
   } catch (e) {
-    back(`Live backend error: ${(e as Error).message}`, "error");
+    back(`${m.backendError} ${(e as Error).message}`, "error");
   }
 }

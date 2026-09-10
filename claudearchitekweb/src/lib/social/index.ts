@@ -57,7 +57,7 @@ async function publishFacebook(input: PublishInput): Promise<PublishResult> {
   const images = pickImages(input);
   const video = pickVideo(input);
   if (!env.meta.pageId || !env.meta.pageToken) {
-    return { status: "simulated", note: `Facebook dry-run: would post ${video ? "1 video" : `${images.length} photo(s)`} with ${text.length} chars. Set META_PAGE_ID / META_PAGE_ACCESS_TOKEN.` };
+    return { status: "simulated", note: `Facebook՝ փորձնական. կհրապարակվեր ${video ? "1 վիդեո" : `${images.length} նկար`} և ${text.length} նիշ տեքստ։ Դիր META_PAGE_ID / META_PAGE_ACCESS_TOKEN։` };
   }
   const base = `https://graph.facebook.com/v21.0`;
   try {
@@ -112,10 +112,10 @@ async function publishInstagram(input: PublishInput): Promise<PublishResult> {
   const video = pickVideo(input);
   const publicUrl = (a: Asset) => `${input.publicBaseUrl}/media/${a.relPath}`;
   if (!env.meta.igUserId || !env.meta.pageToken) {
-    return { status: "simulated", note: `Instagram dry-run: would publish ${video && input.variant.format === "reel" ? "a Reel" : images.length > 1 ? `a carousel of ${images.length}` : "1 image"}. Set META_IG_USER_ID + META_PAGE_ACCESS_TOKEN and make ${input.publicBaseUrl} public (Instagram fetches media by URL).` };
+    return { status: "simulated", note: `Instagram՝ փորձնական. կհրապարակվեր ${video && input.variant.format === "reel" ? "Reel" : images.length > 1 ? `${images.length} նկարից կարուսել` : "1 նկար"}։ Դիր META_IG_USER_ID + META_PAGE_ACCESS_TOKEN և ${input.publicBaseUrl}-ը դարձրու հրապարակային (Instagram-ը մեդիան վերցնում է հասցեով)։` };
   }
   if (!/^https:\/\//.test(input.publicBaseUrl) || /localhost|127\.0\.0\.1/.test(input.publicBaseUrl)) {
-    return { status: "failed", error: "Instagram needs media on a public HTTPS URL. APP_URL is local." };
+    return { status: "failed", error: "Instagram-ին պետք է մեդիա հրապարակային https հասցեով։ APP_URL-ը լոկալ է։" };
   }
   const base = `https://graph.facebook.com/v21.0`;
   const token = env.meta.pageToken;
@@ -165,7 +165,7 @@ async function publishLinkedIn(input: PublishInput): Promise<PublishResult> {
   const images = pickImages(input);
   const video = pickVideo(input);
   if (!env.linkedin.token || !env.linkedin.orgUrn) {
-    return { status: "simulated", note: `LinkedIn dry-run: would post ${text.length} chars with ${video ? "1 video" : `${Math.min(images.length, 1)} image`}. Set LINKEDIN_ACCESS_TOKEN + LINKEDIN_ORG_URN (Community Management API access required).` };
+    return { status: "simulated", note: `LinkedIn՝ փորձնական. կհրապարակվեր ${text.length} նիշ և ${video ? "1 վիդեո" : `${Math.min(images.length, 1)} նկար`}։ Դիր LINKEDIN_ACCESS_TOKEN + LINKEDIN_ORG_URN (պետք է Community Management API մուտք)։` };
   }
   const version = process.env.LINKEDIN_API_VERSION || "202506";
   const headers = { Authorization: `Bearer ${env.linkedin.token}`, "Linkedin-Version": version, "X-Restli-Protocol-Version": "2.0.0", "Content-Type": "application/json" };
@@ -217,9 +217,9 @@ async function publishYouTube(input: PublishInput): Promise<PublishResult> {
   const video = pickVideo(input);
   const title = (input.variant.title || input.post.title).slice(0, 100);
   const description = fullText(input.variant).slice(0, 4900);
-  if (!video) return { status: "failed", error: "YouTube needs a video asset" };
+  if (!video) return { status: "failed", error: "YouTube-ի համար պետք է վիդեո ֆայլ։" };
   if (!env.youtube.clientId || !env.youtube.refreshToken) {
-    return { status: "simulated", note: `YouTube dry-run: would upload "${title}" (${Math.round((video.durationSec ?? 0))}s). Set YOUTUBE_CLIENT_ID/SECRET/REFRESH_TOKEN. Note: unverified apps upload as private.` };
+    return { status: "simulated", note: `YouTube՝ փորձնական. կվերբեռնվեր «${title}» (${Math.round(video.durationSec ?? 0)} վրկ)։ Դիր YOUTUBE_CLIENT_ID/SECRET/REFRESH_TOKEN։ Չստուգված հավելվածի վերբեռնումները մնում են փակ։` };
   }
   try {
     const token = await youtubeAccessToken();
@@ -252,7 +252,7 @@ async function publishTelegram(input: PublishInput): Promise<PublishResult> {
   const images = pickImages(input);
   const video = pickVideo(input);
   if (!tg.telegramEnabled() || !channel) {
-    return { status: "simulated", note: `Telegram dry-run: would post to channel with ${video ? "1 video" : `${images.length} photo(s)`}. Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHANNEL_ID (bot must be channel admin).` };
+    return { status: "simulated", note: `Telegram՝ փորձնական. կհրապարակվեր ալիքում ${video ? "1 վիդեոյով" : `${images.length} նկարով`}։ Դիր TELEGRAM_BOT_TOKEN + TELEGRAM_CHANNEL_ID (բոտը պետք է լինի ալիքի ադմին)։` };
   }
   try {
     let messageId = 0;
@@ -278,7 +278,7 @@ async function publishTelegram(input: PublishInput): Promise<PublishResult> {
 
 async function publishTikTok(input: PublishInput): Promise<PublishResult> {
   const video = pickVideo(input);
-  return { status: "simulated", note: `TikTok: manual step. ${video ? `Upload ${path.basename(video.fileName)}` : "No video attached"} with caption from this variant. (TikTok's Content Posting API requires an audited app; unaudited posts stay private, so we do not automate it.)` };
+  return { status: "simulated", note: `TikTok՝ ձեռքով քայլ. ${video ? `վերբեռնիր ${path.basename(video.fileName)}` : "վիդեո կցված չէ"} այս տարբերակի տեքստով։ (TikTok-ի API-ն պահանջում է ստուգված հավելված. չստուգված գրառումները մնում են փակ, ուստի չենք ավտոմատացնում։)` };
 }
 
 export const ADAPTERS: Record<string, (i: PublishInput) => Promise<PublishResult>> = {

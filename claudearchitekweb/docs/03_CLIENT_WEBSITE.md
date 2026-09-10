@@ -1,5 +1,7 @@
 # Client website
 
+> v2 (10 Sept 2026): positioning corrected (we do not make or sell furniture), Web Viewer section and `/viewer` page added, packages restructured (Pilot / Studio / Showroom+; Decision package), design system v2 with light/dark modes and mobile-first layouts. Details in `12_OFFERS_AND_POSITIONING.md`.
+
 ## Goals
 
 - A visitor understands **in ten seconds** what ArchiTek Soft does, whether it is for them, and what to do next.
@@ -12,7 +14,8 @@
 | URL (hy) | ru / en | Purpose | Primary CTA |
 |---|---|---|---|
 | `/` | `/ru`, `/en` | Home: promise, proof strip, two doors, KitchenPro in 3 verbs, 3 steps, what you need, other solutions, portfolio, about, FAQ, contact | Start a project |
-| `/kitchenpro` | | The product: problem → solution, 8 capabilities, workflow stages 0–6, B2B/B2C views, honest status ("service today, platform in stages") | Discuss your project |
+| `/kitchenpro` | | The maker platform: problem → solution, 8 capabilities, workflow 0–6 (the maker produces), B2B/B2C views, honest status | Discuss your project |
+| `/viewer` | | Web Viewer: live demo (rotate, colour swatches, AR), features, Web Viewer vs Live 3D table | Get my Web Viewer link |
 | `/for-business` | | B2B: pains, offer, how we start (pilot), packages (Project / Studio / Factory) | Order a pilot project |
 | `/for-home` | | B2C: benefits, 4 steps, what you need, price note | Start in 5 minutes |
 | `/solutions` | | Real estate, showrooms, AR/VR, custom software | Discuss your case |

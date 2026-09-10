@@ -2,7 +2,7 @@
 
 /**
  * Four-step post composer: project → media (+ branded poster) → goal/language/platforms → generate.
- * All data is passed from the server page; the two server actions do the real work.
+ * All data and every visible string come from the server page; the two server actions do the work.
  */
 import { useMemo, useState, useTransition } from "react";
 import { Check, ImagePlus, Sparkles, Video } from "lucide-react";
@@ -24,14 +24,7 @@ export type ComposerAsset = {
 export type ComposerProject = { id: string; code: string; title: string; type: string; segment: string; coverUrl: string };
 
 type Goal = "trust" | "sales_b2b" | "sales_b2c" | "showcase" | "education";
-
-const GOALS: { key: Goal; label: string; hint: string }[] = [
-  { key: "trust", label: "Trust / expertise", hint: "How we work and why it is precise — for people who do not buy today." },
-  { key: "sales_b2b", label: "Sales — B2B", hint: "Furniture makers, showrooms, developers: time saved, fewer errors, faster approvals." },
-  { key: "sales_b2c", label: "Sales — B2C", hint: "Households ordering a kitchen: see it in 3D before production, pick materials, get the price." },
-  { key: "showcase", label: "Showcase", hint: "Let the render speak: a finished project with a short, calm caption." },
-  { key: "education", label: "Education", hint: "Explain one useful idea (materials, hardware, measurements) without selling." },
-];
+const GOALS: Goal[] = ["trust", "sales_b2b", "sales_b2c", "showcase", "education"];
 
 const LANGS: { key: "hy" | "ru" | "en"; label: string }[] = [
   { key: "hy", label: "Հայերեն" },
@@ -41,17 +34,29 @@ const LANGS: { key: "hy" | "ru" | "en"; label: string }[] = [
 
 const RATIOS = ["1:1", "4:5", "16:9", "9:16"] as const;
 
+export type ComposerLabels = {
+  step1: string; step1Hint: string; noProject: string; noProjectHint: string;
+  step2: string; step2Hint: string; noMedia: string; noMediaAll: string; mediaLink: string; videoTag: string; posterTag: string;
+  poster: string; posterSource: string; posterHeadline: string; posterMake: string; posterRendering: string; posterPickFirst: string; posterDone: string;
+  step3: string; step3Hint: string; goalHints: Record<string, string>;
+  language: string; schedule: string; scheduleHint: string; platforms: string;
+  extra: string; extraHint: string; extraPlaceholder: string;
+  step4: string; step4Hint: string; generate: string; generating: string; generateNote: string;
+  pickPlatform: string; failed: string; summary: string; copywriter: string; templateNote: string; aiNote: string;
+  sumProject: string; sumMedia: string; sumGoal: string; sumLanguage: string; sumPlatforms: string;
+};
+
 function Step({ n, title, hint, children }: { n: number; title: string; hint?: string; children: React.ReactNode }) {
   return (
     <section className="card">
-      <header className="flex items-baseline gap-3 border-b border-line px-5 py-3">
-        <span className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-ink-950 text-[11px] font-semibold text-white">{n}</span>
+      <header className="flex items-baseline gap-3 border-b border-line px-4 py-3 sm:px-5">
+        <span className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-fg text-[11px] font-semibold text-bg">{n}</span>
         <div>
-          <h2 className="text-sm font-semibold text-ink-900">{title}</h2>
-          {hint ? <p className="text-xs text-ink-500">{hint}</p> : null}
+          <h2 className="text-sm font-semibold text-fg">{title}</h2>
+          {hint ? <p className="text-xs text-muted">{hint}</p> : null}
         </div>
       </header>
-      <div className="p-5">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </section>
   );
 }
@@ -63,6 +68,8 @@ export function Composer({
   platforms,
   defaults,
   ai,
+  labels,
+  goalLabels,
 }: {
   projects: ComposerProject[];
   assets: ComposerAsset[];
@@ -70,7 +77,10 @@ export function Composer({
   platforms: string[];
   defaults: { platforms: string[]; language: "hy" | "ru" | "en" };
   ai: { provider: string; model: string };
+  labels: ComposerLabels;
+  goalLabels: Record<string, string>;
 }) {
+  const L = labels;
   const [assets, setAssets] = useState(initialAssets);
   const [projectId, setProjectId] = useState<string>("");
   const [selected, setSelected] = useState<string[]>([]);
@@ -104,7 +114,7 @@ export function Composer({
   function makePoster() {
     const src = posterSource || images.find((a) => selected.includes(a.id))?.id || images[0]?.id || "";
     if (!src) {
-      setPosterMsg("Pick an image first.");
+      setPosterMsg(L.posterPickFirst);
       return;
     }
     setPosterMsg("");
@@ -117,14 +127,14 @@ export function Composer({
       const a = r.asset;
       setAssets((prev) => [{ id: a.id, name: a.name, kind: a.kind, mime: a.mime, projectId: a.projectId, thumbUrl: a.thumbUrl, durationSec: a.durationSec }, ...prev]);
       setSelected((s) => [...s, a.id]);
-      setPosterMsg(`Poster ${ratio} generated and added to the selection.`);
+      setPosterMsg(`${L.posterDone} (${ratio})`);
     });
   }
 
   function generate() {
     setError("");
     if (chosen.length === 0) {
-      setError("Choose at least one platform.");
+      setError(L.pickPlatform);
       return;
     }
     start(async () => {
@@ -141,61 +151,76 @@ export function Composer({
       } catch (e) {
         const msg = (e as Error).message ?? "";
         if (/NEXT_REDIRECT/.test(msg)) throw e;
-        setError(msg || "Could not generate the post.");
+        setError(msg || L.failed);
       }
     });
   }
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
-      <div className="space-y-5">
-        <Step n={1} title="Project" hint="The project gives the AI the context: type, materials, description, segment. Optional.">
+      <div className="min-w-0 space-y-5 pb-24 lg:pb-0">
+        <Step n={1} title={L.step1} hint={L.step1Hint}>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <button type="button" onClick={() => setProjectId("")} className={cn("flex items-center gap-3 rounded-xl border p-3 text-left text-sm", projectId === "" ? "border-ink-950 bg-ink-50" : "border-line hover:border-ink-300")}>
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-ink-100 text-ink-500">—</span>
+            <button type="button" onClick={() => setProjectId("")} className={cn("flex min-w-0 items-center gap-3 rounded-xl border p-3 text-left text-sm transition-colors", projectId === "" ? "border-accent bg-accent-soft" : "border-line hover:border-line-strong")}>
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-surface-2 text-muted">—</span>
               <span>
-                <span className="block font-medium text-ink-900">No project</span>
-                <span className="block text-xs text-ink-500">General brand post</span>
+                <span className="block font-medium text-fg">{L.noProject}</span>
+                <span className="block text-xs text-muted">{L.noProjectHint}</span>
               </span>
             </button>
             {projects.map((p) => (
-              <button key={p.id} type="button" onClick={() => setProjectId(p.id)} className={cn("flex items-center gap-3 rounded-xl border p-3 text-left text-sm", projectId === p.id ? "border-ink-950 bg-ink-50" : "border-line hover:border-ink-300")}>
-                {p.coverUrl ? <img src={p.coverUrl} alt="" className="h-10 w-10 flex-none rounded-lg object-cover" /> : <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-ink-100 text-[10px] uppercase text-ink-500">{p.type.slice(0, 3)}</span>}
+              <button key={p.id} type="button" onClick={() => setProjectId(p.id)} className={cn("flex min-w-0 items-center gap-3 rounded-xl border p-3 text-left text-sm transition-colors", projectId === p.id ? "border-accent bg-accent-soft" : "border-line hover:border-line-strong")}>
+                {p.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.coverUrl} alt="" loading="lazy" className="h-10 w-10 flex-none rounded-lg object-cover" />
+                ) : (
+                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-surface-2 text-[10px] text-muted uppercase">{p.type.slice(0, 3)}</span>
+                )}
                 <span className="min-w-0">
-                  <span className="block truncate font-medium text-ink-900">{p.title}</span>
-                  <span className="block truncate text-xs text-ink-500">{p.code} · {p.type} · {p.segment}</span>
+                  <span className="block truncate font-medium text-fg">{p.title}</span>
+                  <span className="block truncate text-xs text-muted">{p.code}</span>
                 </span>
               </button>
             ))}
           </div>
         </Step>
 
-        <Step n={2} title="Media" hint="Pick renders and/or one video. The first image is the lead visual; a poster is used as the cover on Facebook/Instagram.">
+        <Step n={2} title={L.step2} hint={L.step2Hint}>
           {visible.length === 0 ? (
-            <p className="text-sm text-ink-500">No image or video assets{project ? " for this project" : ""} yet. Upload them in <a className="text-brand-600" href="/admin/media">Media</a>.</p>
+            <p className="text-sm text-muted">
+              {project ? L.noMedia : L.noMediaAll}{" "}
+              <a className="font-medium text-accent hover:underline" href="/admin/media">{L.mediaLink}</a>
+            </p>
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
               {visible.map((a) => {
                 const idx = selected.indexOf(a.id);
                 return (
-                  <button key={a.id} type="button" onClick={() => toggle(a.id)} title={a.name} className={cn("group relative aspect-square overflow-hidden rounded-lg border", idx >= 0 ? "border-brand-500 ring-2 ring-brand-200" : "border-line hover:border-ink-300")}>
-                    {a.thumbUrl ? <img src={a.thumbUrl} alt={a.name} className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center bg-ink-100"><Video size={16} className="text-ink-400" /></span>}
-                    {a.mime.startsWith("video/") ? <span className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-semibold text-white">video</span> : null}
-                    {a.kind === "poster" ? <span className="absolute left-1 top-1 rounded bg-brand-600/90 px-1 text-[10px] font-semibold text-white">poster</span> : null}
-                    {idx >= 0 ? <span className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{idx + 1}</span> : null}
+                  <button key={a.id} type="button" onClick={() => toggle(a.id)} title={a.name} className={cn("group relative aspect-square overflow-hidden rounded-lg border transition-colors", idx >= 0 ? "border-accent ring-2 ring-accent-soft" : "border-line hover:border-line-strong")}>
+                    {a.thumbUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={a.thumbUrl} alt={a.name} loading="lazy" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center bg-surface-2">
+                        <Video size={16} className="text-faint" />
+                      </span>
+                    )}
+                    {a.mime.startsWith("video/") ? <span className="absolute top-1 left-1 rounded bg-inverse-bg/80 px-1 text-[10px] font-semibold text-inverse-fg">{L.videoTag}</span> : null}
+                    {a.kind === "poster" ? <span className="absolute top-1 left-1 rounded bg-accent px-1 text-[10px] font-semibold text-accent-fg">{L.posterTag}</span> : null}
+                    {idx >= 0 ? <span className="absolute top-1 right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-fg">{idx + 1}</span> : null}
                   </button>
                 );
               })}
             </div>
           )}
 
-          <div className="mt-4 rounded-xl border border-line bg-ink-50/60 p-3">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-500">
-              <ImagePlus size={14} /> Generate branded poster
+          <div className="card-inset mt-4 p-3">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase">
+              <ImagePlus size={14} /> {L.poster}
             </div>
             <div className="grid gap-2 sm:grid-cols-[1.4fr_auto_1.4fr_auto]">
               <Select value={posterSource} onChange={(e) => setPosterSource(e.target.value)} className="py-1.5 text-xs">
-                <option value="">Source render (first selected image)</option>
+                <option value="">{L.posterSource}</option>
                 {images.map((a) => (
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
@@ -205,96 +230,97 @@ export function Composer({
                   <option key={r} value={r}>{r}</option>
                 ))}
               </Select>
-              <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="Headline on the poster (optional)" maxLength={80} className="py-1.5 text-xs" />
+              <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder={L.posterHeadline} maxLength={80} className="py-1.5 text-xs" />
               <button type="button" onClick={makePoster} disabled={posterPending} className="btn-secondary btn-sm">
-                {posterPending ? "Rendering…" : "Generate"}
+                {posterPending ? L.posterRendering : L.posterMake}
               </button>
             </div>
-            {posterMsg ? <p className="mt-2 text-xs text-ink-600">{posterMsg}</p> : null}
+            {posterMsg ? <p className="mt-2 text-xs text-fg-2">{posterMsg}</p> : null}
           </div>
         </Step>
 
-        <Step n={3} title="Goal, language and platforms" hint="The goal changes the angle of the copy; each platform gets its own adapted variant.">
+        <Step n={3} title={L.step3} hint={L.step3Hint}>
           <div className="grid gap-2 sm:grid-cols-2">
             {GOALS.map((g) => (
-              <button key={g.key} type="button" onClick={() => setGoal(g.key)} className={cn("rounded-xl border p-3 text-left", goal === g.key ? "border-ink-950 bg-ink-50" : "border-line hover:border-ink-300")}>
-                <span className="flex items-center gap-2 text-sm font-medium text-ink-900">
-                  {goal === g.key ? <Check size={14} className="text-brand-600" /> : null}
-                  {g.label}
+              <button key={g} type="button" onClick={() => setGoal(g)} className={cn("rounded-xl border p-3 text-left transition-colors", goal === g ? "border-accent bg-accent-soft" : "border-line hover:border-line-strong")}>
+                <span className="flex items-center gap-2 text-sm font-medium text-fg">
+                  {goal === g ? <Check size={14} className="text-accent" /> : null}
+                  {goalLabels[g] ?? g}
                 </span>
-                <span className="mt-0.5 block text-xs text-ink-500">{g.hint}</span>
+                <span className="mt-0.5 block text-xs text-muted">{L.goalHints[g]}</span>
               </button>
             ))}
           </div>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label="Language">
+            <Field label={L.language}>
               <div className="flex gap-1">
                 {LANGS.map((l) => (
-                  <button key={l.key} type="button" onClick={() => setLanguage(l.key)} className={cn("flex-1 rounded-lg border px-3 py-1.5 text-sm", language === l.key ? "border-ink-950 bg-ink-950 text-white" : "border-line text-ink-700 hover:border-ink-300")}>
+                  <button key={l.key} type="button" onClick={() => setLanguage(l.key)} className={cn("flex-1 rounded-lg border px-3 py-1.5 text-sm transition-colors", language === l.key ? "border-fg bg-fg text-bg" : "border-line text-fg-2 hover:border-line-strong")}>
                     {l.label}
                   </button>
                 ))}
               </div>
             </Field>
-            <Field label="Schedule (Asia/Yerevan, optional)" hint="Leave empty to keep the post as a draft.">
-              <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+            <Field label={L.schedule} hint={L.scheduleHint}>
+              <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="min-w-0" />
             </Field>
           </div>
 
           <div className="mt-4">
-            <span className="label">Platforms</span>
+            <span className="label">{L.platforms}</span>
             <div className="flex flex-wrap gap-2">
               {platforms.map((p) => (
-                <button key={p} type="button" onClick={() => togglePlatform(p)} className={cn("rounded-full border px-1 py-0.5", chosen.includes(p) ? "border-brand-500 bg-brand-50" : "border-transparent opacity-60 hover:opacity-100")}>
+                <button key={p} type="button" onClick={() => togglePlatform(p)} className={cn("rounded-full border px-1 py-0.5 transition-opacity", chosen.includes(p) ? "border-accent bg-accent-soft" : "border-transparent opacity-55 hover:opacity-100")}>
                   <PlatformChip platform={p} meta={metaMap[p]} size="md" className={chosen.includes(p) ? "" : "border-dashed"} />
                 </button>
               ))}
             </div>
           </div>
 
-          <Field label="Extra instructions for the copywriter" className="mt-4" hint="Optional. E.g. “mention the free 3D preview for the first 5 clients”, “no emojis”, “mention EGGER U999”.">
-            <Textarea value={extra} onChange={(e) => setExtra(e.target.value)} maxLength={2000} placeholder="Anything the AI must know or must not say…" />
+          <Field label={L.extra} className="mt-4" hint={L.extraHint}>
+            <Textarea value={extra} onChange={(e) => setExtra(e.target.value)} maxLength={2000} placeholder={L.extraPlaceholder} />
           </Field>
         </Step>
 
-        <Step n={4} title="Generate" hint="One request produces the shared idea and a variant per platform. You can edit everything afterwards.">
-          {error ? <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p> : null}
-          <button type="button" onClick={generate} disabled={pending} className="btn-primary">
-            <Sparkles size={16} /> {pending ? "Generating…" : "Generate post pack"}
+        <Step n={4} title={L.step4} hint={L.step4Hint}>
+          {error ? <p className="mb-3 rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p> : null}
+          <button type="button" onClick={generate} disabled={pending} className="btn-brand hidden sm:inline-flex">
+            <Sparkles size={16} /> {pending ? L.generating : L.generate}
           </button>
-          <p className="mt-2 text-xs text-ink-500">The post is created as a draft (or scheduled) and opens in the editor.</p>
+          <p className="mt-2 text-xs text-muted">{L.generateNote}</p>
         </Step>
       </div>
 
-      <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+      <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
         <div className="card p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">Copywriter</div>
+          <div className="text-[11px] font-semibold tracking-wide text-muted uppercase">{L.copywriter}</div>
           <div className="mt-1 flex items-center gap-2 text-sm">
-            <span className={cn("h-2 w-2 rounded-full", ai.provider === "template" ? "bg-amber-500" : "bg-green-500")} />
-            <b className="font-semibold text-ink-900">{ai.provider}</b>
-            <span className="text-ink-500">{ai.model}</span>
+            <span className={cn("h-2 w-2 rounded-full", ai.provider === "template" ? "bg-warning" : "bg-success")} />
+            <b className="font-semibold text-fg">{ai.provider}</b>
+            <span className="text-muted">{ai.model}</span>
           </div>
-          {ai.provider === "template" ? (
-            <p className="mt-2 text-xs text-ink-500">
-              No <code>ANTHROPIC_API_KEY</code> / <code>GEMINI_API_KEY</code> is set, so the copy comes from the built-in trilingual templates (hy/ru/en). Everything else — variants, approval, publishing — works the same.
-            </p>
-          ) : (
-            <p className="mt-2 text-xs text-ink-500">Copy is written by {ai.provider} with the brand voice from Settings → SMM.</p>
-          )}
+          <p className="mt-2 text-xs text-muted">{ai.provider === "template" ? L.templateNote : L.aiNote}</p>
         </div>
 
         <div className="card p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">Summary</div>
+          <div className="text-[11px] font-semibold tracking-wide text-muted uppercase">{L.summary}</div>
           <dl className="mt-2 space-y-1.5 text-sm">
-            <div className="flex justify-between gap-3"><dt className="text-ink-500">Project</dt><dd className="truncate text-right text-ink-900">{project ? project.title : "—"}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-ink-500">Media</dt><dd className="text-ink-900">{selected.length}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-ink-500">Goal</dt><dd className="text-ink-900">{goal.replace("_", " ")}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-ink-500">Language</dt><dd className="uppercase text-ink-900">{language}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-ink-500">Platforms</dt><dd className="text-ink-900">{chosen.length}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">{L.sumProject}</dt><dd className="truncate text-right text-fg">{project ? project.title : "—"}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">{L.sumMedia}</dt><dd className="text-fg">{selected.length}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">{L.sumGoal}</dt><dd className="text-fg">{goalLabels[goal] ?? goal}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">{L.sumLanguage}</dt><dd className="text-fg uppercase">{language}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">{L.sumPlatforms}</dt><dd className="text-fg">{chosen.length}</dd></div>
           </dl>
         </div>
       </aside>
+
+      {/* Sticky action bar on mobile */}
+      <div className="glass pb-safe fixed inset-x-0 bottom-[68px] z-20 border-t border-line px-4 py-3 sm:hidden">
+        <button type="button" onClick={generate} disabled={pending} className="btn-brand w-full">
+          <Sparkles size={16} /> {pending ? L.generating : L.generate}
+        </button>
+      </div>
     </div>
   );
 }

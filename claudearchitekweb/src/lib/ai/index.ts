@@ -212,7 +212,7 @@ export async function generatePostPack(ctx: PostContext): Promise<PostPack & { w
     }
   }
   const pack = buildTemplatePack(ctx);
-  return { ...pack, warning: errors.length ? errors.join(" | ") : "No AI key configured — template copy generated. Add ANTHROPIC_API_KEY to .env for AI copywriting." };
+  return { ...pack, warning: errors.length ? errors.join(" | ") : "AI բանալի չկա — տեքստը գրվել է ներկառուցված ձևանմուշներով։ AI գրառումների համար .env-ում ավելացրու ANTHROPIC_API_KEY։" };
 }
 
 /** Free-form rewrite of one variant (used by the "Improve" button and Telegram edit flow). */

@@ -9,6 +9,7 @@ import { getDb, schema } from "@/lib/db";
 import { deleteAsset } from "@/lib/media";
 import { logActivity } from "@/lib/crm";
 import { fall, fbool, fopt, fstr, ftags } from "@/lib/form";
+import { actionStrings } from "@/lib/admin-log";
 
 const KINDS = ["render", "video", "sketch", "pdf", "model_glb", "model_usdz", "poster", "client_upload", "other"] as const;
 
@@ -23,7 +24,7 @@ export async function updateAssetAction(formData: FormData) {
   const id = fstr(formData, "id");
   const db = getDb();
   const asset = db.select().from(schema.assets).where(eq(schema.assets.id, id)).get();
-  if (!asset) throw new Error("Asset not found");
+  if (!asset) throw new Error((await actionStrings()).L.assetNotFound);
   const data = z
     .object({ caption: z.string().max(500).nullable(), tags: z.string().nullable(), projectId: z.string().nullable(), isPublic: z.boolean(), kind: z.enum(KINDS) })
     .parse({ caption: fopt(formData, "caption", 500), tags: ftags(formData, "tags"), projectId: fopt(formData, "projectId", 40), isPublic: fbool(formData, "isPublic"), kind: fstr(formData, "kind") || asset.kind });
@@ -81,7 +82,7 @@ export async function deleteAssetAction(formData: FormData) {
   if (!asset) return;
   clearProjectRefs(asset.id, asset.projectId);
   deleteAsset(id);
-  if (asset.projectId) logActivity("project", asset.projectId, `Deleted file ${asset.originalName}`, "system", user.id);
+  if (asset.projectId) logActivity("project", asset.projectId, (await actionStrings()).L.fileDeleted(asset.originalName), "system", user.id);
   revalidateMedia(asset.projectId, id);
   if (returnTo.startsWith("/admin")) redirect(returnTo);
 }
@@ -108,11 +109,11 @@ export async function bulkAssignAssetsAction(formData: FormData) {
   const db = getDb();
   if (projectId) {
     const p = db.select({ id: schema.projects.id }).from(schema.projects).where(eq(schema.projects.id, projectId)).get();
-    if (!p) throw new Error("Project not found");
+    if (!p) throw new Error((await actionStrings()).L.projectNotFound);
   }
   const prev = db.select({ projectId: schema.assets.projectId }).from(schema.assets).where(inArray(schema.assets.id, ids)).all();
   db.update(schema.assets).set({ projectId }).where(inArray(schema.assets.id, ids)).run();
-  if (projectId) logActivity("project", projectId, `${ids.length} file(s) assigned from media library`, "system", user.id);
+  if (projectId) logActivity("project", projectId, (await actionStrings()).L.filesAssigned(ids.length), "system", user.id);
   revalidateMedia(projectId);
   for (const r of prev) if (r.projectId) revalidatePath(`/admin/projects/${r.projectId}`);
 }

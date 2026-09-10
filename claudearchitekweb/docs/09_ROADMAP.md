@@ -7,6 +7,13 @@
 - Worker: scheduler, Telegram bot (approve/edit/postpone/skip, chat detection, status, daily brief), notifications for leads and client feedback.
 - Docs, Docker deployment, one-click local start, demo seed with real assets.
 
+## Done in v2 (10 Sept 2026)
+- Positioning corrected everywhere (not a furniture seller/maker); Web Viewer default, Live 3D premium.
+- Design system v2, light/dark modes, mobile-first layouts, Armenian admin.
+- `/viewer`, `/v/<slug>`, home Web Viewer demo.
+- Performance: Turbopack dev, image pipeline, payload trimming, lazy charts, DB tuning, caches (see `13_PERFORMANCE.md`).
+- Infrastructure plan with costs and thresholds; proposed B2B/B2C offers.
+
 ## Next 2 weeks (you)
 1. Run locally, click through with real project data; edit copy in `src/lib/i18n/hy.ts` where you want different wording.
 2. Create the Telegram bot, add `ANTHROPIC_API_KEY`, test one full post cycle.

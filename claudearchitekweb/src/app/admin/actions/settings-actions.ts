@@ -9,6 +9,63 @@ import { getMe, sendMessage, telegramEnabled } from "@/lib/telegram";
 import { listLiveInstances } from "@/lib/live";
 import { PLATFORMS } from "@/lib/ai";
 import { env } from "@/lib/env";
+import { getAdminLocale, local } from "@/lib/i18n/admin";
+
+/** Notice wording for this action file. */
+async function M() {
+  const locale = await getAdminLocale();
+  return local(
+    {
+      hy: {
+        invalidBrand: "Բրենդի կարգավորումները սխալ են՝",
+        brandSaved: "Բրենդի կարգավորումները պահպանված են։",
+        invalidSmm: "Սոց. ցանցերի կարգավորումները սխալ են՝",
+        smmSaved: "Սոց. ցանցերի կարգավորումները պահպանված են։",
+        invalidTg: "Telegram-ի կարգավորումները սխալ են (ամփոփման ժամը պետք է լինի ԺԺ:ՐՐ)։",
+        tgSaved: "Telegram-ի կարգավորումները պահպանված են։",
+        noToken: "TELEGRAM_BOT_TOKEN չկա — հաղորդագրությունը գրանցվեց սերվերի մատյանում որպես փորձնական։",
+        needChat: "Սկզբում լրացրու ադմինի չաթի id-ն (բոտին ուղարկիր /start, հետո /chatid)։",
+        testSentTo: "Փորձնական հաղորդագրությունն ուղարկվեց չաթ",
+        testBody: "Փորձնական հաղորդագրություն",
+        botConnected: "բոտը միացված է։",
+        tgError: "Telegram-ի սխալ՝",
+        invalidLive: "Live 3D կարգավորումները սխալ են՝",
+        liveSaved: "Live 3D կարգավորումները պահպանված են։",
+        liveOk: "Կապը կա — սերվերում",
+        liveOk2: "սեսիա։",
+        liveErr: "Live սերվեր՝",
+        unknownError: "անհայտ սխալ",
+        invalidPassword: "Գաղտնաբառը սխալ է (առնվազն 8 նիշ)։",
+        mismatch: "Գաղտնաբառերը չեն համընկնում։",
+        passwordChanged: "Գաղտնաբառը փոխված է։ Գործող սեսիաները մնում են ակտիվ մինչ ավարտը։",
+      },
+      en: {
+        invalidBrand: "Invalid brand settings:",
+        brandSaved: "Brand settings saved.",
+        invalidSmm: "Invalid social settings:",
+        smmSaved: "Social settings saved.",
+        invalidTg: "Invalid Telegram settings (digest time must be HH:MM).",
+        tgSaved: "Telegram settings saved.",
+        noToken: "TELEGRAM_BOT_TOKEN is not set — the message was logged as a dry run in the server console.",
+        needChat: "Enter the admin chat id first (send /start to the bot, then /chatid).",
+        testSentTo: "Test message sent to chat",
+        testBody: "Test message",
+        botConnected: "is connected.",
+        tgError: "Telegram error:",
+        invalidLive: "Invalid Live 3D settings:",
+        liveSaved: "Live 3D settings saved.",
+        liveOk: "Connected —",
+        liveOk2: "session(s) on the backend.",
+        liveErr: "Live backend:",
+        unknownError: "unknown error",
+        invalidPassword: "Invalid password (at least 8 characters).",
+        mismatch: "Passwords do not match.",
+        passwordChanged: "Password changed. Existing sessions stay signed in until they expire.",
+      },
+    },
+    locale,
+  );
+}
 
 function back(tab: string, text: string, tone: "ok" | "error" = "ok"): never {
   revalidatePath("/admin/settings");
@@ -42,9 +99,10 @@ export async function saveBrandAction(formData: FormData) {
   const keys = Object.keys(BrandSchema.shape) as (keyof z.infer<typeof BrandSchema>)[];
   const raw = Object.fromEntries(keys.map((k) => [k, s(formData, k)]));
   const parsed = BrandSchema.safeParse(raw);
-  if (!parsed.success) back("brand", `Invalid brand settings: ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
+  const m = await M();
+  if (!parsed.success) back("brand", `${m.invalidBrand} ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
   saveSetting("brand", parsed.data);
-  back("brand", "Brand settings saved.");
+  back("brand", m.brandSaved);
 }
 
 export async function saveSmmAction(formData: FormData) {
@@ -59,9 +117,10 @@ export async function saveSmmAction(formData: FormData) {
       postingTime: z.string().regex(/^\d{2}:\d{2}$/),
     })
     .safeParse({ approvalLeadMinutes: s(formData, "approvalLeadMinutes"), autoPublishAfterApproval: formData.get("autoPublishAfterApproval") === "on", brandVoice: s(formData, "brandVoice"), postingTime: s(formData, "postingTime") || "11:00" });
-  if (!parsed.success) back("smm", `Invalid SMM settings: ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
+  const m = await M();
+  if (!parsed.success) back("smm", `${m.invalidSmm} ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
   saveSetting("smm", { ...parsed.data, defaultPlatforms: platforms, postingDays: days, hashtagsHy: lines(s(formData, "hashtagsHy")), hashtagsRu: lines(s(formData, "hashtagsRu")), hashtagsEn: lines(s(formData, "hashtagsEn")) });
-  back("smm", "SMM settings saved.");
+  back("smm", m.smmSaved);
 }
 
 export async function saveTelegramAction(formData: FormData) {
@@ -69,22 +128,24 @@ export async function saveTelegramAction(formData: FormData) {
   const parsed = z
     .object({ adminChatId: z.string().max(40), channelId: z.string().max(80), notifyNewLeads: z.boolean(), notifyClientFeedback: z.boolean(), dailyDigestTime: z.string().regex(/^(\d{2}:\d{2})?$/) })
     .safeParse({ adminChatId: s(formData, "adminChatId"), channelId: s(formData, "channelId"), notifyNewLeads: formData.get("notifyNewLeads") === "on", notifyClientFeedback: formData.get("notifyClientFeedback") === "on", dailyDigestTime: s(formData, "dailyDigestTime") });
-  if (!parsed.success) back("telegram", "Invalid Telegram settings (digest time must be HH:MM).", "error");
+  const m = await M();
+  if (!parsed.success) back("telegram", m.invalidTg, "error");
   saveSetting("telegram", parsed.data);
-  back("telegram", "Telegram settings saved.");
+  back("telegram", m.tgSaved);
 }
 
 export async function sendTelegramTestAction(formData: FormData) {
   const user = await requireUser();
   const chat = s(formData, "adminChatId");
-  if (!telegramEnabled()) back("telegram", "TELEGRAM_BOT_TOKEN is not set — the message was logged as a dry-run in the server console.", "error");
-  if (!chat) back("telegram", "Enter the admin chat id first (send /start to the bot, then /chatid).", "error");
+  const m = await M();
+  if (!telegramEnabled()) back("telegram", m.noToken, "error");
+  if (!chat) back("telegram", m.needChat, "error");
   try {
     const me = await getMe();
-    await sendMessage(chat, `✅ Test message from ${env.appUrl}/admin (${user.name}). Bot @${me?.username ?? "?"} is connected.`);
-    back("telegram", `Test message sent to chat ${chat}.`);
+    await sendMessage(chat, `✅ ${m.testBody} — ${env.appUrl}/admin (${user.name}). @${me?.username ?? "?"} ${m.botConnected}`);
+    back("telegram", `${m.testSentTo} ${chat}.`);
   } catch (e) {
-    back("telegram", `Telegram error: ${(e as Error).message}`, "error");
+    back("telegram", `${m.tgError} ${(e as Error).message}`, "error");
   }
 }
 
@@ -93,25 +154,28 @@ export async function saveLiveAction(formData: FormData) {
   const parsed = z
     .object({ backendUrl: z.string().url().max(200), defaultDisplayHours: z.coerce.number().min(0.5).max(1000), defaultRealHours: z.coerce.number().min(0.5).max(1000), defaultDays: z.coerce.number().int().min(1).max(3650) })
     .safeParse({ backendUrl: s(formData, "backendUrl").replace(/\/$/, ""), defaultDisplayHours: s(formData, "defaultDisplayHours"), defaultRealHours: s(formData, "defaultRealHours"), defaultDays: s(formData, "defaultDays") });
-  if (!parsed.success) back("live", `Invalid Live 3D settings: ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
+  const m = await M();
+  if (!parsed.success) back("live", `${m.invalidLive} ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
   saveSetting("live", parsed.data);
-  back("live", "Live 3D settings saved.");
+  back("live", m.liveSaved);
 }
 
 export async function testLiveConnectionAction() {
   await requireUser();
   const r = await listLiveInstances();
-  if (r.ok) back("live", `Connected — ${r.instances.length} instance(s) on the backend.`);
-  back("live", `Live backend: ${r.error ?? "unknown error"}`, "error");
+  const m = await M();
+  if (r.ok) back("live", `${m.liveOk} ${r.instances.length} ${m.liveOk2}`);
+  back("live", `${m.liveErr} ${r.error ?? m.unknownError}`, "error");
 }
 
 export async function changePasswordAction(formData: FormData) {
   const user = await requireUser();
   const parsed = z
     .object({ password: z.string().min(8).max(200), confirm: z.string() })
-    .refine((d) => d.password === d.confirm, { message: "Passwords do not match", path: ["confirm"] })
+    .refine((d) => d.password === d.confirm, { message: "PASSWORD_MISMATCH", path: ["confirm"] })
     .safeParse({ password: String(formData.get("password") ?? ""), confirm: String(formData.get("confirm") ?? "") });
-  if (!parsed.success) back("security", parsed.error.issues[0]?.message ?? "Invalid password", "error");
+  const m = await M();
+  if (!parsed.success) back("security", parsed.error.issues[0]?.message === "PASSWORD_MISMATCH" ? m.mismatch : m.invalidPassword, "error");
   await changePassword(user.id, parsed.data.password);
-  back("security", "Password changed. Existing sessions stay signed in until they expire.");
+  back("security", m.passwordChanged);
 }

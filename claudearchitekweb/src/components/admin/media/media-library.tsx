@@ -8,9 +8,11 @@ import { cn, formatBytes, formatDate } from "@/lib/utils";
 export type MediaCard = {
   id: string;
   kind: string;
+  kindLabel: string;
   originalName: string;
   caption: string | null;
   thumbUrl: string | null;
+  thumbSrcSet?: string;
   url: string;
   sizeBytes: number;
   createdAt: string;
@@ -18,6 +20,19 @@ export type MediaCard = {
   isPublic: boolean;
   projectId: string | null;
   projectLabel: string | null;
+};
+
+export type MediaLibraryLabels = {
+  selectAll: string;
+  /** Template containing `{n}`. */
+  selected: string;
+  unassignOption: string;
+  assign: string;
+  deleteSelected: string;
+  /** Template containing `{n}`. */
+  deleteConfirm: string;
+  publicShort: string;
+  noProject: string;
 };
 
 function KindIcon({ kind }: { kind: string }) {
@@ -31,11 +46,13 @@ function KindIcon({ kind }: { kind: string }) {
 export function MediaLibrary({
   assets,
   projects,
+  labels,
   assignAction,
   deleteAction,
 }: {
   assets: MediaCard[];
   projects: { id: string; label: string }[];
+  labels: MediaLibraryLabels;
   assignAction: (fd: FormData) => Promise<void>;
   deleteAction: (fd: FormData) => Promise<void>;
 }) {
@@ -48,17 +65,17 @@ export function MediaLibrary({
 
   return (
     <form>
-      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3">
-        <label className="flex items-center gap-2 text-sm font-medium text-ink-800">
-          <input type="checkbox" checked={allSelected} onChange={() => setSelected(allSelected ? [] : assets.map((a) => a.id))} className="h-4 w-4 rounded border-ink-300" />
-          {selected.length ? `${selected.length} selected` : "Select all"}
+      <div className="card-inset mb-3 flex flex-wrap items-center gap-2 p-2.5">
+        <label className="flex items-center gap-2 text-sm font-medium text-fg-2">
+          <input type="checkbox" checked={allSelected} onChange={() => setSelected(allSelected ? [] : assets.map((a) => a.id))} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+          {selected.length ? labels.selected.replace("{n}", String(selected.length)) : labels.selectAll}
         </label>
-        <span className="flex-1" />
+        <span className="hidden flex-1 sm:block" />
         {selected.map((id) => (
           <input key={id} type="hidden" name="ids" value={id} />
         ))}
-        <select name="projectId" className="rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-sm" defaultValue="" disabled={!selected.length}>
-          <option value="">— unassign —</option>
+        <select name="projectId" className="input w-full py-1.5 text-sm sm:w-56" defaultValue="" disabled={!selected.length}>
+          <option value="">{labels.unassignOption}</option>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.label}
@@ -66,18 +83,18 @@ export function MediaLibrary({
           ))}
         </select>
         <button type="submit" formAction={assignAction} disabled={!selected.length} className="btn-secondary btn-sm disabled:opacity-40">
-          Assign to project
+          {labels.assign}
         </button>
         <button
           type="submit"
           formAction={deleteAction}
           disabled={!selected.length}
-          className="btn-ghost btn-sm text-danger-500 disabled:opacity-40"
+          className="btn-ghost btn-sm text-danger disabled:opacity-40"
           onClick={(e) => {
-            if (!window.confirm(`Delete ${selected.length} file(s) permanently?`)) e.preventDefault();
+            if (!window.confirm(labels.deleteConfirm.replace("{n}", String(selected.length)))) e.preventDefault();
           }}
         >
-          Delete selected
+          {labels.deleteSelected}
         </button>
       </div>
 
@@ -85,39 +102,39 @@ export function MediaLibrary({
         {assets.map((a) => {
           const on = selected.includes(a.id);
           return (
-            <div key={a.id} className={cn("card overflow-hidden transition-shadow", on && "ring-2 ring-brand-500")}>
+            <div key={a.id} className={cn("card overflow-hidden", on && "ring-2 ring-accent")}>
               <div className="relative">
-                <button type="button" onClick={() => toggle(a.id)} className="block w-full bg-ink-100 text-left" aria-pressed={on}>
+                <button type="button" onClick={() => toggle(a.id)} className="block w-full bg-surface-2 text-left" aria-pressed={on}>
                   {a.thumbUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.thumbUrl} alt={a.caption ?? a.originalName} className="aspect-square w-full object-cover" />
+                    <img src={a.thumbUrl} srcSet={a.thumbSrcSet} sizes="(max-width: 640px) 45vw, 220px" loading="lazy" alt={a.caption ?? a.originalName} className="aspect-square w-full object-cover" />
                   ) : (
-                    <div className="flex aspect-square w-full flex-col items-center justify-center gap-1 text-ink-500">
+                    <div className="flex aspect-square w-full flex-col items-center justify-center gap-1 text-muted">
                       <KindIcon kind={a.kind} />
                       <span className="text-[11px] font-semibold uppercase">{a.originalName.split(".").pop()}</span>
                     </div>
                   )}
                 </button>
-                <span className="absolute left-2 top-2">
-                  <input type="checkbox" checked={on} onChange={() => toggle(a.id)} className="h-4 w-4 rounded border-ink-300 bg-white" aria-label={`Select ${a.originalName}`} />
+                <span className="absolute top-2 left-2">
+                  <input type="checkbox" checked={on} onChange={() => toggle(a.id)} className="h-4 w-4 rounded border-line-strong bg-surface accent-[var(--accent)]" aria-label={a.originalName} />
                 </span>
-                {a.durationLabel ? <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">{a.durationLabel}</span> : null}
-                {a.isPublic ? <span className="absolute right-2 top-2 rounded bg-green-600/90 px-1.5 py-0.5 text-[10px] font-semibold text-white">public</span> : null}
+                {a.durationLabel ? <span className="absolute right-2 bottom-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">{a.durationLabel}</span> : null}
+                {a.isPublic ? <span className="absolute top-2 right-2 rounded bg-success px-1.5 py-0.5 text-[10px] font-semibold text-bg">{labels.publicShort}</span> : null}
               </div>
               <div className="space-y-0.5 p-2.5">
-                <Link href={`/admin/media/${a.id}`} className="block truncate text-xs font-medium text-ink-900 hover:text-brand-600" title={a.originalName}>
+                <Link href={`/admin/media/${a.id}`} className="block truncate text-xs font-medium text-fg transition-colors hover:text-accent" title={a.originalName}>
                   {a.caption || a.originalName}
                 </Link>
-                <div className="truncate text-[11px] text-ink-500">
-                  {a.kind} · {formatBytes(a.sizeBytes)} · {formatDate(a.createdAt)}
+                <div className="truncate text-[11px] text-muted">
+                  {a.kindLabel} · {formatBytes(a.sizeBytes)} · {formatDate(a.createdAt)}
                 </div>
-                <div className="truncate text-[11px] text-ink-500">
+                <div className="truncate text-[11px] text-muted">
                   {a.projectId && a.projectLabel ? (
-                    <Link href={`/admin/projects/${a.projectId}`} className="hover:text-brand-600">
+                    <Link href={`/admin/projects/${a.projectId}`} className="transition-colors hover:text-accent">
                       {a.projectLabel}
                     </Link>
                   ) : (
-                    <span className="text-ink-400">unassigned</span>
+                    <span className="text-faint">{labels.noProject}</span>
                   )}
                 </div>
               </div>

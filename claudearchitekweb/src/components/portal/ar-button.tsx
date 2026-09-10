@@ -60,7 +60,7 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
   if (!glbUrl && !usdzUrl) return null;
 
   const viewer = (
-    <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-ink-100 sm:aspect-[4/3]">
+    <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-surface-2 sm:aspect-[4/3]">
       {open ? (
         <>
           {/* crossOrigin keeps Next's preload hint in the same CORS mode as the
@@ -78,17 +78,17 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
             auto-rotate
             touch-action="pan-y"
             shadow-intensity="1"
-            style={{ width: "100%", height: "100%", backgroundColor: "#f3f4f6" }}
+            style={{ width: "100%", height: "100%", backgroundColor: "transparent", "--poster-color": "transparent" } as React.CSSProperties}
           >
             <button slot="ar-button" type="button" className="btn-brand btn-lg absolute bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap shadow-card">
-              <Smartphone size={18} />
+              <Smartphone size={18} aria-hidden />
               {label}
             </button>
             <div slot="progress-bar" />
           </model-viewer>
           {!ready ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <span className="h-8 w-8 animate-spin rounded-full border-2 border-brand-200 border-t-brand-500" />
+              <span className="h-8 w-8 animate-spin rounded-full border-2 border-line-strong border-t-accent" />
             </div>
           ) : null}
         </>
@@ -112,23 +112,23 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={className ?? "btn-secondary btn-lg w-full sm:w-auto"}>
-        <Smartphone size={18} />
+        <Smartphone size={18} aria-hidden />
         {label}
       </button>
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/70 p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" onClick={() => setOpen(false)}>
-          <div className="w-full max-w-3xl rounded-t-3xl bg-white p-4 shadow-card sm:rounded-3xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(9,10,12,0.72)] p-0 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={label} onClick={() => setOpen(false)}>
+          <div className="w-full max-w-3xl rounded-t-3xl border border-line bg-surface p-4 shadow-lift sm:rounded-3xl sm:p-6" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-base font-semibold text-ink-950">{label}</div>
-              <button type="button" onClick={() => setOpen(false)} className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-ink-100 text-ink-700 hover:bg-ink-200" aria-label={closeLabel}>
-                <X size={18} />
+              <div className="h-card">{label}</div>
+              <button type="button" onClick={() => setOpen(false)} className="btn-ghost inline-flex h-11 w-11 items-center justify-center rounded-full p-0" aria-label={closeLabel}>
+                <X size={18} aria-hidden />
               </button>
             </div>
             <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
               {viewer}
               {qrDataUrl ? <QrPanel qrDataUrl={qrDataUrl} note={note} hidden={mobile} /> : null}
             </div>
-            <p className="mt-3 text-sm text-ink-500">{note}</p>
+            <p className="mt-3 text-sm text-muted">{note}</p>
           </div>
         </div>
       ) : null}
@@ -136,13 +136,14 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
   );
 }
 
-function QrPanel({ qrDataUrl, note, hidden, className }: { qrDataUrl: string; note: string; hidden?: boolean; className?: string }) {
+/** QR panel for desktop visitors: scan with a phone to open AR. Always on white so it scans. */
+export function QrPanel({ qrDataUrl, note, hidden, className }: { qrDataUrl: string; note: string; hidden?: boolean; className?: string }) {
   if (hidden) return null;
   return (
-    <div className={`hidden w-fit flex-col items-center gap-2 rounded-2xl border border-line bg-paper-2 p-4 md:flex ${className ?? ""}`}>
+    <div className={`hidden w-fit flex-col items-center gap-2 rounded-2xl border border-line bg-surface-2 p-4 md:flex ${className ?? ""}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={qrDataUrl} alt="QR" width={176} height={176} className="h-44 w-44 rounded-xl bg-white p-2" />
-      <span className="max-w-[12rem] text-center text-xs text-ink-500">{note}</span>
+      <img src={qrDataUrl} alt="QR" width={176} height={176} className="h-44 w-44 rounded-xl bg-[#ffffff] p-2" style={{ filter: "none" }} />
+      <span className="max-w-[12rem] text-center text-xs text-muted">{note}</span>
     </div>
   );
 }

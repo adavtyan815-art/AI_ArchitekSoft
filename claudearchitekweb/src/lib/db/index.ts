@@ -23,8 +23,12 @@ function open() {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const sqlite = new Database(file);
   sqlite.pragma("journal_mode = WAL");
+  sqlite.pragma("synchronous = NORMAL"); // safe with WAL, much faster writes
   sqlite.pragma("foreign_keys = ON");
   sqlite.pragma("busy_timeout = 5000");
+  sqlite.pragma("cache_size = -32000"); // 32 MB page cache
+  sqlite.pragma("temp_store = MEMORY");
+  sqlite.pragma("mmap_size = 268435456"); // 256 MB memory-mapped reads
   migrate(sqlite);
   const db = drizzle(sqlite, { schema });
   return { sqlite, db };

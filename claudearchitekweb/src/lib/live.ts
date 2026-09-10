@@ -43,7 +43,7 @@ async function loginCookie(): Promise<string> {
 }
 
 export async function listLiveInstances(): Promise<{ ok: boolean; instances: LiveInstance[]; error?: string }> {
-  if (!liveConfigured()) return { ok: false, instances: [], error: "LIVE_ADMIN_USERNAME / LIVE_ADMIN_PASSWORD not set" };
+  if (!liveConfigured()) return { ok: false, instances: [], error: "LIVE_ADMIN_USERNAME / LIVE_ADMIN_PASSWORD դրված չեն։" };
   try {
     const cookie = await loginCookie();
     const base = getSetting("live").backendUrl;
@@ -62,7 +62,7 @@ export async function createLiveInstance(opts: { assignedTo: string; displayLimi
   if (!liveConfigured()) {
     // Dry run: return a placeholder uuid so the admin can still see the link shape.
     const uuid = `dry-${Math.random().toString(36).slice(2, 10)}`;
-    return { ok: false as const, dryRun: true, uuid, url: liveLinkFor(uuid), expiresAt, error: "Live backend credentials not configured" };
+    return { ok: false as const, dryRun: true, uuid, url: liveLinkFor(uuid), expiresAt, error: "Live սերվերի մուտքի տվյալները կարգավորված չեն։" };
   }
   const cookie = await loginCookie();
   const res = await fetch(`${live.backendUrl}/api/admin/instances`, {
@@ -82,7 +82,7 @@ export async function createLiveInstance(opts: { assignedTo: string; displayLimi
 }
 
 export async function stopLiveInstance(uuid: string) {
-  if (!liveConfigured()) return { ok: false, error: "not configured" };
+  if (!liveConfigured()) return { ok: false, error: "Live սերվերը կարգավորված չէ։" };
   const cookie = await loginCookie();
   const res = await fetch(`${getSetting("live").backendUrl}/api/admin/instances/${uuid}/stop`, { method: "POST", headers: { Cookie: cookie } });
   return { ok: res.ok };

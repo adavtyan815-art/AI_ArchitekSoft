@@ -13,6 +13,59 @@ import { getSetting } from "@/lib/settings";
 import { telegramEnabled } from "@/lib/telegram";
 import { nowIso } from "@/lib/utils";
 import { eq } from "drizzle-orm";
+import { getAdminLocale, local } from "@/lib/i18n/admin";
+
+/** Notice / error wording for this action file. */
+async function M() {
+  const locale = await getAdminLocale();
+  return local(
+    {
+      hy: {
+        notFound: "Փոստը չի գտնվել։",
+        sourceImage: "Աղբյուրը պետք է լինի նկար։",
+        noPlatform: "Ոչ մի հարթակ միացված չէ։",
+        invalidDate: "Ամսաթիվը սխալ է։",
+        setScheduleFirst: "Սկզբում նշիր պլանավորված ժամը։",
+        generated: "Փոստի փաթեթը ստեղծված է՝",
+        withTemplates: "ներկառուցված ձևանմուշներով",
+        deleted: "Փոստը ջնջված է։",
+        approvalDry: "նշվեց «սպասում է հաստատման» (Telegram-ը կարգավորված չէ՝ փորձնական ռեժիմ)։",
+        approvalSent: "ուղարկվեց Telegram՝ հաստատման։",
+        approved: "հաստատված է։",
+        cancelled: "չեղարկված է։",
+        deletedOne: "ջնջված է։",
+        simulated: "փորձնական",
+        platformsWord: "հարթակ",
+        unknownAction: "Անհայտ գործողություն։",
+        approvalDryMsg: "Telegram-ը կարգավորված չէ (բոտի բանալի / ադմին չաթի id)։ Փոստը նշվեց «սպասում է հաստատման» — հաստատիր այստեղ։",
+        approvalOkMsg: "Նախադիտումն ուղարկվեց Telegram ադմին չաթ՝ «Հաստատել / Խմբագրել / Բաց թողնել» կոճակներով։",
+        noAiKey: "AI բանալի չկա (ANTHROPIC_API_KEY կամ GEMINI_API_KEY) — տեքստը մնաց անփոփոխ։",
+      },
+      en: {
+        notFound: "Post not found.",
+        sourceImage: "Source must be an image asset.",
+        noPlatform: "No platform variant is enabled.",
+        invalidDate: "Invalid date.",
+        setScheduleFirst: "Set a schedule time first.",
+        generated: "Post pack generated with",
+        withTemplates: "built-in templates",
+        deleted: "Post deleted.",
+        approvalDry: "marked awaiting approval (Telegram dry run: no bot configured).",
+        approvalSent: "sent to Telegram for approval.",
+        approved: "approved.",
+        cancelled: "cancelled.",
+        deletedOne: "deleted.",
+        simulated: "simulated",
+        platformsWord: "platform(s)",
+        unknownAction: "Unknown action.",
+        approvalDryMsg: "Telegram is not configured (bot token / admin chat id). The post is marked awaiting approval; approve it here in the admin.",
+        approvalOkMsg: "Preview sent to the Telegram admin chat with Approve / Edit / Skip buttons.",
+        noAiKey: "No AI key configured (ANTHROPIC_API_KEY or GEMINI_API_KEY) — text returned unchanged.",
+      },
+    },
+    locale,
+  );
+}
 
 const PlatformEnum = z.enum(PLATFORMS);
 const LangEnum = z.enum(["hy", "ru", "en"]);
@@ -46,7 +99,8 @@ export async function createPostAction(input: z.infer<typeof CreateSchema>) {
   const data = CreateSchema.parse(input);
   const r = await createPostPack({ ...data, projectId: data.projectId || null, scheduledAt: data.scheduledAt || null, createdBy: user.id });
   refresh(r.postId);
-  notice(`/admin/smm/${r.postId}`, `Post pack generated with ${r.provider === "template" ? "built-in templates" : r.provider}. ${r.warning && r.provider !== "template" ? r.warning : ""}`.trim());
+  const m = await M();
+  notice(`/admin/smm/${r.postId}`, `${m.generated} ${r.provider === "template" ? m.withTemplates : r.provider}. ${r.warning && r.provider !== "template" ? r.warning : ""}`.trim());
 }
 
 const PosterSchema = z.object({
@@ -62,7 +116,7 @@ export async function generatePosterAction(input: z.infer<typeof PosterSchema>) 
   await requireUser();
   const data = PosterSchema.parse(input);
   const src = getDb().select().from(schema.assets).where(eq(schema.assets.id, data.sourceAssetId)).get();
-  if (!src || !src.mime.startsWith("image/")) return { ok: false as const, error: "Source must be an image asset" };
+  if (!src || !src.mime.startsWith("image/")) return { ok: false as const, error: (await M()).sourceImage };
   const brand = getSetting("brand");
   const row = await generatePoster({ sourceRelPath: src.relPath, ratio: data.ratio, headline: data.headline, brand: `${brand.name} • KitchenPro`, sub: brand.website.replace(/^https?:\/\/(www\.)?/, ""), projectId: data.projectId ?? src.projectId ?? null });
   const asset = getDb().select().from(schema.assets).where(eq(schema.assets.id, row.id)).get()!;
@@ -100,7 +154,7 @@ export async function savePostAction(input: z.infer<typeof SaveSchema>) {
   await requireUser();
   const data = SaveSchema.parse(input);
   const full = getPostFull(data.id);
-  if (!full) return { ok: false as const, error: "Post not found" };
+  if (!full) return { ok: false as const, error: (await M()).notFound };
   updatePost(data.id, { title: data.title, notes: data.notes ?? null, ...(data.goal ? { goal: data.goal } : {}), ...(data.language ? { language: data.language } : {}) });
   for (const v of data.variants) updateVariant(data.id, v.id, { enabled: v.enabled, title: v.title, text: v.text, hashtags: v.hashtags, cta: v.cta, format: v.format });
   setPostAssets(data.id, data.assetIds);
@@ -112,8 +166,8 @@ export async function schedulePostAction(input: { id: string; scheduledAt: strin
   await requireUser();
   const data = z.object({ id: z.string(), scheduledAt: z.string().nullable() }).parse(input);
   const full = getPostFull(data.id);
-  if (!full) return { ok: false as const, error: "Post not found" };
-  if (data.scheduledAt && Number.isNaN(new Date(data.scheduledAt).getTime())) return { ok: false as const, error: "Invalid date" };
+  if (!full) return { ok: false as const, error: (await M()).notFound };
+  if (data.scheduledAt && Number.isNaN(new Date(data.scheduledAt).getTime())) return { ok: false as const, error: (await M()).invalidDate };
   // Keep the approval state if already sent; only draft/scheduled flip.
   if (["draft", "scheduled"].includes(full.post.status)) schedulePost(data.id, data.scheduledAt);
   else getDb().update(schema.posts).set({ scheduledAt: data.scheduledAt, updatedAt: nowIso() }).where(eq(schema.posts.id, data.id)).run();
@@ -125,8 +179,8 @@ export async function setPostStatusAction(input: { id: string; status: "approved
   await requireUser();
   const data = z.object({ id: z.string(), status: z.enum(["approved", "cancelled", "draft", "scheduled"]) }).parse(input);
   const full = getPostFull(data.id);
-  if (!full) return { ok: false as const, error: "Post not found" };
-  if (data.status === "scheduled" && !full.post.scheduledAt) return { ok: false as const, error: "Set a schedule time first" };
+  if (!full) return { ok: false as const, error: (await M()).notFound };
+  if (data.status === "scheduled" && !full.post.scheduledAt) return { ok: false as const, error: (await M()).setScheduleFirst };
   setPostStatus(data.id, data.status, data.status === "approved" ? { approvedAt: nowIso() } : {});
   refresh(data.id);
   return { ok: true as const };
@@ -136,19 +190,20 @@ export async function sendApprovalAction(input: { id: string }) {
   await requireUser();
   const { id } = z.object({ id: z.string() }).parse(input);
   const full = getPostFull(id);
-  if (!full) return { ok: false as const, error: "Post not found" };
+  if (!full) return { ok: false as const, error: (await M()).notFound };
   const r = await sendForApproval(id);
   refresh(id);
   const configured = telegramEnabled() && !!getSetting("telegram").adminChatId;
-  return { ok: true as const, dryRun: !!("dryRun" in r && r.dryRun), configured, message: "dryRun" in r && r.dryRun ? "Telegram is not configured (bot token / admin chat id). The post is marked awaiting approval; approve it here in the admin." : "Preview sent to the Telegram admin chat with Approve / Edit / Skip buttons." };
+  const m = await M();
+  return { ok: true as const, dryRun: !!("dryRun" in r && r.dryRun), configured, message: "dryRun" in r && r.dryRun ? m.approvalDryMsg : m.approvalOkMsg };
 }
 
 export async function publishNowAction(input: { id: string }) {
   await requireUser();
   const { id } = z.object({ id: z.string() }).parse(input);
   const full = getPostFull(id);
-  if (!full) return { ok: false as const, error: "Post not found" };
-  if (!full.variants.some((v) => v.enabled)) return { ok: false as const, error: "No platform variant is enabled" };
+  if (!full) return { ok: false as const, error: (await M()).notFound };
+  if (!full.variants.some((v) => v.enabled)) return { ok: false as const, error: (await M()).noPlatform };
   const r = await publishPost(id);
   refresh(id);
   return { ok: true as const, status: r.status, results: r.results };
@@ -158,7 +213,7 @@ export async function duplicatePostAction(input: { id: string }) {
   const user = await requireUser();
   const { id } = z.object({ id: z.string() }).parse(input);
   const newId = duplicatePost(id, user.id);
-  if (!newId) return { ok: false as const, error: "Post not found" };
+  if (!newId) return { ok: false as const, error: (await M()).notFound };
   refresh(newId);
   return { ok: true as const, id: newId };
 }
@@ -168,7 +223,7 @@ export async function deletePostAction(input: { id: string }) {
   const { id } = z.object({ id: z.string() }).parse(input);
   deletePost(id);
   refresh();
-  notice("/admin/smm", "Post deleted.");
+  notice("/admin/smm", (await M()).deleted);
 }
 
 const RewriteSchema = z.object({ instruction: z.string().min(1).max(500), text: z.string().min(1).max(70000), language: LangEnum });
@@ -177,7 +232,7 @@ export async function rewriteVariantAction(input: z.infer<typeof RewriteSchema>)
   await requireUser();
   const data = RewriteSchema.parse(input);
   const status = aiStatus();
-  if (status.provider === "template") return { ok: true as const, text: data.text, changed: false, provider: status.provider, note: "No AI key configured (ANTHROPIC_API_KEY or GEMINI_API_KEY) — text returned unchanged." };
+  if (status.provider === "template") return { ok: true as const, text: data.text, changed: false, provider: status.provider, note: (await M()).noAiKey };
   try {
     const text = await rewriteText(data.instruction, data.text, data.language);
     return { ok: true as const, text: text || data.text, changed: !!text && text !== data.text, provider: status.provider };
@@ -194,32 +249,33 @@ export async function quickActionForm(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const op = String(formData.get("op") ?? "");
   const full = getPostFull(id);
-  if (!full) notice("/admin/smm", "Post not found.", "error");
+  const m = await M();
+  if (!full) notice("/admin/smm", m.notFound, "error");
   if (op === "approval") {
     const r = await sendForApproval(id);
     refresh(id);
-    notice("/admin/smm", "dryRun" in r && r.dryRun ? `"${full.post.title}" marked awaiting approval (Telegram dry-run: no bot configured).` : `"${full.post.title}" sent to Telegram for approval.`);
+    notice("/admin/smm", `"${full.post.title}" ${"dryRun" in r && r.dryRun ? m.approvalDry : m.approvalSent}`);
   }
   if (op === "publish") {
     const r = await publishPost(id);
     refresh(id);
     const sim = r.results.filter((x) => x.status === "simulated").length;
-    notice("/admin/smm", `"${full.post.title}": ${r.status.replace("_", " ")} — ${r.results.length} platform(s)${sim ? `, ${sim} simulated (dry-run)` : ""}.`, r.status === "failed" ? "error" : "ok");
+    notice("/admin/smm", `"${full.post.title}": ${r.status.replace("_", " ")} — ${r.results.length} ${m.platformsWord}${sim ? `, ${sim} ${m.simulated}` : ""}.`, r.status === "failed" ? "error" : "ok");
   }
   if (op === "approve") {
     setPostStatus(id, "approved", { approvedAt: nowIso() });
     refresh(id);
-    notice("/admin/smm", `"${full.post.title}" approved.`);
+    notice("/admin/smm", `"${full.post.title}" ${m.approved}`);
   }
   if (op === "cancel") {
     setPostStatus(id, "cancelled");
     refresh(id);
-    notice("/admin/smm", `"${full.post.title}" cancelled.`);
+    notice("/admin/smm", `"${full.post.title}" ${m.cancelled}`);
   }
   if (op === "delete") {
     deletePost(id);
     refresh();
-    notice("/admin/smm", `"${full.post.title}" deleted.`);
+    notice("/admin/smm", `"${full.post.title}" ${m.deletedOne}`);
   }
-  notice("/admin/smm", "Unknown action.", "error");
+  notice("/admin/smm", m.unknownAction, "error");
 }

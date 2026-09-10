@@ -7,6 +7,12 @@ import { nowIso, projectCode, slugify } from "./utils";
 import { newId, newToken } from "./ids";
 import type { Lead } from "./db/schema";
 
+/** Plain Armenian names for lead sources, used when writing activity-log lines outside a request locale. */
+const SOURCE_HY: Record<string, string> = {
+  website: "Կայք", instagram: "Instagram", facebook: "Facebook", linkedin: "LinkedIn", telegram: "Telegram",
+  whatsapp: "WhatsApp", phone: "Զանգ", referral: "Խորհուրդ", youtube: "YouTube", other: "Այլ",
+};
+
 export const LEAD_STATUSES = ["new", "contacted", "qualified", "proposal", "won", "lost"] as const;
 export const PROJECT_STAGES = ["request", "survey", "design", "configuration", "approval", "production_prep", "production", "installation", "handover", "archived"] as const;
 export const PROJECT_TYPES = ["kitchen", "wardrobe", "living", "bedroom", "bathroom", "office", "apartment", "house", "commercial", "other"] as const;
@@ -72,12 +78,28 @@ export function createLead(input: NewLeadInput): Lead {
       pagePath: input.pagePath || null,
     })
     .run();
-  logActivity("lead", id, `Lead created from ${input.source ?? "website"} (${input.segment.toUpperCase()})`);
+  logActivity("lead", id, `Հարցումը ստացվել է՝ ${SOURCE_HY[input.source ?? "website"] ?? (input.source ?? "website")} · ${input.segment === "b2b" ? "Բիզնես" : "Անհատ"}`);
   return db.select().from(schema.leads).where(eq(schema.leads.id, id)).get()!;
 }
 
 /** Convert a lead into a client (+ company for B2B) and a project. Idempotent per lead. */
-export function convertLead(leadId: string, opts: { userId?: string; projectType?: string; title?: string } = {}) {
+/** Sentences written into the activity log while converting. Callers pass localised versions. */
+export type ConvertMessages = {
+  companyFromLead: (leadName: string) => string;
+  clientFromLead: string;
+  converted: (title: string) => string;
+  projectFromLead: string;
+};
+
+const DEFAULT_CONVERT_MESSAGES: ConvertMessages = {
+  companyFromLead: (leadName: string) => `Created from lead ${leadName}`,
+  clientFromLead: "Created from lead",
+  converted: (title: string) => `Converted to project ${title}`,
+  projectFromLead: "Project created from lead",
+};
+
+export function convertLead(leadId: string, opts: { userId?: string; projectType?: string; title?: string; messages?: ConvertMessages } = {}) {
+  const M = opts.messages ?? DEFAULT_CONVERT_MESSAGES;
   const db = getDb();
   const lead = db.select().from(schema.leads).where(eq(schema.leads.id, leadId)).get();
   if (!lead) throw new Error("Lead not found");
@@ -94,7 +116,7 @@ export function convertLead(leadId: string, opts: { userId?: string; projectType
       companyId = newId("co");
       const details = lead.details ? (JSON.parse(lead.details) as Record<string, string>) : {};
       db.insert(schema.companies).values({ id: companyId, name: lead.companyName, type: details.companyType || "manufacturer", phone: lead.phone, email: lead.email, source: lead.source, status: "prospect" }).run();
-      logActivity("company", companyId, `Created from lead ${lead.name}`);
+      logActivity("company", companyId, M.companyFromLead(lead.name));
     }
   }
 
@@ -108,7 +130,7 @@ export function convertLead(leadId: string, opts: { userId?: string; projectType
       db.insert(schema.clients)
         .values({ id: clientId, kind: companyId ? "contact" : "individual", companyId, firstName, lastName: rest.join(" ") || null, phone: lead.phone, email: lead.email, telegram: lead.telegram, language: lead.language, source: lead.source, status: "active" })
         .run();
-      logActivity("client", clientId, `Created from lead`);
+      logActivity("client", clientId, M.clientFromLead);
     }
   }
 
@@ -138,8 +160,8 @@ export function convertLead(leadId: string, opts: { userId?: string; projectType
   for (const assetId of files) db.update(schema.assets).set({ projectId, kind: "client_upload" }).where(eq(schema.assets.id, assetId)).run();
 
   db.update(schema.leads).set({ status: lead.status === "new" || lead.status === "contacted" ? "qualified" : lead.status, clientId, companyId, projectId, updatedAt: nowIso() }).where(eq(schema.leads.id, leadId)).run();
-  logActivity("lead", leadId, `Converted to project ${title}`, "status", opts.userId);
-  logActivity("project", projectId, `Project created from lead`, "system", opts.userId);
+  logActivity("lead", leadId, M.converted(title), "status", opts.userId);
+  logActivity("project", projectId, M.projectFromLead, "system", opts.userId);
   const project = db.select().from(schema.projects).where(eq(schema.projects.id, projectId)).get()!;
   return { project, clientId, companyId, created: true };
 }
@@ -172,7 +194,7 @@ export function createShareLink(projectId: string, opts: { title?: string; messa
       allowFeedback: opts.allowFeedback ?? true,
     })
     .run();
-  logActivity("project", projectId, `Client page created: /p/${slug}`);
+  logActivity("project", projectId, `Նոր հաճախորդի էջ՝ /p/${slug}`);
   return db.select().from(schema.shareLinks).where(eq(schema.shareLinks.id, id)).get()!;
 }
 

@@ -2,11 +2,46 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { bust } from "@/lib/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { PORTFOLIO_CATEGORIES, deletePortfolioItem, movePortfolio, portfolioDraftFromProject, savePortfolioItem, togglePortfolio } from "@/lib/portfolio-admin";
+import { getAdminLocale, local } from "@/lib/i18n/admin";
+
+/** Notice wording for this action file. */
+async function M() {
+  const locale = await getAdminLocale();
+  return local(
+    {
+      hy: {
+        needTitle: "Տուր անվանում գոնե մեկ լեզվով։",
+        saved: "Աշխատանքը պահպանված է։",
+        created: "Աշխատանքը ստեղծված է։",
+        deleted: "Աշխատանքը ջնջված է։",
+        missingId: "Աշխատանքի id-ն բացակայում է։",
+        unknownAction: "Անհայտ գործողություն։",
+        pickProject: "Սկզբում ընտրիր նախագիծ։",
+        projectNotFound: "Նախագիծը չի գտնվել։",
+        fromProject: "Աշխատանքը ստեղծված է նախագծից։ Ստուգիր անվանումներն ու նկարագրությունը և պահպանիր։",
+      },
+      en: {
+        needTitle: "Give the item a title in at least one language.",
+        saved: "Portfolio item saved.",
+        created: "Portfolio item created.",
+        deleted: "Portfolio item deleted.",
+        missingId: "Missing item id.",
+        unknownAction: "Unknown action.",
+        pickProject: "Pick a project first.",
+        projectNotFound: "Project not found.",
+        fromProject: "Portfolio item created from the project. Review the titles and summary, then save.",
+      },
+    },
+    locale,
+  );
+}
 
 function refresh() {
+  bust("portfolio:");
   revalidatePath("/admin/portfolio");
   revalidatePath("/", "layout"); // public site lists portfolio items
 }
@@ -37,26 +72,28 @@ export async function savePortfolioAction(input: z.infer<typeof SaveSchema>) {
   const parsed = SaveSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ") };
   const { id, ...data } = parsed.data;
-  if (!data.title.hy && !data.title.ru && !data.title.en) return { ok: false as const, error: "Give the item a title in at least one language" };
+  const m = await M();
+  if (!data.title.hy && !data.title.ru && !data.title.en) return { ok: false as const, error: m.needTitle };
   const savedId = savePortfolioItem({ ...data, liveUrl: data.liveUrl || null, projectId: data.projectId || null, coverAssetId: data.coverAssetId || null, videoAssetId: data.videoAssetId || null }, id);
   refresh();
   revalidatePath(`/admin/portfolio/${savedId}`);
-  redirect(`/admin/portfolio?notice=${encodeURIComponent(id ? "Portfolio item saved." : "Portfolio item created.")}&tone=ok`);
+  redirect(`/admin/portfolio?notice=${encodeURIComponent(id ? m.saved : m.created)}&tone=ok`);
 }
 
 export async function portfolioListActionForm(formData: FormData) {
   await requireUser();
   const id = String(formData.get("id") ?? "");
   const op = String(formData.get("op") ?? "");
-  if (!id) back("Missing item id.", "error");
+  const m = await M();
+  if (!id) back(m.missingId, "error");
   if (op === "publish") togglePortfolio(id, "isPublished");
   else if (op === "feature") togglePortfolio(id, "isFeatured");
   else if (op === "up") movePortfolio(id, "up");
   else if (op === "down") movePortfolio(id, "down");
   else if (op === "delete") {
     deletePortfolioItem(id);
-    back("Portfolio item deleted.");
-  } else back("Unknown action.", "error");
+    back(m.deleted);
+  } else back(m.unknownAction, "error");
   refresh();
   redirect("/admin/portfolio");
 }
@@ -64,10 +101,11 @@ export async function portfolioListActionForm(formData: FormData) {
 export async function publishProjectToPortfolioForm(formData: FormData) {
   await requireUser();
   const projectId = z.string().min(1).safeParse(String(formData.get("projectId") ?? ""));
-  if (!projectId.success) back("Pick a project first.", "error");
+  const m = await M();
+  if (!projectId.success) back(m.pickProject, "error");
   const draft = portfolioDraftFromProject(projectId.data);
-  if (!draft) back("Project not found.", "error");
+  if (!draft) back(m.projectNotFound, "error");
   const id = savePortfolioItem(draft);
   refresh();
-  redirect(`/admin/portfolio/${id}?notice=${encodeURIComponent("Portfolio item created from the project. Review the titles and summary, then save.")}&tone=ok`);
+  redirect(`/admin/portfolio/${id}?notice=${encodeURIComponent(m.fromProject)}&tone=ok`);
 }

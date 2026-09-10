@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Copies `text` to the clipboard and shows a short confirmation. */
-export function CopyButton({ text, label = "Copy", className, iconOnly }: { text: string; label?: string; className?: string; iconOnly?: boolean }) {
+/** Copies `text` to the clipboard and shows a short confirmation. Labels come from the caller (localised). */
+export function CopyButton({ text, label = "Copy", copiedLabel = "Copied", className, iconOnly }: { text: string; label?: string; copiedLabel?: string; className?: string; iconOnly?: boolean }) {
   const [done, setDone] = useState(false);
   async function copy() {
     try {
@@ -25,8 +25,8 @@ export function CopyButton({ text, label = "Copy", className, iconOnly }: { text
   }
   return (
     <button type="button" onClick={copy} className={cn("btn-secondary btn-sm", className)} title={iconOnly ? label : undefined} aria-label={label}>
-      {done ? <Check size={14} className="text-success-500" /> : <Copy size={14} />}
-      {iconOnly ? null : done ? "Copied" : label}
+      {done ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+      {iconOnly ? null : done ? copiedLabel : label}
     </button>
   );
 }

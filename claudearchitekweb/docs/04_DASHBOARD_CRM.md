@@ -1,6 +1,6 @@
 # Dashboard, CRM, projects, media, client pages, Live 3D
 
-Log in at `/admin` (default `admin@architeksoft.com` / `architek2026`; change in Settings → Security).
+Log in at `/admin` (default `admin@architeksoft.com` / `architek2026`; change in Settings → Security). The admin is **Armenian by default** with an English switch in the top bar; light/dark theme toggle next to it. On phones the sidebar becomes a bottom tab bar and tables become cards.
 
 ## Overview
 KPIs (new leads, active projects, pipeline and paid value, posts awaiting approval, companies vs individuals, client-page views, open feedback/tasks), leads per day (B2B vs B2C), lead sources, project types, pipeline by stage, recent leads, unresolved client feedback, upcoming posts. Global search across leads, clients, companies, projects and posts.
@@ -39,8 +39,8 @@ Storage: `data/uploads/YYYY/MM/<id>.<ext>` served by `/media/...` with Range sup
 | Level | What the client gets | When | Cost to you |
 |---|---|---|---|
 | 1. Client page | Renders, video, sketch→3D, PDF, materials, approve/feedback | Every project, from the first draft | none |
-| 2. Web 3D + AR | Light GLB/USDZ in the same page (model-viewer), AR on iOS/Android | When a light model is exported | none (files) |
-| 3. Live 3D (Pixel Streaming) | A time-limited, quota-limited interactive session (`live.architeksoft.com/?instanceUuid=…`) as a button inside the client page | Premium projects, approvals, showrooms | GPU minutes |
+| 2. Web Viewer + AR | `/v/<slug>?k=…` full-screen viewer (GLB/USDZ, colour swatches, AR) linked from the client page; **default for every client** | When a light model is exported | none (files) |
+| 3. Live 3D (Pixel Streaming) | A time-limited, quota-limited interactive session (`live.architeksoft.com/?instanceUuid=…`) as a **premium** button inside the client page | B2B: showrooms, presentations, key clients | GPU minutes |
 
 So the **client page is the single link you send**; the Live 3D link lives inside it (and can also be sent bare). Quotas and expiry are on the Live instance; the page itself has its own expiry.
 

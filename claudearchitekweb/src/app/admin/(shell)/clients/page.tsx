@@ -3,9 +3,9 @@ import { and, desc, eq, like, or, sql, type SQL } from "drizzle-orm";
 import { Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { clientLabel } from "@/lib/admin-helpers";
-import { cn, relativeTime } from "@/lib/utils";
-import { PageHeader, StatusBadge } from "@/components/admin/shell";
+import { clientLabel, relTime } from "@/lib/admin-helpers";
+import { getAdminDict, labelFor } from "@/lib/i18n/admin";
+import { FilterBar, PageHeader, PillTabs, StatusBadge } from "@/components/admin/shell";
 import { Empty, Input } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +14,8 @@ type Search = { tab?: string; q?: string };
 
 export default async function ClientsPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireUser();
+  const { t, locale } = await getAdminDict();
+  const C = t.crm.clients;
   const sp = await searchParams;
   const tab = sp.tab === "contact" ? "contact" : "individual";
   const q = (sp.q ?? "").trim().slice(0, 80);
@@ -26,11 +28,29 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   }
   const rows = db.select().from(schema.clients).where(and(...conds)).orderBy(desc(schema.clients.createdAt)).limit(500).all();
 
-  const companies = Object.fromEntries(db.select({ id: schema.companies.id, name: schema.companies.name }).from(schema.companies).all().map((c) => [c.id, c.name]));
-  const projectCounts = Object.fromEntries(
-    db.select({ clientId: schema.projects.clientId, c: sql<number>`count(*)` }).from(schema.projects).groupBy(schema.projects.clientId).all().map((r) => [r.clientId ?? "", r.c])
+  const companies = Object.fromEntries(
+    db
+      .select({ id: schema.companies.id, name: schema.companies.name })
+      .from(schema.companies)
+      .all()
+      .map((c) => [c.id, c.name])
   );
-  const kindCounts = Object.fromEntries(db.select({ kind: schema.clients.kind, c: sql<number>`count(*)` }).from(schema.clients).groupBy(schema.clients.kind).all().map((r) => [r.kind, r.c]));
+  const projectCounts = Object.fromEntries(
+    db
+      .select({ clientId: schema.projects.clientId, c: sql<number>`count(*)` })
+      .from(schema.projects)
+      .groupBy(schema.projects.clientId)
+      .all()
+      .map((r) => [r.clientId ?? "", r.c])
+  );
+  const kindCounts = Object.fromEntries(
+    db
+      .select({ kind: schema.clients.kind, c: sql<number>`count(*)` })
+      .from(schema.clients)
+      .groupBy(schema.clients.kind)
+      .all()
+      .map((r) => [r.kind, r.c])
+  );
 
   const href = (patch: Partial<Search>) => {
     const p = new URLSearchParams();
@@ -44,64 +64,68 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHeader
-        title="Clients"
-        subtitle="Individual customers and the people you talk to inside partner companies."
+        title={C.title}
+        subtitle={C.subtitle}
         actions={
           <Link href="/admin/clients/new" className="btn-primary btn-sm">
-            <Plus size={14} /> New client
+            <Plus size={14} /> {C.new}
           </Link>
         }
       />
 
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-1 border-b border-line lg:border-0">
-          {[
-            { key: "individual", label: "Individuals", count: kindCounts.individual ?? 0 },
-            { key: "contact", label: "Contacts", count: kindCounts.contact ?? 0 },
-          ].map((t) => (
-            <Link key={t.key} href={href({ tab: t.key })} className={cn("-mb-px border-b-2 px-3 py-2 text-sm font-medium", tab === t.key ? "border-ink-950 text-ink-950" : "border-transparent text-ink-500 hover:text-ink-900")}>
-              {t.label}
-              <span className="ml-1.5 rounded-full bg-ink-100 px-1.5 py-0.5 text-[11px] text-ink-600">{t.count}</span>
-            </Link>
-          ))}
-        </div>
-        <form action="/admin/clients" className="flex items-center gap-2">
+      <FilterBar>
+        <PillTabs
+          current={tab}
+          items={[
+            { key: "individual", label: C.tabIndividual, href: href({ tab: "individual" }), count: kindCounts.individual ?? 0 },
+            { key: "contact", label: C.tabContact, href: href({ tab: "contact" }), count: kindCounts.contact ?? 0 },
+          ]}
+        />
+        <form action="/admin/clients" className="w-full sm:w-auto">
           {tab === "contact" ? <input type="hidden" name="tab" value="contact" /> : null}
-          <Input name="q" defaultValue={q} placeholder="Search name, phone, city…" className="w-56 py-1.5" />
+          <Input name="q" defaultValue={q} placeholder={C.searchPlaceholder} className="w-full py-1.5 sm:w-56" aria-label={t.common.search} />
         </form>
-      </div>
+      </FilterBar>
 
       {rows.length === 0 ? (
-        <Empty title="No clients match" text={q ? `Nothing found for “${q}”.` : "Clients are created automatically when a lead is converted."} action={<Link href="/admin/clients/new" className="btn-primary btn-sm">Add a client</Link>} />
+        <Empty
+          title={C.emptyTitle}
+          text={q ? t.crm.leads.emptyFound(q) : C.emptyText}
+          action={
+            <Link href="/admin/clients/new" className="btn-primary btn-sm">
+              {C.emptyAction}
+            </Link>
+          }
+        />
       ) : (
-        <div className="card overflow-x-auto">
-          <table className="table-admin">
+        <div className="card overflow-x-auto max-md:overflow-visible max-md:border-none max-md:bg-transparent max-md:shadow-none">
+          <table className="table-admin table-responsive">
             <thead>
               <tr>
-                <th>Name</th>
-                {tab === "contact" ? <th>Company</th> : null}
-                <th>Phone</th>
-                <th>Telegram</th>
-                <th>Lang</th>
-                <th>City</th>
-                <th className="text-right">Projects</th>
-                <th>Created</th>
-                <th>Status</th>
+                <th>{t.common.name}</th>
+                {tab === "contact" ? <th>{t.crm.form.company}</th> : null}
+                <th>{t.common.phone}</th>
+                <th className="max-md:hidden!">{t.common.telegram}</th>
+                <th className="max-md:hidden!">{t.common.language}</th>
+                <th>{t.common.city}</th>
+                <th className="text-right">{C.colProjects}</th>
+                <th className="max-md:hidden!">{t.common.created}</th>
+                <th>{t.common.status}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((c) => (
                 <tr key={c.id}>
-                  <td>
-                    <Link href={`/admin/clients/${c.id}`} className="font-medium text-ink-900 hover:text-brand-600">
+                  <td data-label={t.common.name}>
+                    <Link href={`/admin/clients/${c.id}`} className="font-medium text-fg transition-colors hover:text-accent">
                       {clientLabel(c) || "—"}
                     </Link>
-                    {c.position ? <div className="text-xs text-ink-500">{c.position}</div> : null}
+                    {c.position ? <div className="text-xs text-muted">{c.position}</div> : null}
                   </td>
                   {tab === "contact" ? (
-                    <td>
+                    <td data-label={t.crm.form.company}>
                       {c.companyId ? (
-                        <Link href={`/admin/companies/${c.companyId}`} className="text-ink-600 hover:text-brand-600">
+                        <Link href={`/admin/companies/${c.companyId}`} className="transition-colors hover:text-accent">
                           {companies[c.companyId] ?? "—"}
                         </Link>
                       ) : (
@@ -109,14 +133,20 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                       )}
                     </td>
                   ) : null}
-                  <td className="text-ink-600">{c.phone ?? "—"}</td>
-                  <td className="text-ink-600">{c.telegram ?? "—"}</td>
-                  <td className="uppercase text-ink-600">{c.language}</td>
-                  <td className="text-ink-600">{c.city ?? "—"}</td>
-                  <td className="text-right tabular-nums text-ink-600">{projectCounts[c.id] ?? 0}</td>
-                  <td className="whitespace-nowrap text-ink-500">{relativeTime(c.createdAt)}</td>
-                  <td>
-                    <StatusBadge value={c.status} />
+                  <td data-label={t.common.phone}>{c.phone ?? "—"}</td>
+                  <td data-label={t.common.telegram} className="max-md:hidden!">{c.telegram ?? "—"}</td>
+                  <td data-label={t.common.language} className="uppercase max-md:hidden!">
+                    {c.language}
+                  </td>
+                  <td data-label={t.common.city}>{c.city ?? "—"}</td>
+                  <td data-label={C.colProjects} className="text-right tabular-nums">
+                    {projectCounts[c.id] ?? 0}
+                  </td>
+                  <td data-label={t.common.created} className="whitespace-nowrap text-muted max-md:hidden!">
+                    {relTime(c.createdAt, locale)}
+                  </td>
+                  <td data-label={t.common.status}>
+                    <StatusBadge value={c.status} label={labelFor(t, "clientStatus", c.status)} />
                   </td>
                 </tr>
               ))}

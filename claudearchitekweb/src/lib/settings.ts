@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { env } from "./env";
 import { nowIso } from "./utils";
+import { bust, cached } from "./cache";
 
 export type BrandSettings = {
   name: string;
@@ -103,6 +104,10 @@ export type SettingsKey = keyof typeof DEFAULTS;
 export type SettingsMap = { [K in SettingsKey]: (typeof DEFAULTS)[K] };
 
 export function getSetting<K extends SettingsKey>(key: K): SettingsMap[K] {
+  return cached(`settings:${key}`, 30_000, () => readSetting(key));
+}
+
+function readSetting<K extends SettingsKey>(key: K): SettingsMap[K] {
   const row = getDb().select().from(schema.settings).where(eq(schema.settings.key, key)).get();
   const base = { ...DEFAULTS[key] } as SettingsMap[K];
   if (key === "telegram") {
@@ -125,6 +130,7 @@ export function saveSetting<K extends SettingsKey>(key: K, value: Partial<Settin
     .values({ key, value: JSON.stringify(merged), updatedAt: nowIso() })
     .onConflictDoUpdate({ target: schema.settings.key, set: { value: JSON.stringify(merged), updatedAt: nowIso() } })
     .run();
+  bust("settings:");
   return merged;
 }
 

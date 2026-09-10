@@ -4,8 +4,10 @@ import { Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { COMPANY_TYPES } from "@/lib/crm";
-import { cn, formatMoney, relativeTime } from "@/lib/utils";
-import { PageHeader, StatusBadge } from "@/components/admin/shell";
+import { relTime } from "@/lib/admin-helpers";
+import { getAdminDict, labelFor } from "@/lib/i18n/admin";
+import { formatMoney } from "@/lib/utils";
+import { FilterBar, PageHeader, PillTabs, StatusBadge } from "@/components/admin/shell";
 import { Empty, Input } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +16,8 @@ type Search = { type?: string; q?: string };
 
 export default async function CompaniesPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireUser();
+  const { t, locale } = await getAdminDict();
+  const K = t.crm.companies;
   const sp = await searchParams;
   const type = COMPANY_TYPES.includes(sp.type as (typeof COMPANY_TYPES)[number]) ? sp.type! : "all";
   const q = (sp.q ?? "").trim().slice(0, 80);
@@ -27,11 +31,30 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
   }
   const rows = db.select().from(schema.companies).where(conds.length ? and(...conds) : undefined).orderBy(desc(schema.companies.createdAt)).limit(500).all();
 
-  const contactCounts = Object.fromEntries(db.select({ companyId: schema.clients.companyId, c: sql<number>`count(*)` }).from(schema.clients).groupBy(schema.clients.companyId).all().map((r) => [r.companyId ?? "", r.c]));
-  const projectAgg = Object.fromEntries(
-    db.select({ companyId: schema.projects.companyId, c: sql<number>`count(*)`, v: sql<number>`coalesce(sum(quote_amount),0)` }).from(schema.projects).groupBy(schema.projects.companyId).all().map((r) => [r.companyId ?? "", { c: r.c, v: r.v }])
+  const contactCounts = Object.fromEntries(
+    db
+      .select({ companyId: schema.clients.companyId, c: sql<number>`count(*)` })
+      .from(schema.clients)
+      .groupBy(schema.clients.companyId)
+      .all()
+      .map((r) => [r.companyId ?? "", r.c])
   );
-  const typeCounts = Object.fromEntries(db.select({ type: schema.companies.type, c: sql<number>`count(*)` }).from(schema.companies).groupBy(schema.companies.type).all().map((r) => [r.type, r.c]));
+  const projectAgg = Object.fromEntries(
+    db
+      .select({ companyId: schema.projects.companyId, c: sql<number>`count(*)`, v: sql<number>`coalesce(sum(quote_amount),0)` })
+      .from(schema.projects)
+      .groupBy(schema.projects.companyId)
+      .all()
+      .map((r) => [r.companyId ?? "", { c: r.c, v: r.v }])
+  );
+  const typeCounts = Object.fromEntries(
+    db
+      .select({ type: schema.companies.type, c: sql<number>`count(*)` })
+      .from(schema.companies)
+      .groupBy(schema.companies.type)
+      .all()
+      .map((r) => [r.type, r.c])
+  );
   const total = rows.length;
 
   const href = (patch: Partial<Search>) => {
@@ -43,49 +66,55 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
     return s ? `/admin/companies?${s}` : "/admin/companies";
   };
 
+  const tabs = [
+    { key: "all", label: t.common.all, href: href({ type: "all" }), count: Object.values(typeCounts).reduce((s: number, n) => s + (n as number), 0) },
+    ...COMPANY_TYPES.map((ty) => ({ key: ty, label: labelFor(t, "companyTypes", ty), href: href({ type: ty }), count: typeCounts[ty] ?? 0 })),
+  ];
+
   return (
     <>
       <PageHeader
-        title="Companies"
-        subtitle="Manufacturers, studios, developers and retailers you work with."
+        title={K.title}
+        subtitle={K.subtitle}
         actions={
           <Link href="/admin/companies/new" className="btn-primary btn-sm">
-            <Plus size={14} /> New company
+            <Plus size={14} /> {K.new}
           </Link>
         }
       />
 
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-1 border-b border-line lg:border-0">
-          {[{ key: "all", label: "All", count: Object.values(typeCounts).reduce((s: number, n) => s + (n as number), 0) }, ...COMPANY_TYPES.map((t) => ({ key: t, label: t[0].toUpperCase() + t.slice(1), count: typeCounts[t] ?? 0 }))].map((t) => (
-            <Link key={t.key} href={href({ type: t.key })} className={cn("-mb-px border-b-2 px-3 py-2 text-sm font-medium", type === t.key ? "border-ink-950 text-ink-950" : "border-transparent text-ink-500 hover:text-ink-900")}>
-              {t.label}
-              <span className="ml-1.5 rounded-full bg-ink-100 px-1.5 py-0.5 text-[11px] text-ink-600">{t.count}</span>
-            </Link>
-          ))}
-        </div>
-        <form action="/admin/companies" className="flex items-center gap-2">
+      <FilterBar>
+        <PillTabs items={tabs} current={type} />
+        <form action="/admin/companies" className="w-full sm:w-auto">
           {type !== "all" ? <input type="hidden" name="type" value={type} /> : null}
-          <Input name="q" defaultValue={q} placeholder="Search name, city, site…" className="w-56 py-1.5" />
+          <Input name="q" defaultValue={q} placeholder={K.searchPlaceholder} className="w-full py-1.5 sm:w-56" aria-label={t.common.search} />
         </form>
-      </div>
+      </FilterBar>
 
       {total === 0 ? (
-        <Empty title="No companies match" text={q ? `Nothing found for “${q}”.` : "B2B leads create companies automatically when converted."} action={<Link href="/admin/companies/new" className="btn-primary btn-sm">Add a company</Link>} />
+        <Empty
+          title={K.emptyTitle}
+          text={q ? t.crm.leads.emptyFound(q) : K.emptyText}
+          action={
+            <Link href="/admin/companies/new" className="btn-primary btn-sm">
+              {K.emptyAction}
+            </Link>
+          }
+        />
       ) : (
-        <div className="card overflow-x-auto">
-          <table className="table-admin">
+        <div className="card overflow-x-auto max-md:overflow-visible max-md:border-none max-md:bg-transparent max-md:shadow-none">
+          <table className="table-admin table-responsive">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>City</th>
-                <th>Contact</th>
-                <th className="text-right">Contacts</th>
-                <th className="text-right">Projects</th>
-                <th className="text-right">Pipeline</th>
-                <th>Created</th>
-                <th>Status</th>
+                <th>{t.common.name}</th>
+                <th>{t.common.type}</th>
+                <th>{t.common.city}</th>
+                <th>{t.crm.contact.title}</th>
+                <th className="text-right max-md:hidden!">{K.colContacts}</th>
+                <th className="text-right max-md:hidden!">{K.colProjects}</th>
+                <th className="text-right">{K.colPipeline}</th>
+                <th className="max-md:hidden!">{t.common.created}</th>
+                <th>{t.common.status}</th>
               </tr>
             </thead>
             <tbody>
@@ -93,25 +122,33 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
                 const agg = projectAgg[c.id] as { c: number; v: number } | undefined;
                 return (
                   <tr key={c.id}>
-                    <td>
-                      <Link href={`/admin/companies/${c.id}`} className="font-medium text-ink-900 hover:text-brand-600">
+                    <td data-label={t.common.name}>
+                      <Link href={`/admin/companies/${c.id}`} className="font-medium text-fg transition-colors hover:text-accent">
                         {c.name}
                       </Link>
-                      {c.website ? <div className="truncate text-xs text-ink-500">{c.website.replace(/^https?:\/\//, "")}</div> : null}
+                      {c.website ? <div className="truncate text-xs text-muted">{c.website.replace(/^https?:\/\//, "")}</div> : null}
                     </td>
-                    <td className="text-ink-600">{c.type}</td>
-                    <td className="text-ink-600">{c.city ?? "—"}</td>
-                    <td className="text-xs text-ink-600">
+                    <td data-label={t.common.type}>{labelFor(t, "companyTypes", c.type)}</td>
+                    <td data-label={t.common.city}>{c.city ?? "—"}</td>
+                    <td data-label={t.crm.contact.title} className="text-xs">
                       {c.phone ? <div>{c.phone}</div> : null}
-                      {c.email ? <div>{c.email}</div> : null}
+                      {c.email ? <div className="break-all">{c.email}</div> : null}
                       {!c.phone && !c.email ? "—" : null}
                     </td>
-                    <td className="text-right tabular-nums text-ink-600">{contactCounts[c.id] ?? 0}</td>
-                    <td className="text-right tabular-nums text-ink-600">{agg?.c ?? 0}</td>
-                    <td className="text-right tabular-nums">{agg?.v ? formatMoney(agg.v) : "—"}</td>
-                    <td className="whitespace-nowrap text-ink-500">{relativeTime(c.createdAt)}</td>
-                    <td>
-                      <StatusBadge value={c.status} />
+                    <td data-label={K.colContacts} className="text-right tabular-nums max-md:hidden!">
+                      {contactCounts[c.id] ?? 0}
+                    </td>
+                    <td data-label={K.colProjects} className="text-right tabular-nums max-md:hidden!">
+                      {agg?.c ?? 0}
+                    </td>
+                    <td data-label={K.colPipeline} className="text-right tabular-nums">
+                      {agg?.v ? formatMoney(agg.v) : "—"}
+                    </td>
+                    <td data-label={t.common.created} className="whitespace-nowrap text-muted max-md:hidden!">
+                      {relTime(c.createdAt, locale)}
+                    </td>
+                    <td data-label={t.common.status}>
+                      <StatusBadge value={c.status} label={labelFor(t, "companyStatus", c.status)} />
                     </td>
                   </tr>
                 );

@@ -20,22 +20,35 @@ if not exist ".env" (
 )
 
 if not exist "node_modules" (
-  echo  Installing dependencies (first run only, 1-2 minutes) ...
+  echo  Installing dependencies - first run only, 1-2 minutes ...
   call npm install --no-audit --no-fund
-  if errorlevel 1 ( echo  npm install failed. & pause & exit /b 1 )
+  if errorlevel 1 (
+    echo  npm install failed.
+    pause
+    exit /b 1
+  )
 )
 
 if not exist "data\architeksoft.db" (
   echo  Creating the database and seeding demo data ...
   call npm run db:seed
+  if errorlevel 1 (
+    echo  Database seed failed.
+    pause
+    exit /b 1
+  )
 )
 
 echo.
 echo  Website:    http://localhost:3100
-echo  Admin:      http://localhost:3100/admin   (admin@architeksoft.com / architek2026)
+echo  Admin:      http://localhost:3100/admin
+echo  Login:      admin@architeksoft.com
+echo  Password:   architek2026
 echo.
 echo  Press Ctrl+C in this window to stop the server.
 echo.
+
 start "" http://localhost:3100/admin
 call npm run dev
+
 pause

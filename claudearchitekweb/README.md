@@ -5,8 +5,8 @@ A single, self-contained system built for local testing first and production lat
 | Part | URL (local) | What it is |
 |---|---|---|
 | Client website | http://localhost:3100 (hy), /ru, /en | KitchenPro-first marketing site with clear B2B / B2C journeys and a 5-minute order intake wizard |
-| Client pages | http://localhost:3100/p/`slug`?k=`token` | The individual link a client receives: renders, video, sketch→3D, PDF, Live 3D, AR, approve / request changes |
-| Admin dashboard | http://localhost:3100/admin | CRM (leads, individuals, companies), projects & orders, media library, client pages, Live 3D links, SMM studio, analytics, settings |
+| Client pages | http://localhost:3100/p/`slug`?k=`token` | The individual link a client receives: Web Viewer (`/v/slug`), renders, video, sketch→3D, PDF, AR, premium Live 3D, approve / request changes |
+| Admin dashboard | http://localhost:3100/admin | Armenian by default (English switch). CRM (leads, individuals, companies), projects, media library, client pages, Live 3D links, SMM studio, analytics, settings |
 | Worker | runs inside the app | Scheduler + Telegram bot: approval workflow, notifications, daily brief, publishing |
 
 Default admin login: `admin@architeksoft.com` / `architek2026` (change in Settings → Security or in `.env`).
@@ -27,6 +27,8 @@ npm run dev                 # http://localhost:3100
 
 Everything works without any API key: AI copy falls back to built-in trilingual templates, Telegram and social publishing run in **dry-run** mode and show exactly what they would do.
 
+Light/dark mode: toggle in the site header and admin top bar (follows the system by default). Admin language: Armenian by default, English switch in the top bar.
+
 ## Documentation
 
 Start with [`docs/00_EXECUTIVE_SUMMARY.md`](docs/00_EXECUTIVE_SUMMARY.md), then:
@@ -41,6 +43,9 @@ Start with [`docs/00_EXECUTIVE_SUMMARY.md`](docs/00_EXECUTIVE_SUMMARY.md), then:
 8. [`08_DEPLOYMENT.md`](docs/08_DEPLOYMENT.md) — local → staging → production, without touching the current site until you decide
 9. [`09_ROADMAP.md`](docs/09_ROADMAP.md) — what is done, what is next
 10. [`10_TESTING_GUIDE.md`](docs/10_TESTING_GUIDE.md) — a 30-minute click-through of everything
+11. [`11_INFRASTRUCTURE_PLAN.md`](docs/11_INFRASTRUCTURE_PLAN.md) — every service: what, why, now/later, cost, when to migrate
+12. [`12_OFFERS_AND_POSITIONING.md`](docs/12_OFFERS_AND_POSITIONING.md) — corrected positioning, Web Viewer vs Live 3D, proposed B2B/B2C packages
+13. [`13_PERFORMANCE.md`](docs/13_PERFORMANCE.md) — bottlenecks found, changes, before/after numbers
 
 ## Project layout
 
@@ -70,3 +75,5 @@ claudearchitekweb/
 | `npm run db:seed` | demo data; `npm run db:seed -- --force` to add again |
 | `npm run db:reset` | delete local DB + uploads |
 | `npm run typecheck` | TypeScript check |
+| `npm run perf` | server-timing probe of the main routes (`node scripts/perf.mjs [baseUrl] [runs]`) |
+| `npm run dev:webpack` | dev server without Turbopack (fallback) |

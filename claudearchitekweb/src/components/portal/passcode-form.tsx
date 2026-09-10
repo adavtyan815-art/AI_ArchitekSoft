@@ -32,11 +32,11 @@ export function PasscodeForm({ slug, token, labels }: { slug: string; token: str
 
   return (
     <form onSubmit={submit} className="card mx-auto w-full max-w-md p-6 sm:p-8">
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent-soft-fg" aria-hidden>
         <Lock size={22} />
       </span>
-      <h1 className="mt-4 text-2xl font-semibold tracking-tight text-ink-950">{labels.title}</h1>
-      <p className="mt-2 text-ink-600">{labels.text}</p>
+      <h1 className="h-section mt-4 text-[1.6rem] sm:text-[1.9rem]">{labels.title}</h1>
+      <p className="mt-2 text-muted">{labels.text}</p>
       <input
         className="input mt-5 text-center text-2xl tracking-[0.4em]"
         inputMode="numeric"
@@ -51,8 +51,12 @@ export function PasscodeForm({ slug, token, labels }: { slug: string; token: str
         }}
         aria-invalid={state === "wrong"}
       />
-      {state === "wrong" || state === "error" ? <p role="alert" className="mt-2 text-sm text-danger-500">{labels.wrong}</p> : null}
-      <button type="submit" disabled={!code.trim() || state === "sending"} className="btn-primary btn-lg mt-4 w-full">
+      {state === "wrong" || state === "error" ? (
+        <p role="alert" className="mt-2 text-sm text-danger">
+          {labels.wrong}
+        </p>
+      ) : null}
+      <button type="submit" disabled={!code.trim() || state === "sending"} className="btn-primary btn-lg mt-4 min-h-[52px] w-full">
         {labels.button}
       </button>
     </form>

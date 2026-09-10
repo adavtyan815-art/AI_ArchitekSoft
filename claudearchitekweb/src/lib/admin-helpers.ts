@@ -2,7 +2,31 @@
 import { desc, inArray } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { mediaUrl } from "./media";
+import { formatDate, relativeTime } from "./utils";
+import type { AdminLocale } from "./i18n/admin";
 import type { Asset } from "./db/schema";
+
+/** "3 ր առաջ" / "2 օր առաջ" — plain Armenian relative time; falls back to an absolute date after a month. */
+export function relativeTimeHy(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const diff = Date.now() - d.getTime();
+  const m = Math.round(diff / 60000);
+  if (m < 1) return "հենց նոր";
+  if (m < 60) return `${m} ր առաջ`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} ժ առաջ`;
+  const days = Math.round(h / 24);
+  if (days === 1) return "երեկ";
+  if (days < 30) return `${days} օր առաջ`;
+  return formatDate(iso);
+}
+
+/** Locale-aware relative time for admin screens. */
+export function relTime(iso: string | null | undefined, locale: AdminLocale): string {
+  return locale === "hy" ? relativeTimeHy(iso) : relativeTime(iso);
+}
 
 export function entityHref(type: string | null | undefined, id: string | null | undefined): string | null {
   if (!type || !id) return null;
@@ -49,10 +73,18 @@ export function assetsByIds(ids: string[]): Asset[] {
 }
 
 /** Best available preview URL for an asset (thumbnail, else the original image), or null for icon-only kinds. */
-export function thumbUrlFor(a: { relPath: string; thumbRelPath: string | null; mime: string }): string | null {
-  if (a.thumbRelPath) return mediaUrl(a.thumbRelPath);
-  if (a.mime.startsWith("image/")) return mediaUrl(a.relPath);
+export function thumbUrlFor(a: { relPath: string; thumbRelPath: string | null; mime: string }, width?: number): string | null {
+  if (a.thumbRelPath) return mediaUrl(a.thumbRelPath, width);
+  if (a.mime.startsWith("image/")) return mediaUrl(a.relPath, width);
   return null;
+}
+
+/** `srcset` for a grid thumbnail (1× / 2×), or undefined when the asset has no image preview. */
+export function thumbSrcSetFor(a: { relPath: string; thumbRelPath: string | null; mime: string }, width = 320): string | undefined {
+  const one = thumbUrlFor(a, width);
+  const two = thumbUrlFor(a, width * 2);
+  if (!one || !two || one === two) return undefined;
+  return `${one} ${width}w, ${two} ${width * 2}w`;
 }
 
 export function formatDuration(sec: number | null | undefined): string {

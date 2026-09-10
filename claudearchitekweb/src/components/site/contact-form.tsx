@@ -2,15 +2,31 @@
 
 import { useRef, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
-import type { Dictionary, Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { Button, Field, Input, Textarea } from "@/components/ui";
 import { trackEvent } from "@/components/site/track";
 import { cn } from "@/lib/utils";
 
 type Segment = "b2c" | "b2b";
 
-export function ContactForm({ locale, dict, className }: { locale: Locale; dict: Dictionary; className?: string }) {
-  const c = dict.contact;
+/** Only the strings this form needs — keeps the client payload small. */
+export type ContactFormStrings = {
+  segment: string;
+  segB2b: string;
+  segB2c: string;
+  name: string;
+  phone: string;
+  email: string;
+  message: string;
+  success: string;
+  error: string;
+  optional: string;
+  send: string;
+  sending: string;
+};
+
+export function ContactForm({ locale, strings, className }: { locale: Locale; strings: ContactFormStrings; className?: string }) {
+  const c = strings;
   const [segment, setSegment] = useState<Segment>("b2c");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -45,12 +61,12 @@ export function ContactForm({ locale, dict, className }: { locale: Locale; dict:
 
   if (state === "done") {
     return (
-      <div className={cn("rounded-2xl border border-brand-200 bg-brand-50 p-6", className)}>
+      <div className={cn("rounded-2xl bg-success-soft p-6", className)}>
         <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 flex-none items-center justify-center rounded-full bg-brand-500 text-white">
+          <span className="inline-flex h-9 w-9 flex-none items-center justify-center rounded-full bg-success text-[#fff]">
             <Check size={18} strokeWidth={3} />
           </span>
-          <p className="text-ink-900">{c.success}</p>
+          <p className="text-[15px] leading-relaxed text-fg">{c.success}</p>
         </div>
       </div>
     );
@@ -67,9 +83,11 @@ export function ContactForm({ locale, dict, className }: { locale: Locale; dict:
               ["b2b", c.segB2b],
             ] as [Segment, string][]
           ).map(([val, label]) => (
-            <label key={val} className={cn("flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-colors", segment === val ? "border-ink-950 bg-ink-950 text-white" : "border-ink-200 bg-white text-ink-800 hover:border-ink-300")}>
+            <label key={val} className="choice items-center py-3.5 text-[15px] font-medium text-fg">
               <input type="radio" name="segment" value={val} checked={segment === val} onChange={() => setSegment(val)} className="sr-only" />
-              <span className={cn("inline-flex h-4 w-4 flex-none items-center justify-center rounded-full border", segment === val ? "border-white" : "border-ink-300")}>{segment === val ? <span className="h-2 w-2 rounded-full bg-white" /> : null}</span>
+              <span className={cn("inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border transition-colors", segment === val ? "border-accent bg-accent" : "border-line-strong")}>
+                {segment === val ? <span className="h-2 w-2 rounded-full bg-accent-fg" /> : null}
+              </span>
               {label}
             </label>
           ))}
@@ -84,7 +102,7 @@ export function ContactForm({ locale, dict, className }: { locale: Locale; dict:
           <Input value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={40} autoComplete="tel" inputMode="tel" />
         </Field>
       </div>
-      <Field label={c.email} hint={dict.common.optional}>
+      <Field label={c.email} hint={c.optional}>
         <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={120} autoComplete="email" />
       </Field>
       <Field label={c.message}>
@@ -95,10 +113,14 @@ export function ContactForm({ locale, dict, className }: { locale: Locale; dict:
         <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
       </div>
 
-      {state === "error" ? <p role="alert" className="text-sm text-danger-500">{c.error}</p> : null}
+      {state === "error" ? (
+        <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">
+          {c.error}
+        </p>
+      ) : null}
 
       <Button type="submit" size="lg" disabled={state === "sending"} className="w-full sm:w-auto">
-        {state === "sending" ? dict.common.sending : dict.common.send}
+        {state === "sending" ? c.sending : c.send}
         <ArrowRight size={18} />
       </Button>
     </form>

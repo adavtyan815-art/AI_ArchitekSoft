@@ -3,6 +3,7 @@ import { asc, desc, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { mediaUrl } from "./media";
 import { pickLang, type Locale } from "./i18n";
+import { cached } from "./cache";
 
 export type PortfolioCard = {
   slug: string;
@@ -17,10 +18,15 @@ export type PortfolioCard = {
 };
 
 export function getPortfolio(locale: Locale, opts: { featuredOnly?: boolean; limit?: number } = {}): PortfolioCard[] {
-  const db = getDb();
-  let items = db.select().from(schema.portfolioItems).where(eq(schema.portfolioItems.isPublished, true)).orderBy(asc(schema.portfolioItems.sortOrder), desc(schema.portfolioItems.createdAt)).all();
-  if (opts.featuredOnly) items = items.filter((i) => i.isFeatured);
+  let items = cached(`portfolio:${locale}`, 60_000, () => loadPortfolio(locale));
+  if (opts.featuredOnly) items = items.filter((i) => i.featured);
   if (opts.limit) items = items.slice(0, opts.limit);
+  return items;
+}
+
+function loadPortfolio(locale: Locale): PortfolioCard[] {
+  const db = getDb();
+  const items = db.select().from(schema.portfolioItems).where(eq(schema.portfolioItems.isPublished, true)).orderBy(asc(schema.portfolioItems.sortOrder), desc(schema.portfolioItems.createdAt)).all();
   const ids = new Set<string>();
   for (const it of items) {
     if (it.coverAssetId) ids.add(it.coverAssetId);
