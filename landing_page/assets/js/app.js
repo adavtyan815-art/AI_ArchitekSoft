@@ -65,7 +65,7 @@ const translations = {
     hero_feat_3_lbl: 'Կտրման Քարտեզներ (Раскрой)',
     hero_feat_4_val: 'Բոլոր Սարքերում',
     hero_feat_4_lbl: 'Համակարգիչ, Սմարթֆոն, VR',
-    hero_annotation_color: 'Տեսեք տարբեր գույներով 💡',
+    hero_annotation_color: 'Տեսեք տարբեր<br/>գույնով',
 
 
     devices_tag: 'Բազմասարք Համատեղելիություն',
@@ -196,7 +196,7 @@ const translations = {
     hero_feat_3_lbl: 'Карты Раскроя (ЧПУ)',
     hero_feat_4_val: 'Все Устройства',
     hero_feat_4_lbl: 'Компьютер, Смартфон, VR',
-    hero_annotation_color: 'Смотрите в разных цветах 💡',
+    hero_annotation_color: 'Смотрите в<br/>разных цветах',
 
 
     devices_tag: 'Кроссплатформенность',
@@ -326,7 +326,7 @@ const translations = {
     hero_feat_3_lbl: 'Factory CNC Cutlists',
     hero_feat_4_val: 'All Devices',
     hero_feat_4_lbl: 'Desktop, Mobile, VR',
-    hero_annotation_color: 'Explore in various colors 💡',
+    hero_annotation_color: 'Explore in<br/>different colors',
 
     hero_stat_3_lbl: 'Factory CNC Cutlists',
 
@@ -912,18 +912,18 @@ function initHero3DRotation() {
   const img = document.getElementById('device-slideshow-img');
   if (!container || !img) return;
 
-  const baseRx = 8;
-  const baseRy = -14;
-  const baseRz = 20;
+  const baseRx = 5;
+  const baseRy = -16;
+  const baseRz = 0;
 
   container.addEventListener('mousemove', (e) => {
     const rect = container.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
     const y = (e.clientY - rect.top) / rect.height - 0.5;
 
-    const rx = baseRx - (y * 12);
-    const ry = baseRy + (x * 16);
-    const rz = baseRz + (x * 4);
+    const rx = baseRx - (y * 10);
+    const ry = baseRy + (x * 14);
+    const rz = baseRz + (x * 3);
 
     img.style.setProperty('--rot-x', `${rx.toFixed(2)}deg`);
     img.style.setProperty('--rot-y', `${ry.toFixed(2)}deg`);

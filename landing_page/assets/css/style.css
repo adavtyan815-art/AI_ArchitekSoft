@@ -4909,6 +4909,22 @@ body.flagship-home .hero-device-stage {
   perspective-origin: center center !important;
 }
 
+body.flagship-home .hero-device-stage::before {
+  content: '' !important;
+  position: absolute !important;
+  width: 90% !important;
+  height: 90% !important;
+  top: 5% !important;
+  left: 5% !important;
+  background: radial-gradient(circle, rgba(0, 180, 255, 0.16) 0%, rgba(0, 100, 255, 0.05) 45%, transparent 70%) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+[data-theme="light"] body.flagship-home .hero-device-stage::before {
+  background: radial-gradient(circle, rgba(26, 115, 232, 0.1) 0%, transparent 65%) !important;
+}
+
 body.flagship-home .hero-device-stage::after {
   display: none !important;
 }
@@ -4930,46 +4946,39 @@ body.flagship-home .hero-device-mockup-wrapper {
 /* Floating Interactive Visual Annotation */
 .hero-annotation-badge {
   position: absolute !important;
-  top: -16px !important;
-  right: clamp(10px, 4vw, 40px) !important;
+  top: -22px !important;
+  right: clamp(14px, 3.5vw, 36px) !important;
   display: flex !important;
   flex-direction: column !important;
-  align-items: center !important;
+  align-items: flex-end !important;
   z-index: 10 !important;
   pointer-events: none !important;
   user-select: none !important;
-  animation: badge-subtle-bounce 3s ease-in-out infinite !important;
 }
 
 .hero-annotation-badge span {
-  font-size: clamp(0.72rem, 0.82vw, 0.82rem) !important;
+  font-size: clamp(0.74rem, 0.85vw, 0.84rem) !important;
   font-weight: 600 !important;
-  color: #f1f5f9 !important;
-  background: rgba(10, 18, 30, 0.85) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  padding: 4px 12px !important;
-  border-radius: 20px !important;
-  border: 1px solid rgba(0, 240, 255, 0.4) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 0 12px rgba(0, 240, 255, 0.25) !important;
-  white-space: nowrap !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 4px !important;
+  color: #e2e8f0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9) !important;
+  white-space: pre-line !important;
+  text-align: right !important;
+  line-height: 1.25 !important;
 }
 
 [data-theme="light"] .hero-annotation-badge span {
-  color: #0f172a !important;
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(26, 115, 232, 0.35) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 10px rgba(26, 115, 232, 0.15) !important;
+  color: #1e293b !important;
+  text-shadow: none !important;
 }
 
 .hero-annotation-badge .hand-drawn-arrow {
   width: 48px !important;
-  height: 30px !important;
-  margin-top: 2px !important;
-  margin-right: 18px !important;
+  height: 32px !important;
+  margin-top: 4px !important;
+  margin-right: 20px !important;
   filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.6)) !important;
 }
 
@@ -4977,23 +4986,18 @@ body.flagship-home .hero-device-mockup-wrapper {
   stroke: rgba(26, 115, 232, 0.9) !important;
 }
 
-@keyframes badge-subtle-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
 body.flagship-home .hero-device-mockup-img {
-  --rot-x: 8deg;
-  --rot-y: -14deg;
-  --rot-z: 20deg;
+  --rot-x: 5deg;
+  --rot-y: -16deg;
+  --rot-z: 0deg;
   max-height: clamp(210px, 36vh, 320px) !important;
   width: auto !important;
   max-width: 95% !important;
   object-fit: contain !important;
   display: block !important;
   -webkit-box-reflect: none !important;
-  transform: perspective(1200px) rotateX(var(--rot-x, 8deg)) rotateY(var(--rot-y, -14deg)) rotateZ(var(--rot-z, 20deg)) !important;
-  transform-origin: center center !important;
+  transform: perspective(1200px) rotateX(var(--rot-x, 5deg)) rotateY(var(--rot-y, -16deg)) rotateZ(var(--rot-z, 0deg)) !important;
+  transform-origin: center bottom !important;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   filter: drop-shadow(0 20px 45px rgba(0, 0, 0, 0.65)) !important;
 }
