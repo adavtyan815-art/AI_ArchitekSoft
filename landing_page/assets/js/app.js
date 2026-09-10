@@ -1463,6 +1463,85 @@ window.setTheme = setTheme;
 window.changeConfigMaterial = changeConfigMaterial;
 window.toggleAutoRotate = toggleAutoRotate;
 window.reset3DCamera = reset3DCamera;
+function switchConsoleMode(mode) {
+  playHapticClick();
+  const panes = {
+    video: document.getElementById('console-pane-video'),
+    '3d': document.getElementById('console-pane-3d'),
+    ba: document.getElementById('console-pane-ba')
+  };
+  const btns = {
+    video: document.getElementById('btn-mode-video'),
+    '3d': document.getElementById('btn-mode-3d'),
+    ba: document.getElementById('btn-mode-ba')
+  };
+  const label = document.getElementById('hero-mode-label');
+
+  Object.keys(panes).forEach(k => {
+    if (panes[k]) panes[k].classList.toggle('active', k === mode);
+    if (btns[k]) btns[k].classList.toggle('active', k === mode);
+  });
+
+  if (label) {
+    if (mode === 'video') label.textContent = '4K Շրջայց // 60 FPS • LUMEN';
+    else if (mode === '3d') label.textContent = '3D WEBGL // 360° ORBIT';
+    else if (mode === 'ba') label.textContent = 'ԷՍՔԻԶ ➔ 4K TRANSFORMATION';
+  }
+
+  const vid = document.getElementById('hero-showcase-video');
+  if (vid) {
+    if (mode === 'video') {
+      vid.play().catch(() => {});
+    } else {
+      vid.pause();
+    }
+  }
+
+  if (mode === '3d') {
+    if (typeof renderer === 'undefined' || !renderer) {
+      init3DViewer();
+    } else {
+      const container = document.getElementById('three-canvas-container');
+      if (container && renderer && camera) {
+        const w = container.clientWidth || 600;
+        const h = container.clientHeight || 300;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      }
+    }
+  }
+
+  if (mode === 'ba') {
+    initBeforeAfterSlider();
+  }
+}
+
+function toggleHeroVideoSound() {
+  playHapticClick();
+  const vid = document.getElementById('hero-showcase-video');
+  const iconOff = document.getElementById('hero-sound-icon-off');
+  const iconOn = document.getElementById('hero-sound-icon-on');
+  if (!vid) return;
+  vid.muted = !vid.muted;
+  if (iconOff && iconOn) {
+    iconOff.style.display = vid.muted ? 'block' : 'none';
+    iconOn.style.display = vid.muted ? 'none' : 'block';
+  }
+}
+
+function changeConsoleMaterial(mat) {
+  playHapticClick();
+  changeConfigMaterial(mat);
+  document.querySelectorAll('.hero-console-footer .mat-pill-btn').forEach(btn => {
+    const fn = btn.getAttribute('onclick') || '';
+    btn.classList.toggle('active', fn.includes(mat));
+  });
+}
+
+window.switchConsoleMode = switchConsoleMode;
+window.toggleHeroVideoSound = toggleHeroVideoSound;
+window.changeConsoleMaterial = changeConsoleMaterial;
 window.openVideoModal = openVideoModal;
 window.closeVideoModal = closeVideoModal;
 window.openARModal = openARModal;

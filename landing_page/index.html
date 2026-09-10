@@ -190,22 +190,119 @@
               <span data-i18n="hero_btn_live">Փորձել 3D Ցուցասրահը</span>
               <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
+            <button onclick="openARModal()" class="btn btn-secondary btn-lg btn-ar-trigger">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              <span>1:1 AR Բջջային</span>
+            </button>
             <a href="/contact" class="btn btn-secondary btn-lg">
               <svg class="btn-icon-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              <span data-i18n="hero_btn_contact">Կապվել Մեզ Հետ</span>
+              <span data-i18n="hero_btn_contact">Կապ</span>
             </a>
           </div>
         </div>
 
-        <!-- Right Visual (Multi-Device Showcase with Floor Reflection & 4K Video Trigger) -->
+        <!-- Right Visual (Living 4K Unreal Engine 5 & 3D Interactive Console) -->
         <div class="hero-visual hero-device-stage" id="hero-device-container">
-          <div class="hero-device-mockup-wrapper" id="hero-device-wrapper">
-            <img id="device-slideshow-img" src="assets/images/hero_showcase_dark_clean.png" alt="ArchiTek Soft Multi-Device Showroom" class="hero-device-mockup-img" />
-            <button class="hero-video-trigger" onclick="openVideoModal('/local-assets/ArchiTek_Kitchen Preview .mp4', 'ArchiTek 4K Kitchen Walkthrough (60 FPS)')" aria-label="Play 4K Walkthrough Video">
-              <span class="hero-video-pulse"></span>
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              <span>Դիտել 4K Շրջայցը (60 FPS)</span>
-            </button>
+          <div class="hero-console-frame">
+            <!-- Console Header with Real-time Status & Modes -->
+            <div class="hero-console-header">
+              <div class="hero-console-status">
+                <span class="pulse-led"></span>
+                <span id="hero-mode-label">4K Շրջայց // 60 FPS • LUMEN</span>
+              </div>
+              <div class="hero-console-modes">
+                <button class="console-mode-btn active" id="btn-mode-video" onclick="switchConsoleMode('video')">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                  <span>4K Վիդեո</span>
+                </button>
+                <button class="console-mode-btn" id="btn-mode-3d" onclick="switchConsoleMode('3d')">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg>
+                  <span>360° 3D</span>
+                </button>
+                <button class="console-mode-btn" id="btn-mode-ba" onclick="switchConsoleMode('ba')">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
+                  <span>Էսքիզ ➔ 4K</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Console Screen Body -->
+            <div class="hero-console-body">
+              <!-- Mode 1: 4K Video Walkthrough (Autoplaying Muted Loop in First 2 Seconds) -->
+              <div class="console-pane active" id="console-pane-video">
+                <video id="hero-showcase-video" autoplay muted loop playsinline poster="assets/videos/video01_poster.jpg">
+                  <source src="/local-assets/ArchiTek_Kitchen Preview .mp4" type="video/mp4" />
+                  <source src="assets/videos/video01.mp4" type="video/mp4" />
+                </video>
+                
+                <!-- Holographic Hotspots -->
+                <div class="console-hotspot" style="top: 40%; left: 34%;" title="Blum Tip-On & Legrabox CAD">
+                  <span class="hotspot-pulse"></span>
+                  <span class="hotspot-label">Blum CAD</span>
+                </div>
+                <div class="console-hotspot" style="top: 64%; left: 60%;" title="Unreal Engine 5 Lumen 4K Raytracing">
+                  <span class="hotspot-pulse"></span>
+                  <span class="hotspot-label">Lumen 4K</span>
+                </div>
+
+                <!-- Overlay Quick Controls -->
+                <div class="console-overlay-controls">
+                  <button class="overlay-ctrl-btn" onclick="toggleHeroVideoSound()" id="hero-sound-btn" title="Toggle Sound">
+                    <svg id="hero-sound-icon-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                    <svg id="hero-sound-icon-on" style="display:none;" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                  </button>
+                  <button class="overlay-ctrl-btn" onclick="openVideoModal('/local-assets/ArchiTek_Kitchen Preview .mp4', 'ArchiTek 4K Kitchen Walkthrough (60 FPS)')" title="Fullscreen Cinema">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mode 2: Real-time 3D WebGL (Three.js 360° Orbit) -->
+              <div class="console-pane" id="console-pane-3d">
+                <div id="three-canvas-container" style="width: 100%; height: 100%;"></div>
+                <div class="three-hint-badge">⟲ Պտտեք մկնիկով (360° Orbit)</div>
+              </div>
+
+              <!-- Mode 3: Interactive Before/After Transformation Slider -->
+              <div class="console-pane" id="console-pane-ba">
+                <div class="ba-slider-container ba-slider" id="ba-slider" style="width: 100%; height: 100%; aspect-ratio: auto; border: none; border-radius: 0;">
+                  <img src="assets/images/render_aren_4k.jpg" alt="After 4K Ray-Tracing" class="ba-image-after" />
+                  <img src="assets/images/sketch_aren.jpg" alt="Before Hand Sketch" class="ba-image-before" />
+                  <div class="ba-badge ba-badge-before">Էսքիզ</div>
+                  <div class="ba-badge ba-badge-after">4K Ռենդեր</div>
+                  <div class="ba-handle">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Console Footer: Live Material Finishes & AR Button -->
+            <div class="hero-console-footer">
+              <div class="console-mat-palette">
+                <span class="mat-label">Ֆասադ՝</span>
+                <button class="mat-pill-btn active" onclick="changeConsoleMaterial('walnut');">
+                  <span class="mat-circle" style="background: #5c4033;"></span>
+                  <span>Ընկուզենի</span>
+                </button>
+                <button class="mat-pill-btn" onclick="changeConsoleMaterial('marble');">
+                  <span class="mat-circle" style="background: #e2e8f0;"></span>
+                  <span>Մարմար</span>
+                </button>
+                <button class="mat-pill-btn" onclick="changeConsoleMaterial('graphite');">
+                  <span class="mat-circle" style="background: #1e293b;"></span>
+                  <span>Գրաֆիտ</span>
+                </button>
+                <button class="mat-pill-btn" onclick="changeConsoleMaterial('gold');">
+                  <span class="mat-circle" style="background: #d4af37;"></span>
+                  <span>Ոսկի</span>
+                </button>
+              </div>
+              <button class="console-ar-btn" onclick="openARModal()">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <span>1:1 AR</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -263,372 +360,6 @@
         </div>
 
       </div>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
-       SECTION 2: LIVE WEBGL 3D SHOWROOM STUDIO
-       ========================================================================== -->
-  <section class="flagship-section" id="showroom-3d">
-    <div class="container">
-      <div class="section-header-center">
-        <div class="section-pill-tag">
-          <span class="pulse-led"></span>
-          <span>REAL-TIME 3D SHOWROOM</span>
-        </div>
-        <h2 class="section-h2">Ինտերակտիվ 3D Ցուցասրահ (360° Orbit)</h2>
-        <p class="section-lead">
-          Կառավարեք տեսախցիկը մկնիկով կամ հպումով, փորձարկեք պրեմիում նյութերի համադրությունները և բացեք AR-ը Ձեր սմարթֆոնում։
-        </p>
-      </div>
-
-      <div class="showroom-stage-card">
-        <!-- Showroom Top Bar -->
-        <div class="showroom-toolbar">
-          <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">
-            <span class="pulse-led"></span>
-            <span>WebGL 3D Engine // 60 FPS</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <button class="btn btn-secondary btn-sm" onclick="toggleAutoRotate()" title="Toggle Auto-Rotation" style="padding: 6px 12px; font-size: 0.8rem;">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-              <span>360° Պտույտ</span>
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="reset3DCamera()" title="Reset Camera View" style="padding: 6px 12px; font-size: 0.8rem;">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>Սկզբնական Դիրք</span>
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="openARModal()" title="View in Augmented Reality" style="padding: 6px 14px; font-size: 0.8rem;">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              <span>Բջջային AR</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- 3D Canvas Viewport -->
-        <div class="showroom-viewport" style="position: relative;">
-          <div id="three-canvas-container" style="width: 100%; height: 100%;"></div>
-          <div style="position: absolute; bottom: 16px; left: 20px; background: rgba(5,8,17,0.75); backdrop-filter: blur(8px); border: 1px solid var(--border-subtle); border-radius: 50px; padding: 6px 14px; font-size: 0.78rem; color: var(--text-muted); pointer-events: none; display: flex; align-items: center; gap: 8px;">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-            <span>Քաշեք մկնիկով՝ մոդելը 360° զննելու համար</span>
-          </div>
-        </div>
-
-        <!-- Showroom Materials Switcher Bar -->
-        <div class="showroom-materials-bar">
-          <div class="mat-palette">
-            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-pure); margin-right: 6px;">Ֆասադի Նյութեր՝</span>
-            <button class="mat-pill-btn active" onclick="changeConfigMaterial('walnut'); this.parentElement.querySelectorAll('.mat-pill-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');">
-              <span class="mat-circle" style="background: #5c4033;"></span>
-              <span>Ընկուզենի (Walnut)</span>
-            </button>
-            <button class="mat-pill-btn" onclick="changeConfigMaterial('marble'); this.parentElement.querySelectorAll('.mat-pill-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');">
-              <span class="mat-circle" style="background: #e2e8f0;"></span>
-              <span>Կարարա Մարմար</span>
-            </button>
-            <button class="mat-pill-btn" onclick="changeConfigMaterial('graphite'); this.parentElement.querySelectorAll('.mat-pill-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');">
-              <span class="mat-circle" style="background: #1e293b;"></span>
-              <span>Օբսիդիան Գրաֆիտ</span>
-            </button>
-            <button class="mat-pill-btn" onclick="changeConfigMaterial('gold'); this.parentElement.querySelectorAll('.mat-pill-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');">
-              <span class="mat-circle" style="background: #d4af37;"></span>
-              <span>Շամպայն Ոսկի</span>
-            </button>
-          </div>
-
-          <a href="/configurator" class="btn btn-secondary btn-sm" style="font-size: 0.82rem; gap: 6px;">
-            <span>Ամբողջական Կոնֆիգուրատոր</span>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
-       SECTION 3: THE 4-PILLAR PIPELINE (FROM SKETCH TO FACTORY)
-       ========================================================================== -->
-  <section class="flagship-section" id="pipeline">
-    <div class="container">
-      <div class="section-header-center">
-        <div class="section-pill-tag">
-          <span class="pulse-led"></span>
-          <span>FROM SKETCH TO FACTORY</span>
-        </div>
-        <h2 class="section-h2">Ամբողջական Թվային Շղթա</h2>
-        <p class="section-lead">
-          Մատիտի առաջին ուրվագծից մինչև 4K ֆոտոռեալիզմ, ինտերակտիվ Web 3D և գործարանային CNC ճշգրտություն։
-        </p>
-      </div>
-
-      <div class="pipeline-step-grid">
-        <!-- Step 1 -->
-        <div class="pipeline-step-card">
-          <div class="step-num">01</div>
-          <h3 class="step-title">Էսքիզ & LiDAR Չափագրում</h3>
-          <p class="step-desc">
-            Տարածքի լազերային ճշգրիտ չափագրում, հաճախորդի ցանկությունների հավաքագրում և նախնական ճարտարապետական 3D մոդելավորում։
-          </p>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="pipeline-step-card">
-          <div class="step-num">02</div>
-          <h3 class="step-title">4K Unreal Engine 5 Ֆոտոռեալիզմ</h3>
-          <p class="step-desc">
-            Lumen ռեյթրեյսինգ լուսավորություն, ֆիզիկապես ճշգրիտ PBR նյութեր և կինեմատոգրաֆիկ 60 FPS տեսաշրջայցեր Ձեր հաճախորդների համար։
-          </p>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="pipeline-step-card">
-          <div class="step-num">03</div>
-          <h3 class="step-title">Web 3D & Բջջային AR (1:1)</h3>
-          <p class="step-desc">
-            Ինտերակտիվ ցուցասրահ անմիջապես բրաուզերում՝ առանց հավելվածի, և 1:1 մասշտաբով կահույքի պրոյեկցիա հաճախորդի սենյակում։
-          </p>
-        </div>
-
-        <!-- Step 4 -->
-        <div class="pipeline-step-card">
-          <div class="step-num">04</div>
-          <h3 class="step-title">CNC Ռասկրոյ & Գործարան</h3>
-          <p class="step-desc">
-            Ավտոմատ կտրման քարտեզներ (Раскрой), Blum ֆուրնիտուրայի ծակման կոորդինատներ և զրոյական խոտան արտադրամասում։
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
-       SECTION 4: INTERACTIVE BEFORE/AFTER COMPARISON
-       ========================================================================== -->
-  <section class="flagship-section" id="transformation">
-    <div class="container">
-      <div class="section-header-center">
-        <div class="section-pill-tag">
-          <span class="pulse-led"></span>
-          <span>VISUAL TRANSFORMATION</span>
-        </div>
-        <h2 class="section-h2">Ձեռքի Էսքիզից Մինչև 4K Իրականություն</h2>
-        <p class="section-lead">
-          Սահեցրեք կենտրոնական բաժանիչը՝ տեսնելու համար նախնական էսքիզի և 4K Ray-Tracing վերջնական արդյունքի տարբերությունը։
-        </p>
-      </div>
-
-      <div class="ba-container" style="max-width: 1000px; margin: 0 auto;">
-        <div class="ba-slider-container ba-slider" id="ba-slider">
-          <img src="assets/images/render_aren_4k.jpg" alt="After 4K Ray-Tracing" class="ba-image-after" />
-          <img src="assets/images/sketch_aren.jpg" alt="Before Hand Sketch" class="ba-image-before" />
-          <div class="ba-badge ba-badge-before">Էսքիզ (Hand Sketch)</div>
-          <div class="ba-badge ba-badge-after">4K Ray-Tracing Ռենդեր</div>
-          <div class="ba-handle">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
-       SECTION 5: CINEMATIC VIDEO SHOWCASE GRID
-       ========================================================================== -->
-  <section class="flagship-section" id="projects">
-    <div class="container">
-      <div class="section-header-center">
-        <div class="section-pill-tag">
-          <span class="pulse-led"></span>
-          <span>CINEMATIC SHOWCASE</span>
-        </div>
-        <h2 class="section-h2">Իրական Նախագծեր և 4K Վիդեո Շրջայցեր</h2>
-        <p class="section-lead">
-          Սեղմեք ցանկացած տեսանյութի վրա՝ 4K 60 FPS ֆոտոռեալիստիկ անիմացիան դիտելու համար։
-        </p>
-      </div>
-
-      <div class="video-grid">
-        <!-- Video Card 1 -->
-        <div class="video-card" onclick="openVideoModal('/local-assets/ArchiTek_Kitchen Preview .mp4', 'Aren Luxury Kitchen — Unreal Engine 5 Walkthrough')">
-          <img src="assets/images/image02.gif" alt="Aren Luxury Kitchen 4K" class="video-thumb" />
-          <div class="video-play-btn">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-          </div>
-          <div class="video-info">
-            <div class="video-title">Aren Luxury Kitchen — 4K Walkthrough</div>
-            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 4px;">Unreal Engine 5 // Lumen Raytracing</div>
-          </div>
-        </div>
-
-        <!-- Video Card 2 -->
-        <div class="video-card" onclick="openVideoModal('/local-assets/ArchiTek_Kitchen Preview .mp4', 'Walk-in Closet & Smart Storage Simulation')">
-          <img src="assets/images/image06.gif" alt="Walk-in Closet 3D" class="video-thumb" />
-          <div class="video-play-btn">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-          </div>
-          <div class="video-info">
-            <div class="video-title">Walk-in Closet & Դարակների Սիմուլյացիա</div>
-            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 4px;">Blum Մեխանիզմներ // Ինտերիեր</div>
-          </div>
-        </div>
-
-        <!-- Video Card 3 -->
-        <div class="video-card" onclick="openVideoModal('/local-assets/ArchiTek_Kitchen Preview .mp4', 'Modern Living Room & TV Wall Concept')">
-          <img src="assets/images/image07.gif" alt="Modern Living Room 3D" class="video-thumb" />
-          <div class="video-play-btn">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-          </div>
-          <div class="video-info">
-            <div class="video-title">Modern Living Room & TV Գոտի</div>
-            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 4px;">Կինեմատոգրաֆիկ Լուսավորություն</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
-       SECTION 6: B2B MANUFACTURER & DESIGNER VALUE MATRIX
-       ========================================================================== -->
-  <section class="flagship-section" id="b2b-value">
-    <div class="container">
-      <div class="section-header-center">
-        <div class="section-pill-tag">
-          <span class="pulse-led"></span>
-          <span>B2B ADVANTAGE</span>
-        </div>
-        <h2 class="section-h2">Ինչո՞ւ են Կահույքի Արտադրողներն Ընտրում ArchiTek Soft-ը</h2>
-        <p class="section-lead">
-          Մենք վերացնում ենք անհամաձայնությունները հաճախորդի և արտադրամասի միջև՝ բարձրացնելով վաճառքի շահութաբերությունը։
-        </p>
-      </div>
-
-      <div class="b2b-matrix-grid">
-        <div class="b2b-matrix-card">
-          <div class="b2b-stat-highlight">+300%</div>
-          <h3 class="step-title">Վաճառքի Փակում</h3>
-          <p class="step-desc">
-            Հաճախորդներն ակնթարթորեն ընդունում են որոշումը՝ տեսնելով իրենց ապագա կահույքը 4K ֆոտոռեալիզմով և 1:1 AR-ով։
-          </p>
-        </div>
-
-        <div class="b2b-matrix-card">
-          <div class="b2b-stat-highlight">0%</div>
-          <h3 class="step-title">Խոտան Գործարանում</h3>
-          <p class="step-desc">
-            Միլիմետրային ճշգրտության CNC ռասկրոյի քարտեզները բացառում են մարդկային սխալները և կրճատում նյութերի կորուստը։
-          </p>
-        </div>
-
-        <div class="b2b-matrix-card">
-          <div class="b2b-stat-highlight">1:1</div>
-          <h3 class="step-title">Բջջային AR Պրոյեկցիա</h3>
-          <p class="step-desc">
-            Սմարթֆոնի տեսախցիկով կահույքը տեղադրվում է պատվիրատուի իրական սենյակում՝ ստուգելով գույնն ու չափսերը։
-          </p>
-        </div>
-
-        <div class="b2b-matrix-card">
-          <div class="b2b-stat-highlight">100%</div>
-          <h3 class="step-title">Ամպային & WebGL</h3>
-          <p class="step-desc">
-            Առանց ծանր ծրագրերի տեղադրման. ցուցասրահն աշխատում է ցանկացած բրաուզերում, հեռախոսում և պլանշետում։
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
-       SECTION 7: BESPOKE CONSULTATION & BLUEPRINT DOWNLOAD
-       ========================================================================== -->
-  <section class="flagship-section" id="contact">
-    <div class="container">
-      <div class="section-header-center">
-        <div class="section-pill-tag">
-          <span class="pulse-led"></span>
-          <span>START YOUR PROJECT</span>
-        </div>
-        <h2 class="section-h2">Պատվիրե՛ք Ձեր Առաջին Թվային Ցուցասրահը</h2>
-        <p class="section-lead">
-          Կապ հաստատեք մեզ հետ անհատական խորհրդատվության համար կամ ներբեռնեք գործարանային փաստաթղթերի իրական նմուշը։
-        </p>
-      </div>
-
-      <div class="consultation-grid">
-        <!-- Form Card -->
-        <div class="consultation-form-card">
-          <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-pure); margin-bottom: 20px;">
-            Անվճար Խորհրդատվության Հայտ
-          </h3>
-          <form class="consultation-form" onsubmit="event.preventDefault(); alert('Շնորհակալություն: Ձեր հայտը հաջողությամբ ուղարկվել է: Մեր մասնագետը կկապվի Ձեզ հետ:');">
-            <div class="form-group">
-              <label class="form-label">Ձեր Անունը</label>
-              <input type="text" class="form-input" placeholder="Օրինակ՝ Արամ Սարգսյան" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Հեռախոսահամար կամ WhatsApp</label>
-              <input type="tel" class="form-input" placeholder="+374 94 000 000" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Նախագծի Տեսակը</label>
-              <input type="text" class="form-input" placeholder="Խոհանոց, Ննջասենյակ, Ամբողջական Ինտերիեր" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Հաղորդագրություն կամ Մեկնաբանություն</label>
-              <textarea class="form-textarea" rows="3" placeholder="Նշեք Ձեր նախագծի մանրամասները..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center; margin-top: 10px;">
-              <span>Ուղարկել Հայտը</span>
-              <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </button>
-          </form>
-
-          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <span style="font-size: 0.85rem; color: var(--text-muted);">Անմիջական կապ՝</span>
-            <div style="display: flex; gap: 12px;">
-              <a href="tel:+37494228833" style="color: var(--accent-cyan); font-size: 0.88rem; font-weight: 700; text-decoration: none;">+374 94 22 88 33</a>
-              <span style="color: var(--text-muted);">•</span>
-              <a href="https://t.me/architeksoft" target="_blank" style="color: var(--accent-cyan); font-size: 0.88rem; font-weight: 700; text-decoration: none;">Telegram</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Factory Blueprint Showcase Card -->
-        <div class="blueprint-showcase-card">
-          <div>
-            <div class="blueprint-meta-badge">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <span>FACTORY READY CNC BLUEPRINT</span>
-            </div>
-            <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-pure); margin-bottom: 12px; line-height: 1.3;">
-              Գործարանային CNC Ռասկրոյի Իրական Փաթեթ
-            </h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
-              Ներբեռնեք մեր կողմից մշակված Aren նախագծի գործարանային կտրման քարտեզը (PDF), որը ներառում է դետալների բոլոր չափսերը, Blum ծակման սխեմաները և եզրապատման (кромка) տվյալները։
-            </p>
-
-            <div class="blueprint-file-preview">
-              <div class="blueprint-icon-box">PDF</div>
-              <div>
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-pure);">Aren_Kitchen_CNC_Cutlist.pdf</div>
-                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Գործարանային Կտրման Քարտեզ // 2.4 MB</div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <a href="/local-assets/Aren.pdf" download="Aren_Kitchen_CNC_Cutlist.pdf" class="btn btn-secondary btn-lg" style="width: 100%; justify-content: center; gap: 10px;">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Ներբեռնել Օրինակը (PDF)</span>
-            </a>
-            <div style="font-size: 0.76rem; color: var(--text-muted); text-align: center; margin-top: 12px;">
-              ✓ Առանց գրանցման • Անմիջական ներբեռնում
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ==========================================================================

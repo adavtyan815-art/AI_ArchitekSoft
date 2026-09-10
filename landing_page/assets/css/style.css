@@ -4586,23 +4586,23 @@ p {
    Comprehensive Luxury B2B Web Experience | Full Multi-Section Showroom
    ========================================================================== */
 
-/* 1. Global Viewport Fit & Smooth Scrolling */
+/* 1. Global Viewport Fit & Strict Zero-Scroll Lock */
 html, body.flagship-home {
-  min-height: 100vh !important;
-  height: auto !important;
-  max-height: none !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
   width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
   background: #040913 !important;
   background-color: #040913 !important;
 }
 
 body.flagship-home {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
 }
 
 /* Ambient layers */
@@ -4722,16 +4722,19 @@ body.flagship-home .btn-nav-cta:hover {
 
 /* 3. Hero Section Flagship Viewport */
 body.flagship-home .hero-section {
-  min-height: clamp(620px, 90vh, 860px) !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 64px - 34px) !important;
   width: 100% !important;
   display: flex !important;
+  flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: clamp(30px, 4vh, 60px) 0 !important;
+  padding: clamp(4px, 1.0vh, 10px) 0 !important;
   margin: 0 !important;
   position: relative !important;
   box-sizing: border-box !important;
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 
 body.flagship-home .hero-section .container {
@@ -4905,39 +4908,285 @@ body.flagship-home .hero-device-stage {
   position: relative !important;
 }
 
-body.flagship-home .hero-device-stage::before {
-  display: none !important;
-}
-
+body.flagship-home .hero-device-stage::before,
 body.flagship-home .hero-device-stage::after {
   display: none !important;
 }
 
-body.flagship-home .hero-device-mockup-wrapper {
+/* Hero Digital Showroom Command Console Frame */
+body.flagship-home .hero-console-frame {
   width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  position: relative !important;
+  max-width: 660px !important;
+  background: rgba(6, 12, 22, 0.94) !important;
+  border: 1px solid rgba(0, 240, 255, 0.35) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.8), 0 0 28px rgba(0, 240, 255, 0.15) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  overflow: hidden !important;
   display: flex !important;
-  justify-content: flex-end !important;
+  flex-direction: column !important;
+  position: relative !important;
+  z-index: 5 !important;
+}
+
+[data-theme="light"] body.flagship-home .hero-console-frame {
+  background: #ffffff !important;
+  border-color: rgba(26, 115, 232, 0.35) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08), 0 0 18px rgba(26, 115, 232, 0.1) !important;
+}
+
+.hero-console-header {
+  display: flex !important;
   align-items: center !important;
-  z-index: 2 !important;
+  justify-content: space-between !important;
+  padding: 6px 14px !important;
+  background: rgba(4, 8, 16, 0.88) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  flex-shrink: 0 !important;
 }
 
-body.flagship-home .hero-device-mockup-img {
-  max-height: clamp(260px, 46vh, 370px) !important;
-  width: auto !important;
-  max-width: 100% !important;
-  object-fit: contain !important;
+[data-theme="light"] .hero-console-header {
+  background: #f8fafc !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+}
+
+.hero-console-status {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-family: var(--font-mono) !important;
+  font-size: clamp(0.64rem, 0.70vw, 0.74rem) !important;
+  font-weight: 700 !important;
+  color: #00f0ff !important;
+  letter-spacing: 0.06em !important;
+}
+
+[data-theme="light"] .hero-console-status {
+  color: #1a73e8 !important;
+}
+
+.hero-console-modes {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.console-mode-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 3px 9px !important;
+  border-radius: 6px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.console-mode-btn:hover {
+  background: rgba(0, 240, 255, 0.1) !important;
+  color: #00f0ff !important;
+  border-color: rgba(0, 240, 255, 0.3) !important;
+}
+
+.console-mode-btn.active {
+  background: rgba(0, 240, 255, 0.18) !important;
+  border-color: #00f0ff !important;
+  color: #00f0ff !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.25) !important;
+}
+
+[data-theme="light"] .console-mode-btn {
+  background: #f1f5f9 !important;
+  border-color: rgba(203, 213, 225, 0.8) !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .console-mode-btn.active {
+  background: rgba(26, 115, 232, 0.12) !important;
+  border-color: #1a73e8 !important;
+  color: #1a73e8 !important;
+}
+
+/* Console Viewport Body */
+.hero-console-body {
+  position: relative !important;
+  width: 100% !important;
+  height: clamp(230px, 38vh, 320px) !important;
+  background: #02050b !important;
+  overflow: hidden !important;
+}
+
+[data-theme="light"] .hero-console-body {
+  background: #f8fafc !important;
+}
+
+.console-pane {
+  display: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+.console-pane.active {
   display: block !important;
-  -webkit-box-reflect: none !important;
-  transform: none !important;
-  filter: none !important;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-body.flagship-home .hero-device-mockup-wrapper:hover .hero-device-mockup-img {
-  transform: scale(1.02) !important;
+#hero-showcase-video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* Pulsing Hotspots on Video */
+.console-hotspot {
+  position: absolute !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  transform: translate(-50%, -50%) !important;
+  transition: transform 0.2s ease !important;
+}
+
+.console-hotspot:hover {
+  transform: translate(-50%, -50%) scale(1.1) !important;
+}
+
+.hotspot-pulse {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  background: #00f0ff !important;
+  box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7) !important;
+  animation: hotspot-pulse-anim 2s infinite !important;
+  flex-shrink: 0 !important;
+}
+
+@keyframes hotspot-pulse-anim {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.8); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 240, 255, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+}
+
+.hotspot-label {
+  padding: 2px 7px !important;
+  border-radius: 4px !important;
+  background: rgba(4, 9, 18, 0.85) !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  font-size: 0.66rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Video Overlay Controls */
+.console-overlay-controls {
+  position: absolute !important;
+  bottom: 8px !important;
+  right: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  z-index: 10 !important;
+}
+
+.overlay-ctrl-btn {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: rgba(4, 9, 18, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(6px) !important;
+  transition: all 0.2s ease !important;
+}
+
+.overlay-ctrl-btn:hover {
+  background: rgba(0, 240, 255, 0.25) !important;
+  border-color: #00f0ff !important;
+  color: #00f0ff !important;
+}
+
+/* Console Footer */
+.hero-console-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 6px 14px !important;
+  background: rgba(6, 12, 22, 0.95) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  flex-shrink: 0 !important;
+}
+
+[data-theme="light"] .hero-console-footer {
+  background: #f8fafc !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+}
+
+.console-mat-palette {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.console-mat-palette .mat-label {
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .console-mat-palette .mat-label {
+  color: #334155 !important;
+}
+
+.console-ar-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 10px !important;
+  border-radius: 50px !important;
+  background: linear-gradient(90deg, #00f0ff 0%, #0070f3 100%) !important;
+  color: #040711 !important;
+  border: none !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3) !important;
+  transition: transform 0.2s ease !important;
+}
+
+.console-ar-btn:hover {
+  transform: translateY(-1px) scale(1.03) !important;
+}
+
+.three-hint-badge {
+  position: absolute !important;
+  bottom: 10px !important;
+  left: 12px !important;
+  background: rgba(4, 9, 18, 0.75) !important;
+  border: 1px solid rgba(0, 240, 255, 0.25) !important;
+  border-radius: 50px !important;
+  padding: 3px 8px !important;
+  font-size: 0.68rem !important;
+  color: #00f0ff !important;
+  pointer-events: none !important;
+  backdrop-filter: blur(6px) !important;
 }
 
 /* 4. Bottom Feature Strip - 4 Equal Luxury Cards */
