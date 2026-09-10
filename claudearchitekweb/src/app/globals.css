@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   ArchiTek Soft design tokens — one calm, professional system used by
+   the public site, the client pages and the admin dashboard.
+   ------------------------------------------------------------------ */
+@theme {
+  --font-sans: var(--font-inter), var(--font-armenian), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-ink-950: #0b1220;
+  --color-ink-900: #111827;
+  --color-ink-800: #1f2937;
+  --color-ink-700: #374151;
+  --color-ink-600: #4b5563;
+  --color-ink-500: #6b7280;
+  --color-ink-400: #9ca3af;
+  --color-ink-300: #d1d5db;
+  --color-ink-200: #e5e7eb;
+  --color-ink-100: #f3f4f6;
+  --color-ink-50: #f9fafb;
+
+  --color-paper: #fbfaf8;
+  --color-paper-2: #f4f2ee;
+  --color-line: #e7e5e0;
+
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dbe7ff;
+  --color-brand-200: #bcd3ff;
+  --color-brand-300: #8fb5ff;
+  --color-brand-400: #5b8ffb;
+  --color-brand-500: #2f6fed;
+  --color-brand-600: #2258cf;
+  --color-brand-700: #1d47a6;
+  --color-brand-800: #1b3c85;
+  --color-brand-900: #1a356b;
+
+  --color-accent-500: #d97706;
+  --color-success-500: #16a34a;
+  --color-danger-500: #dc2626;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+
+  --shadow-soft: 0 1px 2px rgba(17, 24, 39, 0.04), 0 8px 24px -12px rgba(17, 24, 39, 0.12);
+  --shadow-card: 0 1px 1px rgba(17, 24, 39, 0.03), 0 12px 32px -16px rgba(17, 24, 39, 0.16);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-paper text-ink-900 antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+
+::selection {
+  background: var(--color-brand-100);
+}
+
+/* Utility layers ---------------------------------------------------- */
+@utility container-x {
+  @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+}
+
+@utility card {
+  @apply rounded-2xl border border-line bg-white shadow-soft;
+}
+
+@utility eyebrow {
+  @apply text-xs font-semibold uppercase tracking-[0.14em] text-brand-600;
+}
+
+@utility h-display {
+  @apply text-4xl font-semibold leading-[1.08] tracking-tight text-ink-950 sm:text-5xl lg:text-6xl;
+}
+
+@utility h-section {
+  @apply text-3xl font-semibold leading-tight tracking-tight text-ink-950 sm:text-4xl;
+}
+
+@utility lead {
+  @apply text-lg leading-relaxed text-ink-600;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+@utility btn-primary {
+  @apply btn bg-ink-950 text-white hover:bg-ink-800;
+}
+
+@utility btn-brand {
+  @apply btn bg-brand-500 text-white hover:bg-brand-600;
+}
+
+@utility btn-secondary {
+  @apply btn border border-ink-200 bg-white text-ink-900 hover:border-ink-300 hover:bg-ink-50;
+}
+
+@utility btn-ghost {
+  @apply btn text-ink-700 hover:bg-ink-100;
+}
+
+@utility btn-lg {
+  @apply px-6 py-3 text-base;
+}
+
+@utility btn-sm {
+  @apply px-3.5 py-1.5 text-xs;
+}
+
+@utility input {
+  @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:bg-ink-50;
+}
+
+@utility label {
+  @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-500;
+}
+
+@utility badge {
+  @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium;
+}
+
+/* Admin table -------------------------------------------------------- */
+@utility table-admin {
+  @apply w-full border-collapse text-sm;
+}
+
+.table-admin thead th {
+  @apply border-b border-line bg-ink-50 px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-ink-500;
+}
+.table-admin tbody td {
+  @apply border-b border-line px-3 py-3 align-middle text-ink-800;
+}
+.table-admin tbody tr:hover {
+  @apply bg-ink-50/70;
+}
+
+/* Prose-lite for portal messages */
+.prose-lite p + p {
+  margin-top: 0.75rem;
+}
+
+/* Before/after slider */
+.ba-handle {
+  @apply absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.15)];
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

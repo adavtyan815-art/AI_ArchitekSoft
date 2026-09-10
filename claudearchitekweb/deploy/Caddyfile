@@ -1,0 +1,13 @@
+{$SITE_HOST} {
+	encode zstd gzip
+	request_body {
+		max_size 1GB
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+	reverse_proxy web:3100 {
+		flush_interval -1
+	}
+}
