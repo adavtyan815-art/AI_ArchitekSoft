@@ -772,7 +772,13 @@ function setTheme(theme, save = true) {
     localStorage.setItem('architek_theme', currentTheme);
   }
 
-
+  // Switch hero showcase image dynamically
+  const showcaseImg = document.getElementById('device-slideshow-img');
+  if (showcaseImg) {
+    showcaseImg.src = currentTheme === 'light' 
+      ? 'assets/images/hero_showcase_light_clean.png' 
+      : 'assets/images/hero_showcase_dark_clean.png';
+  }
 
   // If Three.js viewer is active, adapt scene background
   if (typeof scene !== 'undefined' && scene && typeof THREE !== 'undefined') {
@@ -896,15 +902,7 @@ const preloadedSlideImgs = slideImages.map(src => {
 });
 
 function initMultiDeviceSlideshow() {
-  const img = document.getElementById('device-slideshow-img');
-  if (!img) return;
-
-  if (slideshowInterval) clearInterval(slideshowInterval);
-
-  slideshowInterval = setInterval(() => {
-    currentSlideIdx = (currentSlideIdx + 1) % slideImages.length;
-    img.src = slideImages[currentSlideIdx];
-  }, 1600);
+  // High-fidelity rendered 3D showcase is preserved
 }
 
 function initHero3DRotation() {
@@ -912,28 +910,15 @@ function initHero3DRotation() {
   const img = document.getElementById('device-slideshow-img');
   if (!container || !img) return;
 
-  const baseRx = 5;
-  const baseRy = -16;
-  const baseRz = 0;
-
   container.addEventListener('mousemove', (e) => {
     const rect = container.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-
-    const rx = baseRx - (y * 10);
-    const ry = baseRy + (x * 14);
-    const rz = baseRz + (x * 3);
-
-    img.style.setProperty('--rot-x', `${rx.toFixed(2)}deg`);
-    img.style.setProperty('--rot-y', `${ry.toFixed(2)}deg`);
-    img.style.setProperty('--rot-z', `${rz.toFixed(2)}deg`);
+    img.style.transform = `scale(1.015) translateY(${-y * 6}px) translateX(${x * 6}px)`;
   });
 
   container.addEventListener('mouseleave', () => {
-    img.style.setProperty('--rot-x', `${baseRx}deg`);
-    img.style.setProperty('--rot-y', `${baseRy}deg`);
-    img.style.setProperty('--rot-z', `${baseRz}deg`);
+    img.style.transform = 'scale(1) translateY(0) translateX(0)';
   });
 }
 
