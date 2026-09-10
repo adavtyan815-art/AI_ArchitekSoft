@@ -83,7 +83,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
         />
         <form action="/admin/clients" className="w-full sm:w-auto">
           {tab === "contact" ? <input type="hidden" name="tab" value="contact" /> : null}
-          <Input name="q" defaultValue={q} placeholder={C.searchPlaceholder} className="w-full py-1.5 sm:w-56" aria-label={t.common.search} />
+          <Input name="q" defaultValue={q} placeholder={C.searchPlaceholder} className="h-9 w-full text-[13.5px] sm:w-56" aria-label={t.common.search} />
         </form>
       </FilterBar>
 
@@ -108,7 +108,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                 <th className="max-md:hidden!">{t.common.telegram}</th>
                 <th className="max-md:hidden!">{t.common.language}</th>
                 <th>{t.common.city}</th>
-                <th className="text-right">{C.colProjects}</th>
+                <th className="num">{C.colProjects}</th>
                 <th className="max-md:hidden!">{t.common.created}</th>
                 <th>{t.common.status}</th>
               </tr>
@@ -117,7 +117,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               {rows.map((c) => (
                 <tr key={c.id}>
                   <td data-label={t.common.name}>
-                    <Link href={`/admin/clients/${c.id}`} className="font-medium text-fg transition-colors hover:text-accent">
+                    <Link href={`/admin/clients/${c.id}`} className="font-semibold text-fg transition-colors hover:text-accent">
                       {clientLabel(c) || "—"}
                     </Link>
                     {c.position ? <div className="text-xs text-muted">{c.position}</div> : null}
@@ -133,16 +133,16 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                       )}
                     </td>
                   ) : null}
-                  <td data-label={t.common.phone}>{c.phone ?? "—"}</td>
-                  <td data-label={t.common.telegram} className="max-md:hidden!">{c.telegram ?? "—"}</td>
-                  <td data-label={t.common.language} className="uppercase max-md:hidden!">
+                  <td data-label={t.common.phone} className="font-mono text-[12.5px]">{c.phone ?? "—"}</td>
+                  <td data-label={t.common.telegram} className="font-mono text-[12.5px] max-md:hidden!">{c.telegram ?? "—"}</td>
+                  <td data-label={t.common.language} className="font-mono text-[11px] tracking-[0.08em] uppercase max-md:hidden!">
                     {c.language}
                   </td>
                   <td data-label={t.common.city}>{c.city ?? "—"}</td>
-                  <td data-label={C.colProjects} className="text-right tabular-nums">
+                  <td data-label={C.colProjects} className="num">
                     {projectCounts[c.id] ?? 0}
                   </td>
-                  <td data-label={t.common.created} className="whitespace-nowrap text-muted max-md:hidden!">
+                  <td data-label={t.common.created} className="font-mono text-[12px] whitespace-nowrap text-muted max-md:hidden!">
                     {relTime(c.createdAt, locale)}
                   </td>
                   <td data-label={t.common.status}>

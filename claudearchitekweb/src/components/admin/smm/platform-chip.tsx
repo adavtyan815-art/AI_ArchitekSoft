@@ -23,7 +23,7 @@ const STATUS_CLS: Record<string, string> = {
 };
 
 export function PlatformDot({ platform, meta, className, muted }: { platform: string; meta?: PlatformMeta; className?: string; muted?: boolean }) {
-  return <span title={meta?.label ?? platform} className={cn("inline-block h-2.5 w-2.5 flex-none rounded-full", muted && "opacity-30", className)} style={{ backgroundColor: meta?.color ?? "var(--faint)" }} />;
+  return <span title={meta?.label ?? platform} className={cn("inline-block h-2 w-2 flex-none rounded-[1px]", muted && "opacity-30", className)} style={{ backgroundColor: meta?.color ?? "var(--faint)" }} />;
 }
 
 export function PlatformChip({
@@ -44,10 +44,10 @@ export function PlatformChip({
   size?: "sm" | "md";
 }) {
   return (
-    <span title={title} className={cn("inline-flex items-center gap-1.5 rounded-full border border-line bg-surface font-medium text-fg", size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs", className)}>
+    <span title={title} className={cn("inline-flex items-center gap-1.5 rounded-sm border border-line bg-surface font-mono tracking-[0.04em] text-fg", size === "sm" ? "px-1.5 py-0.5 text-[10.5px]" : "px-2 py-1 text-[11.5px]", className)}>
       <PlatformDot platform={platform} meta={meta} />
       {meta?.label ?? platform}
-      {status ? <span className={cn("ml-0.5 rounded-full border px-1.5 py-px text-[10px] font-semibold", STATUS_CLS[status] ?? STATUS_CLS.pending)}>{statusLabel ?? status.replace(/_/g, " ")}</span> : null}
+      {status ? <span className={cn("ml-0.5 rounded-[2px] border px-1.5 py-px text-[9.5px] tracking-[0.06em] uppercase", STATUS_CLS[status] ?? STATUS_CLS.pending)}>{statusLabel ?? status.replace(/_/g, " ")}</span> : null}
     </span>
   );
 }

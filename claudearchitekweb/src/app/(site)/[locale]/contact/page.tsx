@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Clock, MapPin } from "lucide-react";
 import { getDictionary, isLocale, pickLang, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
 import { getSetting } from "@/lib/settings";
-import { IconBox, SectionHeading } from "@/components/ui";
+import { Index, Spec } from "@/components/ui";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { ContactForm } from "@/components/site/contact-form";
 
@@ -21,45 +20,39 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const brand = getSetting("brand");
   const c = d.contact;
   const facts = [
-    brand.address ? { icon: MapPin, label: c.addressLabel, value: String(pickLang(brand.address, locale, brand.address)) } : null,
-    brand.workingHours ? { icon: Clock, label: c.hoursLabel, value: String(pickLang(brand.workingHours, locale, brand.workingHours)) } : null,
-  ].filter(Boolean) as { icon: typeof MapPin; label: string; value: string }[];
+    brand.address ? { k: c.addressLabel, v: String(pickLang(brand.address, locale, brand.address)) } : null,
+    brand.workingHours ? { k: c.hoursLabel, v: String(pickLang(brand.workingHours, locale, brand.workingHours)) } : null,
+  ].filter(Boolean) as { k: string; v: string }[];
 
   return (
-    <>
-      <section className="container-x pt-10 sm:pt-16 lg:pt-20">
-        <SectionHeading eyebrow={c.tag} title={c.title} text={c.subtitle} size="display" className="max-w-3xl" />
-      </section>
+    <section className="container-x pt-10 pb-20 sm:pt-14 sm:pb-28 lg:pt-20">
+      <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
+        {/* left — statement, channels, facts */}
+        <div className="min-w-0 lg:col-span-5">
+          <div className="mb-6 flex items-baseline gap-3">
+            <Index n={1} />
+            <span className="eyebrow">{c.tag}</span>
+          </div>
+          <h1 className="h-display max-sm:break-words">{c.title}</h1>
+          <p className="lead mt-7 max-w-[30rem]">{c.subtitle}</p>
 
-      <section className="container-x section-tight">
-        <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-14">
-          {/* channels */}
-          <div>
-            <div className="eyebrow mb-4">{c.channels}</div>
-            <ContactChannels brand={brand} dict={{ common: d.common }} />
-            {facts.length ? (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {facts.map((f) => (
-                  <div key={f.label} className="card-inset flex items-start gap-3 p-4">
-                    <IconBox tone="neutral">
-                      <f.icon />
-                    </IconBox>
-                    <span className="min-w-0">
-                      <span className="block text-[11px] font-semibold tracking-wide text-muted uppercase">{f.label}</span>
-                      <span className="block text-sm font-medium text-fg">{f.value}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+          <div className="mt-12">
+            <div className="kicker mb-4">{c.channels}</div>
+            <ContactChannels brand={brand} dict={d} />
           </div>
 
-          {/* form */}
-          <div className="card p-6 sm:p-8">
-            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{c.formTitle}</h2>
+          {facts.length ? <Spec rows={facts} className="mt-10" /> : null}
+        </div>
+
+        {/* right — form */}
+        <div className="lg:col-span-6 lg:col-start-7">
+          <div className="card p-6 sm:p-8 lg:p-10">
+            <div className="mb-7 flex items-center gap-3 border-b border-line pb-5">
+              <Index n={2} />
+              <span className="eyebrow">{c.formTitle}</span>
+            </div>
             <ContactForm
               locale={locale}
-              className="mt-6"
               strings={{
                 segment: c.segment,
                 segB2b: c.segB2b,
@@ -77,7 +70,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             />
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

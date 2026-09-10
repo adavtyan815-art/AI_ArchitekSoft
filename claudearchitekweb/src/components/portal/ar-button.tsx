@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Script from "next/script";
 import { Smartphone, X } from "lucide-react";
 
@@ -22,6 +22,8 @@ export type ArButtonProps = {
   className?: string;
   /** Render inline (no modal) — used on the demo page. */
   inline?: boolean;
+  /** Custom content for the trigger button (defaults to icon + label). */
+  trigger?: ReactNode;
 };
 
 function isMobile() {
@@ -29,7 +31,7 @@ function isMobile() {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 }
 
-export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, closeLabel = "Close", onOpen, autoOpenOnHash = true, className, inline }: ArButtonProps) {
+export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, closeLabel = "Close", onOpen, autoOpenOnHash = true, className, inline, trigger }: ArButtonProps) {
   const [open, setOpen] = useState(!!inline);
   const [mobile, setMobile] = useState(false);
   const [ready, setReady] = useState(false);
@@ -60,7 +62,7 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
   if (!glbUrl && !usdzUrl) return null;
 
   const viewer = (
-    <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-surface-2 sm:aspect-[4/3]">
+    <div className="stage frame-marks relative aspect-square w-full overflow-hidden rounded-lg border border-line sm:aspect-[4/3]">
       {open ? (
         <>
           {/* crossOrigin keeps Next's preload hint in the same CORS mode as the
@@ -80,7 +82,7 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
             shadow-intensity="1"
             style={{ width: "100%", height: "100%", backgroundColor: "transparent", "--poster-color": "transparent" } as React.CSSProperties}
           >
-            <button slot="ar-button" type="button" className="btn-brand btn-lg absolute bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap shadow-card">
+            <button slot="ar-button" type="button" className="btn-brand btn-lg absolute bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap">
               <Smartphone size={18} aria-hidden />
               {label}
             </button>
@@ -97,7 +99,7 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
   );
 
   if (inline) {
-    // Stacked: the inline variant lives in a narrow card, and putting the QR
+    // Stacked: the inline variant lives in a narrow column, and putting the QR
     // beside the viewer squeezed the 3D model down to a thumbnail.
     return (
       <div className={className}>
@@ -112,23 +114,30 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={className ?? "btn-secondary btn-lg w-full sm:w-auto"}>
-        <Smartphone size={18} aria-hidden />
-        {label}
+        {trigger ?? (
+          <>
+            <Smartphone size={18} aria-hidden />
+            {label}
+          </>
+        )}
       </button>
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(9,10,12,0.72)] p-0 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={label} onClick={() => setOpen(false)}>
-          <div className="w-full max-w-3xl rounded-t-3xl border border-line bg-surface p-4 shadow-lift sm:rounded-3xl sm:p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="h-card">{label}</div>
-              <button type="button" onClick={() => setOpen(false)} className="btn-ghost inline-flex h-11 w-11 items-center justify-center rounded-full p-0" aria-label={closeLabel}>
-                <X size={18} aria-hidden />
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(9,8,7,0.78)] p-0 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={label} onClick={() => setOpen(false)}>
+          <div className="w-full max-w-3xl rounded-t-xl border border-line bg-surface p-4 sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-line pb-3">
+              <span className="flex min-w-0 items-baseline gap-3">
+                <span className="index">AR</span>
+                <span className="truncate font-display text-[1.15rem] leading-tight text-fg">{label}</span>
+              </span>
+              <button type="button" onClick={() => setOpen(false)} className="btn-ghost btn-icon flex-none rounded-md" aria-label={closeLabel}>
+                <X size={18} strokeWidth={1.5} aria-hidden />
               </button>
             </div>
             <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
               {viewer}
               {qrDataUrl ? <QrPanel qrDataUrl={qrDataUrl} note={note} hidden={mobile} /> : null}
             </div>
-            <p className="mt-3 text-sm text-muted">{note}</p>
+            <p className="caption mt-4">{note}</p>
           </div>
         </div>
       ) : null}
@@ -140,10 +149,10 @@ export function ArButton({ glbUrl, usdzUrl, poster, qrDataUrl, label, note, clos
 export function QrPanel({ qrDataUrl, note, hidden, className }: { qrDataUrl: string; note: string; hidden?: boolean; className?: string }) {
   if (hidden) return null;
   return (
-    <div className={`hidden w-fit flex-col items-center gap-2 rounded-2xl border border-line bg-surface-2 p-4 md:flex ${className ?? ""}`}>
+    <figure className={`hidden w-fit flex-col items-center gap-3 rounded-lg border border-line bg-surface-2 p-4 md:flex ${className ?? ""}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={qrDataUrl} alt="QR" width={176} height={176} className="h-44 w-44 rounded-xl bg-[#ffffff] p-2" style={{ filter: "none" }} />
-      <span className="max-w-[12rem] text-center text-xs text-muted">{note}</span>
-    </div>
+      <img src={qrDataUrl} alt="QR" width={176} height={176} className="h-44 w-44 rounded-sm bg-[#ffffff] p-2" style={{ filter: "none" }} />
+      <figcaption className="caption max-w-[12rem] text-center">{note}</figcaption>
+    </figure>
   );
 }

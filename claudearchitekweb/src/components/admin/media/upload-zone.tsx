@@ -79,19 +79,19 @@ export function UploadZone({ projectId, kindHint, labels, className }: { project
         onDragLeave={() => setOver(false)}
         onDrop={onDrop}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-5 py-7 text-center transition-colors sm:px-6 sm:py-8",
-          over ? "border-accent bg-accent-soft" : "border-line-strong bg-surface-2 hover:border-accent",
+          "grid-paper flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed px-5 py-7 text-center transition-colors sm:px-6 sm:py-9",
+          over ? "border-accent bg-accent-soft" : "border-line-strong bg-surface-2/60 hover:border-accent",
           busy && "pointer-events-none opacity-60"
         )}
       >
-        <UploadCloud size={22} className="text-muted" />
-        <div className="text-sm font-medium text-fg-2">{busy ? labels.busy : labels.label}</div>
-        <div className="text-xs text-muted">{labels.hint}</div>
+        <UploadCloud size={20} className="text-muted" />
+        <div className="text-[13.5px] font-semibold text-fg">{busy ? labels.busy : labels.label}</div>
+        <div className="caption">{labels.hint}</div>
         <input ref={inputRef} type="file" multiple hidden onChange={(e) => e.target.files && send(e.target.files)} />
       </div>
-      {msg ? <div className="mt-2 text-xs font-medium text-success">{msg}</div> : null}
+      {msg ? <div className="mt-2 font-mono text-[11px] text-success">{msg}</div> : null}
       {errors.length ? (
-        <ul className="mt-2 space-y-0.5 text-xs text-danger">
+        <ul className="mt-2 space-y-0.5 font-mono text-[11px] text-danger">
           {errors.map((e, i) => (
             <li key={i}>
               {e.name}: {e.error}

@@ -15,7 +15,7 @@ export function LoginForm({ next, labels }: { next: string; labels: { email: str
       <Field label={labels.password} required>
         <Input name="password" type="password" autoComplete="current-password" required />
       </Field>
-      {state?.error ? <div role="alert" className="rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{state.error}</div> : null}
+      {state?.error ? <div role="alert" className="rounded-sm border border-danger/30 bg-danger-soft px-3 py-2 text-[13px] text-danger">{state.error}</div> : null}
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? labels.pending : labels.submit}
       </Button>

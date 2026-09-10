@@ -48,7 +48,7 @@ const INTEGRATION_ENVS: Record<string, string[]> = {
 /** Sticky save bar: fixed above the mobile tab bar, inline from sm up. */
 function SaveBar({ children }: { children: React.ReactNode }) {
   return (
-    <div className="sticky bottom-[72px] z-10 -mx-4 mt-2 flex flex-wrap items-center gap-3 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+    <div className="sticky bottom-[72px] z-10 -mx-4 mt-3 flex flex-wrap items-center gap-3 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:backdrop-blur-none">
       {children}
     </div>
   );
@@ -114,8 +114,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <span className="label">{L.smm.defaultPlatforms}</span>
               <div className="flex flex-wrap gap-3">
                 {PLATFORMS.map((p) => (
-                  <label key={p} className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-sm has-[:checked]:border-accent has-[:checked]:bg-accent-soft/40">
-                    <input type="checkbox" name="defaultPlatforms" value={p} defaultChecked={smm.defaultPlatforms.includes(p)} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+                  <label key={p} className="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-line bg-surface px-2.5 py-1.5 text-sm has-[:checked]:border-fg has-[:checked]:bg-surface-2">
+                    <input type="checkbox" name="defaultPlatforms" value={p} defaultChecked={smm.defaultPlatforms.includes(p)} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
                     <PlatformChip platform={p} meta={PLATFORM_META[p]} />
                   </label>
                 ))}
@@ -129,7 +129,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <Field label={L.smm.postingTime}><Input name="postingTime" type="time" defaultValue={smm.postingTime} className="min-w-0" /></Field>
               <Field label={L.smm.autoPublish} hint={L.smm.autoPublishHint}>
                 <label className="mt-2 inline-flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="autoPublishAfterApproval" defaultChecked={smm.autoPublishAfterApproval} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+                  <input type="checkbox" name="autoPublishAfterApproval" defaultChecked={smm.autoPublishAfterApproval} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
                   {L.smm.autoPublishLabel}
                 </label>
               </Field>
@@ -139,8 +139,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <span className="label">{L.smm.postingDays}</span>
               <div className="flex flex-wrap gap-2">
                 {L.smm.weekdays.map((label, i) => (
-                  <label key={label} className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface px-3 py-1.5 text-sm has-[:checked]:border-accent has-[:checked]:bg-accent-soft/40">
-                    <input type="checkbox" name="postingDays" value={i + 1} defaultChecked={smm.postingDays.includes(i + 1)} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+                  <label key={label} className="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-line bg-surface px-2.5 py-1.5 text-[13.5px] has-[:checked]:border-fg has-[:checked]:bg-surface-2">
+                    <input type="checkbox" name="postingDays" value={i + 1} defaultChecked={smm.postingDays.includes(i + 1)} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
                     {label}
                   </label>
                 ))}
@@ -196,7 +196,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
           <Panel title={L.integrations.ai}>
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className={`inline-block h-2.5 w-2.5 rounded-full ${ai.provider === "template" ? "bg-warning" : "bg-success"}`} />
+              <span className={`inline-block h-2 w-2 ${ai.provider === "template" ? "bg-warning" : "bg-success"}`} />
               <b className="font-semibold text-fg">{ai.provider}</b>
               <span className="text-muted">{ai.provider === "template" ? t.smm.templatesModel : ai.model}</span>
               <span className="ml-auto font-mono text-[11px] text-fg-2">ANTHROPIC_API_KEY · ANTHROPIC_MODEL · GEMINI_API_KEY · GEMINI_MODEL</span>
@@ -206,10 +206,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
           <Panel title={L.integrations.app}>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
-              <div><dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">APP_URL</dt><dd className="font-mono text-xs text-fg">{env.appUrl}</dd></div>
-              <div><dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">{L.integrations.db}</dt><dd className="font-mono text-xs break-all text-fg">{env.databasePath}</dd></div>
-              <div><dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">{L.integrations.uploads}</dt><dd className="font-mono text-xs break-all text-fg">{env.uploadDir}</dd></div>
-              <div><dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">{L.integrations.worker}</dt><dd className="font-mono text-xs text-fg">{String(env.runWorkerInApp)}</dd></div>
+              <div><dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">APP_URL</dt><dd className="font-mono text-xs text-fg">{env.appUrl}</dd></div>
+              <div><dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.integrations.db}</dt><dd className="font-mono text-xs break-all text-fg">{env.databasePath}</dd></div>
+              <div><dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.integrations.uploads}</dt><dd className="font-mono text-xs break-all text-fg">{env.uploadDir}</dd></div>
+              <div><dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.integrations.worker}</dt><dd className="font-mono text-xs text-fg">{String(env.runWorkerInApp)}</dd></div>
             </dl>
           </Panel>
         </div>
@@ -283,8 +283,8 @@ async function TelegramTab({ tg, L }: { tg: TelegramSettings; L: AdminDict["sett
           </Field>
           <Field label={L.telegram.digest} hint={L.telegram.digestHint}><Input name="dailyDigestTime" defaultValue={tg.dailyDigestTime} placeholder="09:00" /></Field>
           <div className="space-y-2 pt-6">
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="notifyNewLeads" defaultChecked={tg.notifyNewLeads} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" /> {L.telegram.notifyLeads}</label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="notifyClientFeedback" defaultChecked={tg.notifyClientFeedback} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" /> {L.telegram.notifyFeedback}</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="notifyNewLeads" defaultChecked={tg.notifyNewLeads} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" /> {L.telegram.notifyLeads}</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="notifyClientFeedback" defaultChecked={tg.notifyClientFeedback} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" /> {L.telegram.notifyFeedback}</label>
           </div>
           <div className="sm:col-span-2">
             <SaveBar>
@@ -301,7 +301,7 @@ async function TelegramTab({ tg, L }: { tg: TelegramSettings; L: AdminDict["sett
       </Panel>
 
       <Panel title={L.telegram.howTo}>
-        <ol className="list-decimal space-y-1.5 pl-5 text-sm text-fg-2">
+        <ol className="list-decimal space-y-2 pl-5 text-[13.5px] text-fg-2 marker:font-mono marker:text-muted">
           <li>{L.telegram.step1a} <code className="font-mono text-xs">/start</code>{me ? <> (<b>@{me.username}</b>)</> : null}</li>
           <li>{L.telegram.step2a} <code className="font-mono text-xs">/chatid</code> {L.telegram.step2b}</li>
           <li>{L.telegram.step3a} <code className="font-mono text-xs">/setadmin</code> {L.telegram.step3b}</li>
@@ -320,7 +320,7 @@ async function SecurityTab({ userId, L }: { userId: string; L: AdminDict["settin
   return (
     <div className="space-y-5">
       {weakSecret ? (
-        <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning-soft px-4 py-3 text-sm text-warning">
+        <div className="flex items-start gap-3 rounded-sm border border-warning/30 bg-warning-soft px-4 py-3 text-[13.5px] text-warning">
           <AlertTriangle size={16} className="mt-0.5 flex-none" />
           <span>
             <b>{L.security.weakSecretTitle}</b> {L.security.weakSecretText}
@@ -340,10 +340,10 @@ async function SecurityTab({ userId, L }: { userId: string; L: AdminDict["settin
 
       <Panel title={L.security.session}>
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <div><dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">{L.security.activeSessions}</dt><dd className="text-fg">{sessions}</dd></div>
-          <div><dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">APP_URL</dt><dd className="font-mono text-xs break-all text-fg">{env.appUrl}</dd></div>
-          <div><dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">{L.security.appSecret}</dt><dd className={weakSecret ? "text-warning" : "text-fg"}>{weakSecret ? L.security.secretDefault : L.security.secretCustom}</dd></div>
-          <div><dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">{L.security.environment}</dt><dd className="text-fg">{env.isProd ? L.security.production : L.security.development}</dd></div>
+          <div><dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.security.activeSessions}</dt><dd className="text-fg">{sessions}</dd></div>
+          <div><dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">APP_URL</dt><dd className="font-mono text-xs break-all text-fg">{env.appUrl}</dd></div>
+          <div><dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.security.appSecret}</dt><dd className={weakSecret ? "text-warning" : "text-fg"}>{weakSecret ? L.security.secretDefault : L.security.secretCustom}</dd></div>
+          <div><dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.security.environment}</dt><dd className="text-fg">{env.isProd ? L.security.production : L.security.development}</dd></div>
         </dl>
         <p className="mt-3 text-xs text-muted">
           {L.security.sessionNote}{" "}

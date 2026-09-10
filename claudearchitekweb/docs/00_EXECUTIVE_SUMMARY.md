@@ -1,10 +1,14 @@
 # Executive summary
 
-**Date:** 10 September 2026 (v2) · **Branch:** `claude` · **Folder:** `claudearchitekweb/`
+**Date:** 10 September 2026 (v3) · **Branch:** `claude` · **Folder:** `claudearchitekweb/`
 
 ## Corrected positioning (v2)
 
 ArchiTek Soft **does not sell or manufacture furniture**. It helps furniture makers, showrooms and their customers choose colours, materials, form and configuration with confidence in interactive 3D, before production. The **Web Viewer** link is the default deliverable for every client; **Live 3D (Pixel Streaming)** is a premium B2B presentation with a time quota. Every page, package and CTA was rewritten with this in mind (see `12_OFFERS_AND_POSITIONING.md`).
+
+## What changed in v3 — design
+
+The v2 visual layer was audited page by page (screenshots in light/dark, desktop/mobile) and judged generic: blue SaaS accent, rounded white cards with icon squares everywhere, one centred column, small imagery. It was replaced by a coherent design system, **"Atelier"** (`14_DESIGN_SYSTEM.md`): warm paper / graphite palette with one oxide accent, serif display type (Source Serif 4 + Noto Serif Armenian) over a grotesk body and mono details, hairlines and index numbers instead of boxes, media in captioned frames with corner marks, material swatches, a monochrome wordmark, restrained motion. The public site keeps its multi-page structure with a compact homepage; the admin, client portal and Web Viewer were restyled with the same tokens.
 
 ## What changed in v2
 

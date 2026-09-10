@@ -7,8 +7,9 @@ import { listPosts, smmStats, type PostRow } from "@/lib/smm-admin";
 import { fmtYerevan, yerevanDay } from "@/lib/tz";
 import { cn } from "@/lib/utils";
 import { getAdminDict, labelFor, type AdminDict } from "@/lib/i18n/admin";
-import { PageHeader, Panel, StatCard, StatusBadge } from "@/components/admin/shell";
+import { PageHeader, Panel, SpecStrip, StatCard, StatusBadge } from "@/components/admin/shell";
 import { Notice } from "@/components/admin/notice";
+import { Empty } from "@/components/ui";
 import { PlatformChip, PlatformDots } from "@/components/admin/smm/platform-chip";
 import { ConfirmSubmit, SubmitButton } from "@/components/admin/form-buttons";
 import { quickActionForm } from "@/app/admin/actions/smm-actions";
@@ -61,38 +62,40 @@ export default async function SmmHubPage({ searchParams }: { searchParams: Promi
       />
       <Notice text={sp.notice} tone={sp.tone} />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <SpecStrip>
         <StatCard label={L.stats.awaiting} value={stats.awaiting} tone={stats.awaiting ? "warning" : undefined} hint={L.statHints.awaiting} />
         <StatCard label={L.stats.scheduled} value={stats.scheduled} hint={L.statHints.scheduled} tone={stats.scheduled ? "brand" : undefined} />
         <StatCard label={L.stats.published30} value={stats.published30} hint={L.statHints.published30} tone={stats.published30 ? "success" : undefined} />
         <StatCard label={L.stats.failed} value={stats.failed} hint={L.statHints.failed} tone={stats.failed ? "danger" : undefined} />
-      </div>
+      </SpecStrip>
 
-      <div className="card-inset mt-4 flex flex-wrap items-center gap-2 px-4 py-3">
-        <span className="mr-1 text-[11px] font-semibold tracking-wide text-muted uppercase">{L.connections}</span>
+      <div className="mt-5 flex flex-wrap items-center gap-2 border-y border-line py-2.5">
+        <span className="mr-1 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.connections}</span>
         {Object.entries(statuses).map(([p, st]) => (
           <PlatformChip key={p} platform={p} meta={PLATFORM_META[p]} status={st} statusLabel={labelFor(t, "connection", st)} title={L.statusExplain[st as keyof typeof L.statusExplain] ?? st} />
         ))}
-        <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 py-1 text-xs" title={ai.provider === "template" ? L.aiTemplateTitle : `${ai.provider} · ${ai.model}`}>
-          <span className={cn("h-2 w-2 rounded-full", ai.provider === "template" ? "bg-warning" : "bg-success")} />
-          {L.aiWriter}: <b className="font-semibold">{ai.provider}</b> <span className="text-muted">· {ai.model}</span>
+        <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] text-fg-2" title={ai.provider === "template" ? L.aiTemplateTitle : `${ai.provider} · ${ai.model}`}>
+          <span className={cn("h-1.5 w-1.5", ai.provider === "template" ? "bg-warning" : "bg-success")} />
+          {L.aiWriter}: <b className="font-semibold text-fg">{ai.provider}</b> <span className="text-muted">· {ai.model}</span>
         </span>
-        <p className="w-full text-xs text-muted">
-          {L.dryRunNote} <Link href="/admin/settings?tab=integrations" className="font-medium text-accent hover:underline">{L.settingsLink}</Link>
+        <p className="caption w-full">
+          {L.dryRunNote} <Link href="/admin/settings?tab=integrations" className="text-accent u-link">{L.settingsLink}</Link>
         </p>
       </div>
 
-      <div className="card-inset mt-4 mb-5 flex flex-wrap gap-1.5 p-1.5">
-        {tabs.map((tb) => {
-          const href = tb.key === "calendar" ? "/admin/smm?view=calendar" : tb.key ? `/admin/smm?tab=${tb.key}` : "/admin/smm";
-          const active = tab === tb.key;
-          return (
-            <Link key={tb.key} href={href} className={cn("inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors", active ? "bg-fg text-bg" : "text-fg-2 hover:bg-surface-3")}>
-              {tb.label}
-              {typeof tb.count === "number" ? <span className={cn("rounded-full px-1.5 text-[11px]", active ? "bg-bg/20 text-bg" : "bg-surface text-muted")}>{tb.count}</span> : null}
-            </Link>
-          );
-        })}
+      <div className="mt-4 mb-5 -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <div className="flex min-w-max gap-5 border-b border-line">
+          {tabs.map((tb) => {
+            const href = tb.key === "calendar" ? "/admin/smm?view=calendar" : tb.key ? `/admin/smm?tab=${tb.key}` : "/admin/smm";
+            const active = tab === tb.key;
+            return (
+              <Link key={tb.key} href={href} className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 py-2.5 font-mono text-[12px] tracking-[0.02em] whitespace-nowrap transition-colors", active ? "border-fg text-fg" : "border-transparent text-muted hover:text-fg")}>
+                {tb.label}
+                {typeof tb.count === "number" ? <span className={cn("num text-[10.5px]", active ? "text-accent" : "text-faint")}>{tb.count}</span> : null}
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {view === "calendar" ? <Calendar posts={posts} month={first(sp.month)} L={L} /> : <PostTable rows={rows} tab={tab} t={t} L={L} />}
@@ -103,18 +106,20 @@ export default async function SmmHubPage({ searchParams }: { searchParams: Promi
 function PostTable({ rows, tab, t, L }: { rows: PostRow[]; tab: string; t: AdminDict; L: AdminDict["smm"] }) {
   if (rows.length === 0) {
     return (
-      <div className="card flex flex-col items-center justify-center p-10 text-center">
-        <div className="text-base font-semibold text-fg">{tab === "" ? L.emptyQueue : L.emptyOther}</div>
-        <div className="mt-1 max-w-md text-sm text-muted">{L.emptyText}</div>
-        <Link href="/admin/smm/new" className="btn-brand btn-sm mt-4">
-          <Plus size={14} /> {L.newPost}
-        </Link>
-      </div>
+      <Empty
+        title={tab === "" ? L.emptyQueue : L.emptyOther}
+        text={L.emptyText}
+        action={
+          <Link href="/admin/smm/new" className="btn-brand btn-sm">
+            <Plus size={14} /> {L.newPost}
+          </Link>
+        }
+      />
     );
   }
   const whenLabel = tab === "published" ? L.table.published : L.table.scheduled;
   return (
-    <div className="card overflow-x-auto p-0 md:p-0">
+    <div className="card overflow-x-auto max-md:overflow-visible max-md:border-none max-md:bg-transparent">
       <table className="table-admin table-responsive">
         <thead>
           <tr>
@@ -124,14 +129,14 @@ function PostTable({ rows, tab, t, L }: { rows: PostRow[]; tab: string; t: Admin
             <th>{L.table.platforms}</th>
             <th>{whenLabel}</th>
             <th>{L.table.status}</th>
-            <th className="text-right">{L.table.actions}</th>
+            <th className="num">{L.table.actions}</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((p) => (
             <tr key={p.id}>
               <td data-label={L.table.post}>
-                <Link href={`/admin/smm/${p.id}`} className="font-medium text-fg hover:text-accent">{p.title}</Link>
+                <Link href={`/admin/smm/${p.id}`} className="font-semibold text-fg hover:text-accent">{p.title}</Link>
                 <div className="text-xs text-muted">{labelFor(t, "goals", p.goal)}</div>
               </td>
               <td data-label={L.table.project} className="text-xs">
@@ -141,11 +146,11 @@ function PostTable({ rows, tab, t, L }: { rows: PostRow[]; tab: string; t: Admin
                   <span className="text-faint">—</span>
                 )}
               </td>
-              <td data-label={L.table.language} className="text-xs font-semibold text-fg-2 uppercase">{p.language}</td>
+              <td data-label={L.table.language} className="font-mono text-[11px] tracking-[0.08em] text-fg-2 uppercase">{p.language}</td>
               <td data-label={L.table.platforms}>
                 <PlatformDots variants={p.variants} metaMap={PLATFORM_META} offLabel={L.editor.off} />
               </td>
-              <td data-label={whenLabel} className="text-xs whitespace-nowrap">{tab === "published" ? fmtYerevan(p.publishedAt) : fmtYerevan(p.scheduledAt)}</td>
+              <td data-label={whenLabel} className="font-mono text-[12px] whitespace-nowrap text-muted">{tab === "published" ? fmtYerevan(p.publishedAt) : fmtYerevan(p.scheduledAt)}</td>
               <td data-label={L.table.status}>
                 <StatusBadge value={p.status} label={labelFor(t, "postStatus", p.status)} />
               </td>
@@ -232,19 +237,19 @@ function Calendar({ posts, month, L }: { posts: PostRow[]; month: string; L: Adm
       }
     >
       {/* Month grid — from md up */}
-      <div className="hidden grid-cols-7 gap-px overflow-hidden rounded-xl border border-line bg-line text-xs md:grid">
+      <div className="hidden grid-cols-7 gap-px overflow-hidden rounded-md border border-line bg-line text-xs md:grid">
         {L.calendar.weekdays.map((d) => (
-          <div key={d} className="bg-surface-2 px-2 py-1.5 text-[11px] font-semibold tracking-wide text-muted uppercase">{d}</div>
+          <div key={d} className="bg-surface-2 px-2 py-1.5 font-mono text-[10px] tracking-[0.1em] text-muted uppercase">{d}</div>
         ))}
         {cells.map((day, i) => {
           const key = day ? `${m}-${String(day).padStart(2, "0")}` : "";
           const items = key ? (byDay.get(key) ?? []) : [];
           return (
             <div key={i} className={cn("min-h-[92px] bg-surface p-1.5", !day && "bg-surface-2/60")}>
-              {day ? <div className={cn("mb-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold", key === today ? "bg-fg text-bg" : "text-muted")}>{day}</div> : null}
+              {day ? <div className={cn("mb-1 inline-flex h-5 min-w-5 items-center justify-center rounded-sm px-1 font-mono text-[10.5px] tabular-nums", key === today ? "bg-fg text-bg" : "text-muted")}>{day}</div> : null}
               <div className="space-y-1">
                 {items.map((p) => (
-                  <Link key={p.id} href={`/admin/smm/${p.id}`} title={p.title} className={cn("block truncate rounded-md border px-1.5 py-0.5 text-[11px] font-medium", DAY_TONE[p.status] ?? "border-transparent bg-accent-soft text-accent-soft-fg")}>
+                  <Link key={p.id} href={`/admin/smm/${p.id}`} title={p.title} className={cn("block truncate rounded-sm border px-1.5 py-0.5 text-[11px] font-medium", DAY_TONE[p.status] ?? "border-transparent bg-accent-soft text-accent-soft-fg")}>
                     {fmtYerevan(p.scheduledAt ?? p.publishedAt, "time")} {p.title}
                   </Link>
                 ))}
@@ -261,14 +266,14 @@ function Calendar({ posts, month, L }: { posts: PostRow[]; month: string; L: Adm
         ) : (
           <ul className="space-y-3">
             {dayKeys.map((key) => (
-              <li key={key} className="card-inset p-3">
-                <div className={cn("mb-2 text-xs font-semibold", key === today ? "text-accent" : "text-muted")}>
+              <li key={key} className="rounded-md border border-line bg-surface-2 p-3">
+                <div className={cn("mb-2 font-mono text-[11px] tracking-[0.06em]", key === today ? "text-accent" : "text-muted")}>
                   {fmtYerevan(`${key}T00:00:00+04:00`, "date")}
                   {key === today ? ` · ${L.calendar.today}` : ""}
                 </div>
                 <div className="space-y-1.5">
                   {(byDay.get(key) ?? []).map((p) => (
-                    <Link key={p.id} href={`/admin/smm/${p.id}`} className={cn("flex items-center gap-2 rounded-lg border px-2 py-1.5 text-xs font-medium", DAY_TONE[p.status] ?? "border-transparent bg-accent-soft text-accent-soft-fg")}>
+                    <Link key={p.id} href={`/admin/smm/${p.id}`} className={cn("flex items-center gap-2 rounded-sm border px-2 py-1.5 text-xs font-medium", DAY_TONE[p.status] ?? "border-transparent bg-accent-soft text-accent-soft-fg")}>
                       <span className="tabular-nums">{fmtYerevan(p.scheduledAt ?? p.publishedAt, "time")}</span>
                       <span className="truncate">{p.title}</span>
                     </Link>

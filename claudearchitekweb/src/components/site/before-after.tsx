@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+/** Sketch → 3D comparison slider. Mono labels, hairline handle, no pills. */
 export function BeforeAfter({ before, after, labels = ["Before", "After"], aspect = "aspect-[16/10]", ariaLabel }: { before: string; after: string; labels?: [string, string]; aspect?: string; ariaLabel?: string }) {
   const [pos, setPos] = useState(55);
   const ref = useRef<HTMLDivElement>(null);
@@ -14,8 +15,7 @@ export function BeforeAfter({ before, after, labels = ["Before", "After"], aspec
   return (
     <div
       ref={ref}
-      // touch-action:pan-y lets the browser keep vertical scrolling while we
-      // handle the horizontal drag — without it the handle is unusable on phones.
+      // touch-action:pan-y keeps vertical scrolling while we handle the horizontal drag.
       className={`relative w-full cursor-ew-resize touch-pan-y select-none overflow-hidden bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${aspect}`}
       onPointerDown={(e) => {
         (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -41,14 +41,14 @@ export function BeforeAfter({ before, after, labels = ["Before", "After"], aspec
         <img src={before} alt={labels[0]} className="absolute inset-0 h-full w-full object-cover" style={{ width: `${10000 / pos}%`, maxWidth: "none" }} draggable={false} />
       </div>
       <div className="ba-handle" style={{ left: `${pos}%` }}>
-        <div className="absolute top-1/2 left-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-surface text-fg shadow-card">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="absolute top-1/2 left-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#f4f2ed]/60 bg-[#17150f]/70 text-[#f4f2ed] backdrop-blur">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="m9 6-6 6 6 6M15 6l6 6-6 6" />
           </svg>
         </div>
       </div>
-      <span className="absolute top-3 left-3 rounded-full bg-[#0b0d10]/60 px-2.5 py-1 text-xs font-medium text-[#fff] backdrop-blur">{labels[0]}</span>
-      <span className="absolute top-3 right-3 rounded-full bg-[#0b0d10]/60 px-2.5 py-1 text-xs font-medium text-[#fff] backdrop-blur">{labels[1]}</span>
+      <span className="absolute top-3 left-3 rounded-sm bg-[#17150f]/70 px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur">{labels[0]}</span>
+      <span className="absolute top-3 right-3 rounded-sm bg-[#17150f]/70 px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur">{labels[1]}</span>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { BarChart3, Building2, CheckSquare, FolderKanban, Images, Inbox, LayoutDashboard, Link2, Megaphone, MonitorPlay, MoreHorizontal, Settings, Sparkles, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/lib/auth";
+import { BrandLogo } from "@/components/brand-logo";
 
 export type AdminNavLabels = {
   overview: string; leads: string; clients: string; companies: string; projects: string; tasks: string; media: string; pages: string; live: string; smm: string; portfolio: string; analytics: string; settings: string; more: string;
@@ -34,24 +35,32 @@ export function AdminSidebar({ user, labels }: { user: SessionUser; labels: Admi
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-surface lg:flex">
-        <div className="flex h-16 items-center gap-2 px-5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo.png" alt="ArchiTek Soft" width={125} height={40} className="h-6 w-auto dark:brightness-[1.35]" />
+      {/* Desktop sidebar — 232px, paper surface, hairline on the right */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-58 flex-col border-r border-line bg-surface lg:flex">
+        <div className="flex h-16 flex-none items-center border-b border-line px-5">
+          <BrandLogo className="h-6" />
         </div>
-        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 pb-4" aria-label="Admin">
+        <nav className="flex flex-1 flex-col gap-5 overflow-y-auto py-5" aria-label="Admin">
           {GROUPS.map((g, gi) => (
             <div key={gi}>
-              {g.group ? <div className="mb-1 px-3 text-[10.5px] font-semibold tracking-[0.12em] text-faint uppercase">{labels.groups[g.group]}</div> : null}
-              <div className="flex flex-col gap-0.5">
+              {g.group ? <div className="mb-2 px-5 font-mono text-[10px] font-medium tracking-[0.16em] text-faint uppercase">{labels.groups[g.group]}</div> : null}
+              <div className="flex flex-col">
                 {g.items.map((item) => {
                   const Icon = ICONS[item.key];
                   const active = isActive(item.href, item.exact);
                   return (
-                    <Link key={item.href} href={item.href} className={cn("flex items-center gap-3 rounded-xl px-3 py-2 text-[13.5px] font-medium transition-colors", active ? "bg-fg text-bg" : "text-fg-2 hover:bg-surface-2 hover:text-fg")}>
-                      <Icon size={16} className={cn(active ? "text-bg" : "text-faint")} />
-                      {labels[item.key]}
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "relative flex items-center gap-3 py-[7px] pr-4 pl-5 text-[13.5px] transition-colors",
+                        active ? "bg-surface-2 font-semibold text-fg" : "font-medium text-fg-2 hover:bg-surface-2/60 hover:text-fg"
+                      )}
+                    >
+                      {active ? <span aria-hidden className="absolute inset-y-0 left-0 w-0.5 bg-fg" /> : null}
+                      <Icon size={15} className={active ? "text-fg" : "text-faint"} />
+                      <span className="truncate">{labels[item.key]}</span>
                     </Link>
                   );
                 })}
@@ -59,9 +68,9 @@ export function AdminSidebar({ user, labels }: { user: SessionUser; labels: Admi
             </div>
           ))}
         </nav>
-        <div className="border-t border-line p-4 text-xs text-muted">
-          <div className="truncate font-medium text-fg">{user.name}</div>
-          <div className="truncate">{user.email}</div>
+        <div className="flex-none border-t border-line px-5 py-4">
+          <div className="truncate text-[13px] font-semibold text-fg">{user.name}</div>
+          <div className="truncate font-mono text-[10.5px] tracking-[0.02em] text-muted">{user.email}</div>
         </div>
       </aside>
 
@@ -73,37 +82,38 @@ export function AdminSidebar({ user, labels }: { user: SessionUser; labels: Admi
             const Icon = ICONS[key];
             const active = isActive(item.href, item.exact);
             return (
-              <Link key={key} href={item.href} className={cn("flex min-w-0 flex-col items-center gap-1 py-2 text-[10px] font-medium", active ? "text-fg" : "text-muted")}>
-                <Icon size={19} className={active ? "text-accent" : undefined} />
-                <span className="w-full truncate px-1 text-center">{labels[key]}</span>
+              <Link key={key} href={item.href} className={cn("flex min-w-0 flex-col items-center gap-1 py-2.5 font-mono text-[9.5px] tracking-[-0.01em]", active ? "text-accent" : "text-muted")}>
+                <Icon size={18} />
+                <span className="w-full truncate px-0.5 text-center">{labels[key]}</span>
               </Link>
             );
           })}
-          <button type="button" onClick={() => setMore(true)} className="flex min-w-0 flex-col items-center gap-1 py-2 text-[10px] font-medium text-muted">
-            <MoreHorizontal size={19} />
-            <span className="w-full truncate px-1 text-center">{labels.more}</span>
+          <button type="button" onClick={() => setMore(true)} className="flex min-w-0 flex-col items-center gap-1 py-2.5 font-mono text-[9.5px] tracking-[-0.01em] text-muted">
+            <MoreHorizontal size={18} />
+            <span className="w-full truncate px-0.5 text-center">{labels.more}</span>
           </button>
         </div>
       </nav>
       {more ? (
         <div className="fixed inset-0 z-50 flex items-end lg:hidden" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMore(false)} />
-          <div className="relative w-full rounded-t-3xl bg-surface p-4 pb-safe shadow-lift">
-            <div className="mb-3 flex items-center justify-between px-1">
-              <span className="font-display text-base font-semibold text-fg">{labels.more}</span>
-              <button className="btn-ghost btn-icon" onClick={() => setMore(false)} aria-label="close">
-                <X size={18} />
+          <div className="absolute inset-0 bg-[#17150f]/50" onClick={() => setMore(false)} />
+          <div className="relative w-full rounded-t-xl border-t border-line bg-surface pb-safe">
+            <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
+              <span className="font-mono text-[10.5px] tracking-[0.14em] text-muted uppercase">{labels.more}</span>
+              <button className="btn-ghost btn-sm -mr-2" onClick={() => setMore(false)} aria-label="close">
+                <X size={16} />
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-px bg-line">
               {all
                 .filter((i) => !MOBILE_PRIMARY.includes(i.key))
                 .map((item) => {
                   const Icon = ICONS[item.key];
+                  const active = isActive(item.href, item.exact);
                   return (
-                    <Link key={item.href} href={item.href} onClick={() => setMore(false)} className={cn("flex flex-col items-center gap-1.5 rounded-2xl border border-line p-3 text-center text-xs font-medium", isActive(item.href, item.exact) ? "bg-fg text-bg" : "text-fg-2")}>
-                      <Icon size={18} />
-                      {labels[item.key]}
+                    <Link key={item.href} href={item.href} onClick={() => setMore(false)} className={cn("flex min-h-11 items-center gap-2.5 bg-surface px-4 py-3 text-[13px]", active ? "font-semibold text-accent" : "font-medium text-fg-2")}>
+                      <Icon size={15} className={active ? "text-accent" : "text-faint"} />
+                      <span className="truncate">{labels[item.key]}</span>
                     </Link>
                   );
                 })}

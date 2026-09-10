@@ -87,7 +87,7 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
         <PillTabs items={tabs} current={type} />
         <form action="/admin/companies" className="w-full sm:w-auto">
           {type !== "all" ? <input type="hidden" name="type" value={type} /> : null}
-          <Input name="q" defaultValue={q} placeholder={K.searchPlaceholder} className="w-full py-1.5 sm:w-56" aria-label={t.common.search} />
+          <Input name="q" defaultValue={q} placeholder={K.searchPlaceholder} className="h-9 w-full text-[13.5px] sm:w-56" aria-label={t.common.search} />
         </form>
       </FilterBar>
 
@@ -110,9 +110,9 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
                 <th>{t.common.type}</th>
                 <th>{t.common.city}</th>
                 <th>{t.crm.contact.title}</th>
-                <th className="text-right max-md:hidden!">{K.colContacts}</th>
-                <th className="text-right max-md:hidden!">{K.colProjects}</th>
-                <th className="text-right">{K.colPipeline}</th>
+                <th className="num max-md:hidden!">{K.colContacts}</th>
+                <th className="num max-md:hidden!">{K.colProjects}</th>
+                <th className="num">{K.colPipeline}</th>
                 <th className="max-md:hidden!">{t.common.created}</th>
                 <th>{t.common.status}</th>
               </tr>
@@ -123,28 +123,28 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
                 return (
                   <tr key={c.id}>
                     <td data-label={t.common.name}>
-                      <Link href={`/admin/companies/${c.id}`} className="font-medium text-fg transition-colors hover:text-accent">
+                      <Link href={`/admin/companies/${c.id}`} className="font-semibold text-fg transition-colors hover:text-accent">
                         {c.name}
                       </Link>
                       {c.website ? <div className="truncate text-xs text-muted">{c.website.replace(/^https?:\/\//, "")}</div> : null}
                     </td>
                     <td data-label={t.common.type}>{labelFor(t, "companyTypes", c.type)}</td>
                     <td data-label={t.common.city}>{c.city ?? "—"}</td>
-                    <td data-label={t.crm.contact.title} className="text-xs">
+                    <td data-label={t.crm.contact.title} className="font-mono text-[12px]">
                       {c.phone ? <div>{c.phone}</div> : null}
                       {c.email ? <div className="break-all">{c.email}</div> : null}
                       {!c.phone && !c.email ? "—" : null}
                     </td>
-                    <td data-label={K.colContacts} className="text-right tabular-nums max-md:hidden!">
+                    <td data-label={K.colContacts} className="num max-md:hidden!">
                       {contactCounts[c.id] ?? 0}
                     </td>
-                    <td data-label={K.colProjects} className="text-right tabular-nums max-md:hidden!">
+                    <td data-label={K.colProjects} className="num max-md:hidden!">
                       {agg?.c ?? 0}
                     </td>
-                    <td data-label={K.colPipeline} className="text-right tabular-nums">
+                    <td data-label={K.colPipeline} className="num">
                       {agg?.v ? formatMoney(agg.v) : "—"}
                     </td>
-                    <td data-label={t.common.created} className="whitespace-nowrap text-muted max-md:hidden!">
+                    <td data-label={t.common.created} className="font-mono text-[12px] whitespace-nowrap text-muted max-md:hidden!">
                       {relTime(c.createdAt, locale)}
                     </td>
                     <td data-label={t.common.status}>

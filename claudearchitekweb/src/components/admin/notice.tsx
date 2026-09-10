@@ -7,8 +7,8 @@ export function Notice({ text, tone, className }: { text?: string | string[] | n
   const tn = Array.isArray(tone) ? tone[0] : tone;
   const isError = tn === "error" || /^error/i.test(t);
   return (
-    <div role="status" className={cn("mb-5 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm", isError ? "border-danger/30 bg-danger-soft text-danger" : "border-success/30 bg-success-soft text-success", className)}>
-      <span className="mt-1.5 inline-block h-2 w-2 flex-none rounded-full bg-current" />
+    <div role="status" className={cn("mb-5 flex items-start gap-3 rounded-sm border px-4 py-2.5 text-[13.5px]", isError ? "border-danger/30 bg-danger-soft text-danger" : "border-success/30 bg-success-soft text-success", className)}>
+      <span className="mt-2 inline-block h-1.5 w-1.5 flex-none bg-current" />
       <span className="break-words">{t}</span>
     </div>
   );

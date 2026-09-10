@@ -62,11 +62,11 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
         subtitle={L.subtitle}
         actions={
           <>
-            <div className="flex rounded-full border border-line bg-surface p-0.5">
-              <Link href={href({ view: "table" })} className={cn("rounded-full px-3 py-1.5 text-xs font-semibold transition-colors", view === "table" ? "bg-fg text-bg" : "text-muted hover:text-fg")} title={L.viewTable} aria-label={L.viewTable}>
+            <div className="flex divide-x divide-line rounded-md border border-line">
+              <Link href={href({ view: "table" })} className={cn("flex h-9 w-10 items-center justify-center transition-colors", view === "table" ? "bg-surface-2 text-fg" : "text-muted hover:text-fg")} title={L.viewTable} aria-label={L.viewTable}>
                 <List size={14} />
               </Link>
-              <Link href={href({ view: "board" })} className={cn("rounded-full px-3 py-1.5 text-xs font-semibold transition-colors", view === "board" ? "bg-fg text-bg" : "text-muted hover:text-fg")} title={L.viewBoard} aria-label={L.viewBoard}>
+              <Link href={href({ view: "board" })} className={cn("flex h-9 w-10 items-center justify-center transition-colors", view === "board" ? "bg-surface-2 text-fg" : "text-muted hover:text-fg")} title={L.viewBoard} aria-label={L.viewBoard}>
                 <LayoutGrid size={14} />
               </Link>
             </div>
@@ -80,24 +80,27 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
       <FilterBar>
         <PillTabs items={statusTabs} current={status} />
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <div className="flex rounded-full bg-surface p-0.5 text-xs font-semibold">
+          <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.06em] uppercase">
             {(
               [
                 { key: "all", label: t.common.all },
                 { key: "b2b", label: t.common.b2b },
                 { key: "b2c", label: t.common.b2c },
               ] as const
-            ).map((s) => (
-              <Link key={s.key} href={href({ segment: s.key })} className={cn("rounded-full px-3 py-1.5 whitespace-nowrap transition-colors", segment === s.key ? "bg-fg text-bg" : "text-muted hover:text-fg")}>
-                {s.label}
-              </Link>
+            ).map((s, i) => (
+              <span key={s.key} className="flex items-center gap-2">
+                {i ? <span aria-hidden className="text-faint">/</span> : null}
+                <Link href={href({ segment: s.key })} className={cn("whitespace-nowrap underline-offset-[5px] transition-colors", segment === s.key ? "text-fg underline decoration-accent decoration-2" : "text-muted hover:text-fg")}>
+                  {s.label}
+                </Link>
+              </span>
             ))}
           </div>
           <form action="/admin/leads" className="min-w-[10rem] flex-1 sm:flex-none">
             {status !== "all" ? <input type="hidden" name="status" value={status} /> : null}
             {segment !== "all" ? <input type="hidden" name="segment" value={segment} /> : null}
             {view === "board" ? <input type="hidden" name="view" value="board" /> : null}
-            <Input name="q" defaultValue={q} placeholder={L.searchPlaceholder} className="w-full py-1.5 sm:w-56" aria-label={t.common.search} />
+            <Input name="q" defaultValue={q} placeholder={L.searchPlaceholder} className="h-9 w-full text-[13.5px] sm:w-56" aria-label={t.common.search} />
           </form>
         </div>
       </FilterBar>
@@ -125,7 +128,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                 <th className="max-md:hidden!">{L.colRoom}</th>
                 <th>{t.common.source}</th>
                 <th>{L.colContact}</th>
-                <th className="text-right max-md:hidden!">{L.colValue}</th>
+                <th className="num max-md:hidden!">{L.colValue}</th>
                 <th>{t.common.created}</th>
                 <th>{t.common.status}</th>
               </tr>
@@ -134,7 +137,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
               {rows.map((l) => (
                 <tr key={l.id}>
                   <td data-label={L.colName}>
-                    <Link href={`/admin/leads/${l.id}`} className="font-medium text-fg transition-colors hover:text-accent">
+                    <Link href={`/admin/leads/${l.id}`} className="font-semibold text-fg transition-colors hover:text-accent">
                       {l.name}
                     </Link>
                     {l.companyName ? <div className="text-xs text-muted">{l.companyName}</div> : null}
@@ -145,15 +148,15 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                   <td data-label={L.colService} className="max-md:hidden!">{l.service ? labelFor(t, "services", l.service) : "—"}</td>
                   <td data-label={L.colRoom} className="max-md:hidden!">{l.roomType ? labelFor(t, "rooms", l.roomType) : "—"}</td>
                   <td data-label={t.common.source}>{labelFor(t, "leadSources", l.source)}</td>
-                  <td data-label={L.colContact} className="text-xs">
+                  <td data-label={L.colContact} className="font-mono text-[12px]">
                     {l.phone ? <div>{l.phone}</div> : null}
                     {l.telegram ? <div>{l.telegram}</div> : null}
                     {!l.phone && !l.telegram ? (l.email ?? "—") : null}
                   </td>
-                  <td data-label={L.colValue} className="text-right tabular-nums max-md:hidden!">
+                  <td data-label={L.colValue} className="num max-md:hidden!">
                     {l.estimatedValue ? formatMoney(l.estimatedValue, l.currency ?? "AMD") : "—"}
                   </td>
-                  <td data-label={t.common.created} className="whitespace-nowrap text-muted">
+                  <td data-label={t.common.created} className="font-mono text-[12px] whitespace-nowrap text-muted">
                     {relTime(l.createdAt, locale)}
                   </td>
                   <td data-label={t.common.status}>
@@ -173,31 +176,31 @@ function Board({ rows, t, locale }: { rows: (typeof schema.leads.$inferSelect)[]
   const L = t.crm.leads;
   return (
     <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-      <div className="flex min-w-max gap-3">
-        {LEAD_STATUSES.map((s) => {
+      <div className="flex min-w-max border-t border-line">
+        {LEAD_STATUSES.map((s, i) => {
           const col = rows.filter((r) => r.status === s);
           return (
-            <div key={s} className="card-inset w-64 flex-none p-2">
-              <div className="flex items-center justify-between px-2 py-1.5">
-                <StatusBadge value={s} label={labelFor(t, "leadStatus", s)} />
-                <span className="text-xs font-medium text-muted">{col.length}</span>
+            <div key={s} className={cn("w-64 flex-none px-3 pb-4", i > 0 && "border-l border-line")}>
+              <div className="flex items-center justify-between gap-2 border-b border-line py-2.5">
+                <span className="truncate font-mono text-[10.5px] tracking-[0.1em] text-muted uppercase">{labelFor(t, "leadStatus", s)}</span>
+                <span className="num text-[11px] text-faint">{String(col.length).padStart(2, "0")}</span>
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2 pt-3">
                 {col.map((l) => (
-                  <div key={l.id} className="card p-3 shadow-none">
-                    <Link href={`/admin/leads/${l.id}`} className="block text-sm font-medium text-fg transition-colors hover:text-accent">
+                  <div key={l.id} className="rounded-md border border-line bg-surface p-3">
+                    <Link href={`/admin/leads/${l.id}`} className="block text-[13.5px] font-semibold text-fg transition-colors hover:text-accent">
                       {l.name}
                     </Link>
-                    <div className="mt-0.5 text-xs text-muted">
+                    <div className="caption mt-1 line-clamp-2">
                       {[l.companyName, l.service ? labelFor(t, "services", l.service) : null, l.roomType ? labelFor(t, "rooms", l.roomType) : null].filter(Boolean).join(" · ") || labelFor(t, "leadSources", l.source)}
                     </div>
-                    <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted">
+                    <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-line pt-2.5">
                       <StatusBadge value={l.segment} label={labelFor(t, "segments", l.segment)} />
-                      <span>{l.estimatedValue ? formatMoney(l.estimatedValue, l.currency ?? "AMD") : relTime(l.createdAt, locale)}</span>
+                      <span className="num text-[11px] text-muted">{l.estimatedValue ? formatMoney(l.estimatedValue, l.currency ?? "AMD") : relTime(l.createdAt, locale)}</span>
                     </div>
                     <form action={updateLeadStatusAction} className="mt-2">
                       <input type="hidden" name="id" value={l.id} />
-                      <AutoSubmitSelect name="status" defaultValue={l.status} className="py-1.5 text-xs" aria-label={t.common.status}>
+                      <AutoSubmitSelect name="status" defaultValue={l.status} className="h-9 text-[13px]" aria-label={t.common.status}>
                         {LEAD_STATUSES.map((st) => (
                           <option key={st} value={st}>
                             {labelFor(t, "leadStatus", st)}
@@ -207,7 +210,7 @@ function Board({ rows, t, locale }: { rows: (typeof schema.leads.$inferSelect)[]
                     </form>
                   </div>
                 ))}
-                {col.length === 0 ? <div className="px-2 py-4 text-center text-xs text-faint">{L.columnEmpty}</div> : null}
+                {col.length === 0 ? <div className="py-6 text-center font-mono text-[10.5px] tracking-[0.08em] text-faint uppercase">{L.columnEmpty}</div> : null}
               </div>
             </div>
           );

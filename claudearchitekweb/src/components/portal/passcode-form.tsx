@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock } from "lucide-react";
 
+/** Centred, narrow access panel: mono hint, serif title, one code field. */
 export function PasscodeForm({ slug, token, labels }: { slug: string; token: string; labels: { title: string; text: string; button: string; wrong: string } }) {
   const router = useRouter();
   const [code, setCode] = useState("");
@@ -31,14 +31,12 @@ export function PasscodeForm({ slug, token, labels }: { slug: string; token: str
   }
 
   return (
-    <form onSubmit={submit} className="card mx-auto w-full max-w-md p-6 sm:p-8">
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent-soft-fg" aria-hidden>
-        <Lock size={22} />
-      </span>
-      <h1 className="h-section mt-4 text-[1.6rem] sm:text-[1.9rem]">{labels.title}</h1>
-      <p className="mt-2 text-muted">{labels.text}</p>
+    <form onSubmit={submit} className="mx-auto w-full max-w-sm text-center">
+      <h1 className="h-sub">{labels.title}</h1>
+      <p className="caption mx-auto mt-4 max-w-[22rem]">{labels.text}</p>
+      <div className="mx-auto mt-8 h-px w-16 bg-line-strong" aria-hidden />
       <input
-        className="input mt-5 text-center text-2xl tracking-[0.4em]"
+        className="input mt-8 h-14 text-center font-mono text-2xl tracking-[0.4em]"
         inputMode="numeric"
         autoComplete="one-time-code"
         aria-label={labels.title}
@@ -52,11 +50,11 @@ export function PasscodeForm({ slug, token, labels }: { slug: string; token: str
         aria-invalid={state === "wrong"}
       />
       {state === "wrong" || state === "error" ? (
-        <p role="alert" className="mt-2 text-sm text-danger">
+        <p role="alert" className="mt-3 font-mono text-[12px] tracking-[0.06em] text-danger">
           {labels.wrong}
         </p>
       ) : null}
-      <button type="submit" disabled={!code.trim() || state === "sending"} className="btn-primary btn-lg mt-4 min-h-[52px] w-full">
+      <button type="submit" disabled={!code.trim() || state === "sending"} className="btn-primary btn-lg mt-5 min-h-[52px] w-full">
         {labels.button}
       </button>
     </form>

@@ -1,7 +1,8 @@
 "use client";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Check, Share2 } from "lucide-react";
+import { ArrowLeft, Check, Link2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ViewerDemo } from "@/components/site/viewer-demo";
 import { portalEvent } from "./beacon";
@@ -18,13 +19,15 @@ export type ViewerShellLabels = {
 };
 
 /**
- * Full-screen Web Viewer for one project: thin top bar (64px) + <model-viewer>
- * filling the rest of the viewport, with the material swatches docked underneath.
+ * Full-screen Web Viewer for one project: a thin top bar (64 px), the model on a
+ * dark stage with a dot-grid floor and corner marks, and a mono status bar below.
+ * The ViewerDemo inside inherits the stage tokens, so its swatch toolbar goes dark.
  */
 export function ViewerShell({
   slug,
   token,
   title,
+  code,
   logoSrc,
   glbUrl,
   iosSrc,
@@ -36,6 +39,8 @@ export function ViewerShell({
   slug: string;
   token: string;
   title: string;
+  /** Mono project code shown above the title, e.g. AT-2026-0042. */
+  code?: string | null;
   logoSrc: string;
   glbUrl: string;
   iosSrc?: string | null;
@@ -94,34 +99,38 @@ export function ViewerShell({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-bg">
-      {/* box-border: the 64px includes the hairline, so the viewer below is exactly 100dvh-64px. */}
-      <header className="h-16 border-b border-line bg-surface">
-        <div className="flex h-full items-center gap-3 px-4 sm:px-6">
-          <a href={backHref} className="btn-ghost btn-icon flex-none" aria-label={labels.back}>
-            <ArrowLeft size={18} aria-hidden />
+    <div className="flex h-dvh flex-col bg-bg">
+      <header className="h-16 flex-none border-b border-line bg-surface">
+        <div className="flex h-full items-center gap-3 px-4 sm:gap-4 sm:px-6">
+          <a href={backHref} className="btn-ghost btn-icon flex-none rounded-md" aria-label={labels.back}>
+            <ArrowLeft size={18} strokeWidth={1.5} aria-hidden />
           </a>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoSrc} alt="" aria-hidden className="hidden h-6 w-auto flex-none sm:block dark:brightness-[1.35]" />
-          {/* the truncate lives on the span: global h1 styling sets text-wrap and would win on the heading itself */}
-          <h1 className="min-w-0 flex-1 font-display text-[15px] font-semibold tracking-[-0.01em] text-fg sm:text-base">
-            <span className="block truncate">{title}</span>
-          </h1>
-          <button type="button" onClick={share} className="btn-secondary btn-sm flex-none gap-1.5" aria-label={labels.share}>
-            {copied ? <Check size={15} aria-hidden /> : <Share2 size={15} aria-hidden />}
+          <span className="hidden flex-none sm:block"><BrandLogo className="h-6" /></span>
+          <div className="min-w-0 flex-1">
+            {code ? <div className="caption truncate text-accent">{code}</div> : null}
+            {/* the truncate lives on the span: global h1 styling sets text-wrap and would win on the heading itself */}
+            <h1 className="min-w-0 font-display text-[15px] leading-tight font-medium tracking-[-0.01em] text-fg sm:text-[17px]">
+              <span className="block truncate">{title}</span>
+            </h1>
+          </div>
+          <button type="button" onClick={share} className="btn-secondary btn-sm flex-none gap-2 font-mono text-[11px] tracking-[0.08em] uppercase" aria-label={labels.share}>
+            {copied ? <Check size={14} strokeWidth={2} aria-hidden /> : <Link2 size={14} strokeWidth={1.75} aria-hidden />}
             <span className="hidden sm:inline">{copied ? labels.copied : labels.share}</span>
           </button>
           <ThemeToggle labels={labels.theme} className="flex-none" />
         </div>
       </header>
 
-      <div ref={wrap} className="h-[calc(100dvh-64px)]">
+      {/* The stage fills the rest of the viewport: ViewerDemo brings the dark ground,
+          the dot-grid floor, the corner marks, the mono toolbar and the swatch bar. */}
+      <div ref={wrap} className="min-h-0 flex-1 bg-stage">
         <ViewerDemo
           autoload
           src={glbUrl}
           poster={poster ?? undefined}
           labels={{ hint: labels.hint, swatches: labels.swatches, ar: labels.ar, reset: labels.reset }}
-          className="flex h-full flex-col rounded-none! border-0! shadow-none!"
+          className="flex h-full flex-col rounded-none! border-x-0! border-t-0! shadow-none!"
           height="min-h-0 flex-1"
         />
       </div>

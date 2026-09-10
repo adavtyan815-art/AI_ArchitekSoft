@@ -7,7 +7,7 @@ import { getDb, schema } from "@/lib/db";
 import { clientLabel, relTime } from "@/lib/admin-helpers";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
 import { formatDate, formatMoney, parseJson } from "@/lib/utils";
-import { KV, PageHeader, Panel, StatCard, StatusBadge } from "@/components/admin/shell";
+import { KV, PageHeader, Panel, SpecStrip, StatCard, StatusBadge } from "@/components/admin/shell";
 import { Badge } from "@/components/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { ContactLinks } from "@/components/admin/crm/contact-links";
@@ -62,15 +62,15 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <SpecStrip className="mb-5">
         <StatCard label={K.colContacts} value={contacts.length} />
         <StatCard label={K.colProjects} value={projects.length} hint={`${active} ${t.common.active.toLowerCase()}`} />
         <StatCard label={K.quotedTotal} value={formatMoney(quoted)} />
         <StatCard label={K.paidTotal} value={formatMoney(paid)} tone={paid ? "success" : undefined} />
-      </div>
+      </SpecStrip>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      <div className="grid gap-6 lg:grid-cols-3 lg:gap-0">
+        <div className="space-y-4 lg:col-span-2 lg:pr-6">
           <Panel title={t.crm.clients.profile}>
             <CompanyForm company={company} action={updateCompanyAction} />
           </Panel>
@@ -115,8 +115,8 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
                       <th>{t.projects.colCode}</th>
                       <th>{t.projects.colTitle}</th>
                       <th>{t.common.stage}</th>
-                      <th className="text-right">{t.projects.quote}</th>
-                      <th className="text-right">{t.projects.paid}</th>
+                      <th className="num">{t.projects.quote}</th>
+                      <th className="num">{t.projects.paid}</th>
                       <th>{t.common.updated}</th>
                     </tr>
                   </thead>
@@ -127,20 +127,20 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
                           {p.code}
                         </td>
                         <td data-label={t.projects.colTitle}>
-                          <Link href={`/admin/projects/${p.id}`} className="font-medium text-fg transition-colors hover:text-accent">
+                          <Link href={`/admin/projects/${p.id}`} className="font-semibold text-fg transition-colors hover:text-accent">
                             {p.title}
                           </Link>
                         </td>
                         <td data-label={t.common.stage}>
                           <StatusBadge value={p.stage} label={labelFor(t, "projectStage", p.stage)} />
                         </td>
-                        <td data-label={t.projects.quote} className="text-right tabular-nums">
+                        <td data-label={t.projects.quote} className="num">
                           {formatMoney(p.quoteAmount, p.currency)}
                         </td>
-                        <td data-label={t.projects.paid} className="text-right tabular-nums">
+                        <td data-label={t.projects.paid} className="num">
                           {formatMoney(p.paidAmount, p.currency)}
                         </td>
-                        <td data-label={t.common.updated} className="whitespace-nowrap text-muted">
+                        <td data-label={t.common.updated} className="font-mono text-[12px] whitespace-nowrap text-muted">
                           {relTime(p.updatedAt, locale)}
                         </td>
                       </tr>
@@ -156,7 +156,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
           </Panel>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 lg:border-l lg:border-line lg:pl-6">
           <Panel title={t.crm.contact.title}>
             <div className="space-y-1 text-sm break-all text-fg-2">
               {company.phone ? <div>{company.phone}</div> : null}

@@ -1,4 +1,4 @@
-import { Mail, MessageCircle, Phone, Send } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { Dictionary } from "@/lib/i18n";
 import type { BrandSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
@@ -12,20 +12,25 @@ export function whatsappUrl(number: string) {
 
 type ChannelLabels = Pick<Dictionary["common"], "telegram" | "whatsapp" | "call" | "email">;
 
+/**
+ * Contact channels as a spec list (mono label · value · arrow), not icon cards.
+ * `compact` = a plain list for footers and sidebars.
+ */
 export function ContactChannels({ brand, dict, compact, className }: { brand: BrandSettings; dict: { common: ChannelLabels }; compact?: boolean; className?: string }) {
   const items = [
-    { icon: Send, label: dict.common.telegram, value: brand.telegram, href: telegramUrl(brand.telegram) },
-    { icon: MessageCircle, label: dict.common.whatsapp, value: brand.whatsapp, href: whatsappUrl(brand.whatsapp) },
-    { icon: Phone, label: dict.common.call, value: brand.phone, href: `tel:${brand.phone.replace(/[^\d+]/g, "")}` },
-    { icon: Mail, label: dict.common.email, value: brand.email, href: `mailto:${brand.email}` },
+    { label: dict.common.telegram, value: brand.telegram, href: telegramUrl(brand.telegram) },
+    { label: dict.common.whatsapp, value: brand.whatsapp, href: whatsappUrl(brand.whatsapp) },
+    { label: dict.common.call, value: brand.phone, href: `tel:${brand.phone.replace(/[^\d+]/g, "")}` },
+    { label: dict.common.email, value: brand.email, href: `mailto:${brand.email}` },
   ].filter((i) => i.value);
+  const ext = (href: string) => (href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {});
   if (compact) {
     return (
-      <ul className={cn("space-y-2 text-sm", className)}>
+      <ul className={cn("space-y-1.5 text-[14px]", className)}>
         {items.map((i) => (
-          <li key={i.label}>
-            <a href={i.href} className="inline-flex items-center gap-2 text-fg-2 transition-colors hover:text-fg" target={i.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
-              <i.icon size={14} className="text-faint" />
+          <li key={i.label} className="contain-w flex items-baseline gap-3">
+            <span className="caption w-20 flex-none">{i.label}</span>
+            <a href={i.href} className="text-fg-2 transition-colors hover:text-fg" {...ext(i.href)}>
               {i.value}
             </a>
           </li>
@@ -34,18 +39,18 @@ export function ContactChannels({ brand, dict, compact, className }: { brand: Br
     );
   }
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-2", className)}>
+    <ul className={cn("divide-y divide-line border-y border-line", className)}>
       {items.map((i) => (
-        <a key={i.label} href={i.href} className="card card-hover flex min-h-[62px] items-center gap-3 p-4" target={i.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
-          <span className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-accent-soft text-accent-soft-fg">
-            <i.icon size={18} />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-[11px] font-semibold tracking-wide text-muted uppercase">{i.label}</span>
-            <span className="block truncate text-sm font-medium text-fg">{i.value}</span>
-          </span>
-        </a>
+        <li key={i.label}>
+          <a href={i.href} className="contain-w group flex items-center justify-between gap-4 py-3.5 transition-colors hover:text-accent" {...ext(i.href)}>
+            <span className="flex min-w-0 items-baseline gap-4">
+              <span className="caption w-24 flex-none">{i.label}</span>
+              <span className="min-w-0 truncate text-[16px] font-medium text-fg group-hover:text-accent">{i.value}</span>
+            </span>
+            <ArrowUpRight size={16} className="flex-none text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
+          </a>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

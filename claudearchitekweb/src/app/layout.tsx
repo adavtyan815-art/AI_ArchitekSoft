@@ -1,11 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Manrope, Noto_Sans_Armenian } from "next/font/google";
+import { Inter, JetBrains_Mono, Noto_Sans_Armenian, Noto_Serif_Armenian, Source_Serif_4 } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import "./globals.css";
 
+/**
+ * Type system v3: serif display (Source Serif 4 + Noto Serif Armenian), grotesk body
+ * (Inter + Noto Sans Armenian), mono details (JetBrains Mono). All self-hosted by next/font.
+ */
 const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter", display: "swap" });
-const manrope = Manrope({ subsets: ["latin", "cyrillic"], variable: "--font-manrope", display: "swap", weight: ["500", "600", "700", "800"] });
-const armenian = Noto_Sans_Armenian({ subsets: ["armenian"], variable: "--font-armenian", display: "swap", weight: ["400", "500", "600", "700"] });
+const serif = Source_Serif_4({ subsets: ["latin", "cyrillic"], variable: "--font-serif", display: "swap", axes: ["opsz"] });
+const serifArmenian = Noto_Serif_Armenian({ subsets: ["armenian"], variable: "--font-serif-armenian", display: "swap" });
+const armenian = Noto_Sans_Armenian({ subsets: ["armenian"], variable: "--font-armenian", display: "swap" });
+const mono = JetBrains_Mono({ subsets: ["latin", "cyrillic"], variable: "--font-jetbrains", display: "swap" });
 
 export const metadata: Metadata = {
   title: "ArchiTek Soft — KitchenPro",
@@ -20,13 +26,13 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f6f3" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d0e10" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f2ed" },
+    { media: "(prefers-color-scheme: dark)", color: "#121110" },
   ],
 };
 
-/** Applies the saved theme before first paint (no flash). Cookie wins (SSR), then localStorage. */
-const THEME_SCRIPT = `(function(){try{var c=document.cookie.match(/(?:^|; )theme=(light|dark)/);var t=c?c[1]:localStorage.getItem("theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();`;
+/** Applies the saved theme before first paint (no flash) and marks the document as JS-capable (scroll reveals). */
+const THEME_SCRIPT = `(function(){try{document.documentElement.setAttribute("data-js","1");var c=document.cookie.match(/(?:^|; )theme=(light|dark)/);var t=c?c[1]:localStorage.getItem("theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
@@ -34,7 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const theme = (await cookies()).get("theme")?.value;
   const dataTheme = theme === "light" || theme === "dark" ? theme : undefined;
   return (
-    <html lang={lang} data-theme={dataTheme} className={`${inter.variable} ${manrope.variable} ${armenian.variable}`} suppressHydrationWarning>
+    <html lang={lang} data-theme={dataTheme} className={`${inter.variable} ${serif.variable} ${serifArmenian.variable} ${armenian.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

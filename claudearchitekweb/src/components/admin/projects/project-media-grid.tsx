@@ -28,17 +28,17 @@ export async function ProjectMediaGrid({ project, assets }: { project: Project; 
         const thumb = thumbUrlFor(a, 640);
         const url = mediaUrl(a.relPath);
         return (
-          <div key={a.id} className="card overflow-hidden">
+          <div key={a.id} className="frame bg-surface">
             <a href={url} target="_blank" rel="noopener noreferrer" className="block bg-surface-2">
               {thumb ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={thumb} srcSet={thumbSrcSetFor(a, 320)} sizes="(max-width: 640px) 100vw, 380px" loading="lazy" alt={a.caption ?? a.originalName} className="aspect-[4/3] w-full object-cover" />
               ) : (
-                <div className="flex aspect-[4/3] w-full items-center justify-center text-sm font-semibold text-muted uppercase">{a.originalName.split(".").pop()}</div>
+                <div className="flex aspect-[4/3] w-full items-center justify-center font-mono text-[11px] tracking-[0.1em] text-muted uppercase">{a.originalName.split(".").pop()}</div>
               )}
             </a>
-            <div className="space-y-2 p-3">
-              <div className="flex items-center justify-between gap-2 text-xs text-muted">
+            <div className="space-y-2 border-t border-line p-3">
+              <div className="caption flex items-center justify-between gap-2">
                 <span className="truncate" title={a.originalName}>
                   {a.originalName}
                 </span>
@@ -50,7 +50,7 @@ export async function ProjectMediaGrid({ project, assets }: { project: Project; 
 
               <form action={updateAssetCaptionAction} className="flex gap-1">
                 <input type="hidden" name="id" value={a.id} />
-                <Input name="caption" defaultValue={a.caption ?? ""} placeholder={M.captionShort} className="py-1 text-xs" maxLength={500} />
+                <Input name="caption" defaultValue={a.caption ?? ""} placeholder={M.captionShort} className="h-9 text-[13px]" maxLength={500} />
                 <button type="submit" className="btn-secondary btn-sm">
                   {t.common.save}
                 </button>
@@ -67,7 +67,7 @@ export async function ProjectMediaGrid({ project, assets }: { project: Project; 
                       <input type="hidden" name="role" value={r.key} />
                       <button
                         type="submit"
-                        className={cn("rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors", active ? "border-fg bg-fg text-bg" : "border-line text-fg-2 hover:border-line-strong")}
+                        className={cn("rounded-sm border px-2 py-0.5 font-mono text-[10px] tracking-[0.06em] uppercase transition-colors", active ? "border-fg bg-fg text-bg" : "border-line text-fg-2 hover:border-line-strong")}
                         title={active ? M.clearRole(label) : M.setRole(label)}
                       >
                         {label}

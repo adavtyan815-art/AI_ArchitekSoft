@@ -7,7 +7,7 @@ import { PROJECT_STAGES, PROJECT_TYPES } from "@/lib/crm";
 import { clientLabel, relTime } from "@/lib/admin-helpers";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
 import { formatDate, formatMoney } from "@/lib/utils";
-import { FilterBar, PageHeader, PillTabs, StatCard, StatusBadge } from "@/components/admin/shell";
+import { FilterBar, PageHeader, PillTabs, SpecStrip, StatCard, StatusBadge } from "@/components/admin/shell";
 import { Empty, Input, Select } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -87,17 +87,17 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+      <SpecStrip cols={3} className="mb-5">
         <StatCard label={P.shown} value={rows.length} hint={P.totalHint(totalAll)} />
         <StatCard label={P.quotedFiltered} value={formatMoney(pipeline)} />
         <StatCard label={P.paidFiltered} value={formatMoney(paid)} tone={paid ? "success" : undefined} />
-      </div>
+      </SpecStrip>
 
       <FilterBar className="flex-col items-stretch">
         <PillTabs items={stageTabs} current={stage} />
         <form action="/admin/projects" className="flex w-full flex-wrap items-center gap-2">
           {stage !== "all" ? <input type="hidden" name="stage" value={stage} /> : null}
-          <Select name="status" defaultValue={status} className="w-full py-1.5 text-sm sm:w-44" aria-label={t.common.status}>
+          <Select name="status" defaultValue={status} className="h-9 w-full text-[13.5px] sm:w-44" aria-label={t.common.status}>
             <option value="all">{P.anyStatus}</option>
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -105,12 +105,12 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
               </option>
             ))}
           </Select>
-          <Select name="segment" defaultValue={segment} className="w-full py-1.5 text-sm sm:w-40" aria-label={t.common.segment}>
+          <Select name="segment" defaultValue={segment} className="h-9 w-full text-[13.5px] sm:w-40" aria-label={t.common.segment}>
             <option value="all">{P.anySegment}</option>
             <option value="b2b">{t.segments.b2b}</option>
             <option value="b2c">{t.segments.b2c}</option>
           </Select>
-          <Select name="type" defaultValue={type} className="w-full py-1.5 text-sm sm:w-40" aria-label={t.common.type}>
+          <Select name="type" defaultValue={type} className="h-9 w-full text-[13.5px] sm:w-40" aria-label={t.common.type}>
             <option value="all">{P.anyType}</option>
             {PROJECT_TYPES.map((ty) => (
               <option key={ty} value={ty}>
@@ -118,7 +118,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
               </option>
             ))}
           </Select>
-          <Input name="q" defaultValue={q} placeholder={P.searchPlaceholder} className="w-full py-1.5 sm:w-56" aria-label={t.common.search} />
+          <Input name="q" defaultValue={q} placeholder={P.searchPlaceholder} className="h-9 w-full text-[13.5px] sm:w-56" aria-label={t.common.search} />
           <button type="submit" className="btn-secondary btn-sm">
             {t.common.apply}
           </button>
@@ -149,7 +149,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                 <th className="max-md:hidden!">{t.common.segment}</th>
                 <th className="max-md:hidden!">{t.common.type}</th>
                 <th>{t.common.stage}</th>
-                <th className="text-right">{P.colQuote}</th>
+                <th className="num">{P.colQuote}</th>
                 <th className="max-md:hidden!">{P.colDeadline}</th>
                 <th className="max-md:hidden!">{t.common.updated}</th>
                 <th>{t.common.status}</th>
@@ -162,7 +162,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                     {p.code}
                   </td>
                   <td data-label={P.colTitle}>
-                    <Link href={`/admin/projects/${p.id}`} className="font-medium text-fg transition-colors hover:text-accent">
+                    <Link href={`/admin/projects/${p.id}`} className="font-semibold text-fg transition-colors hover:text-accent">
                       {p.title}
                     </Link>
                   </td>
@@ -186,14 +186,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   <td data-label={t.common.stage}>
                     <StatusBadge value={p.stage} label={labelFor(t, "projectStage", p.stage)} />
                   </td>
-                  <td data-label={P.colQuote} className="text-right whitespace-nowrap tabular-nums">
+                  <td data-label={P.colQuote} className="num whitespace-nowrap">
                     <div>{formatMoney(p.quoteAmount, p.currency)}</div>
                     {p.paidAmount ? <div className="text-xs text-success">{formatMoney(p.paidAmount, p.currency)}</div> : null}
                   </td>
-                  <td data-label={P.colDeadline} className="whitespace-nowrap max-md:hidden!">
+                  <td data-label={P.colDeadline} className="font-mono text-[12px] whitespace-nowrap max-md:hidden!">
                     {p.deadline ? formatDate(p.deadline) : "—"}
                   </td>
-                  <td data-label={t.common.updated} className="whitespace-nowrap text-muted max-md:hidden!">
+                  <td data-label={t.common.updated} className="font-mono text-[12px] whitespace-nowrap text-muted max-md:hidden!">
                     {relTime(p.updatedAt, locale)}
                   </td>
                   <td data-label={t.common.status}>

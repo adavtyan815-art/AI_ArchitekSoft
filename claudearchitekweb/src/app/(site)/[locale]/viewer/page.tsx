@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, Move3d, Palette, Share2, Smartphone } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
-import { ButtonLink, IconBox, SectionHeading } from "@/components/ui";
+import { ButtonLink, Index, SectionHeading, Ticks } from "@/components/ui";
 import { ViewerDemo } from "@/components/site/viewer-demo";
 import { pageMeta } from "../meta";
+
+/** Page-only strings that have no dictionary key yet. */
+const LOCAL: Record<Locale, { featuresTitle: string }> = {
+  hy: { featuresTitle: "Ի՞նչ կարող է անել Ձեր հաճախորդը" },
+  ru: { featuresTitle: "Что может ваш клиент" },
+  en: { featuresTitle: "What your customer can do" },
+};
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
@@ -18,44 +25,88 @@ export default async function ViewerPage({ params }: { params: Promise<{ locale:
   const d = getDictionary(locale);
   const v = d.viewerPage;
   const p = (path: string) => localePath(locale, path);
-  const icons = [Move3d, Palette, Smartphone, Share2];
+  const t = LOCAL[locale];
 
   return (
     <>
-      <section className="container-x pt-10 sm:pt-16">
-        <SectionHeading eyebrow={v.tag} title={v.title} text={v.subtitle} size="display" className="max-w-3xl" />
-      </section>
-
-      <section className="container-x section-tight">
-        <div className="kicker mb-3">{v.demoTitle}</div>
-        <ViewerDemo labels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }} height="h-[440px] sm:h-[600px]" autoload />
-      </section>
-
-      <section className="container-x section-tight reveal">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {v.features.map((f, i) => {
-            const Icon = icons[i];
-            return (
-              <div key={f.title} className="card p-5">
-                <IconBox>
-                  <Icon />
-                </IconBox>
-                <div className="mt-4 h-card">{f.title}</div>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{f.text}</p>
-              </div>
-            );
-          })}
+      {/* 01 — HERO */}
+      <section className="container-x pt-10 sm:pt-14 lg:pt-20">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-8">
+          <div className="min-w-0 lg:col-span-7 lg:pr-8">
+            <div className="mb-6 flex items-baseline gap-3">
+              <Index n={1} />
+              <span className="eyebrow">{v.tag}</span>
+            </div>
+            <h1 className="h-display max-sm:break-words">{v.title}</h1>
+          </div>
+          <div className="flex flex-col justify-end lg:col-span-5">
+            <p className="lead max-w-[32rem]">{v.subtitle}</p>
+            <p className="caption mt-5">{d.home.heroNote}</p>
+          </div>
+        </div>
+        <div className="mt-12 sm:mt-16">
+          <Ticks />
         </div>
       </section>
 
+      {/* 02 — DEMO */}
+      <section className="container-x pt-12 sm:pt-16">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-t border-line pt-6">
+          <div className="flex items-baseline gap-3">
+            <Index n={2} />
+            <span className="eyebrow">{v.demoTitle}</span>
+          </div>
+          <span className="caption">GLB · AR · {d.home.viewerSwatches}</span>
+        </div>
+        <ViewerDemo
+          labels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }}
+          height="h-[440px] sm:h-[600px]"
+          className="mt-6"
+          autoload
+        />
+      </section>
+
+      {/* 03 — FEATURES */}
       <section className="container-x section-tight reveal">
-        <SectionHeading title={v.vsTitle} />
-        <div className="card mt-6 overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
+        <SectionHeading index={3} eyebrow={v.tag} title={t.featuresTitle} />
+        <ol className="mt-10 grid gap-x-8 gap-y-0 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4">
+          {v.features.map((f, i) => (
+            <li key={f.title} className="border-t border-line-strong pt-5 pb-8 lg:pb-0">
+              <Index n={i + 1} />
+              <div className="mt-4 font-display text-[1.25rem] leading-tight text-fg">{f.title}</div>
+              <p className="mt-2.5 text-[14.5px] leading-relaxed text-muted">{f.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* 04 — WEB VIEWER vs LIVE 3D */}
+      <section className="container-x section-tight reveal">
+        <SectionHeading
+          index={4}
+          eyebrow={d.home.liveTag}
+          title={v.vsTitle}
+          action={
+            <ButtonLink href={p("/live-3d")} variant="secondary">
+              Live 3D
+              <ArrowRight size={15} />
+            </ButtonLink>
+          }
+        />
+        <div className="mt-10 -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0 lg:mt-14">
+          <table className="w-full min-w-[600px] border-collapse text-[15px]">
             <thead>
-              <tr className="border-b border-line bg-surface-2">
+              <tr>
                 {v.vs.head.map((h, i) => (
-                  <th key={i} className={i === 0 ? "px-5 py-3 text-left text-[11px] font-semibold tracking-wide text-muted uppercase" : "px-5 py-3 text-left font-display text-base font-semibold text-fg"}>
+                  <th
+                    key={i}
+                    scope="col"
+                    className={
+                      i === 0
+                        ? "w-[9rem] border-y border-line-strong py-3 pr-4 text-left font-mono text-[10.5px] font-medium tracking-[0.1em] text-muted uppercase"
+                        : "border-y border-line-strong px-4 py-3 text-left font-mono text-[10.5px] font-medium tracking-[0.1em] text-fg uppercase"
+                    }
+                  >
                     {h}
                   </th>
                 ))}
@@ -63,9 +114,9 @@ export default async function ViewerPage({ params }: { params: Promise<{ locale:
             </thead>
             <tbody>
               {v.vs.rows.map((row) => (
-                <tr key={row[0]} className="border-b border-line last:border-0">
+                <tr key={row[0]}>
                   {row.map((cell, i) => (
-                    <td key={i} className={i === 0 ? "px-5 py-3.5 font-medium text-fg" : "px-5 py-3.5 text-fg-2"}>
+                    <td key={i} className={i === 0 ? "border-b border-line py-4 pr-4 align-top font-mono text-[11.5px] tracking-[0.08em] text-muted uppercase" : "border-b border-line px-4 py-4 align-top text-fg-2"}>
                       {cell}
                     </td>
                   ))}
@@ -74,11 +125,23 @@ export default async function ViewerPage({ params }: { params: Promise<{ locale:
             </tbody>
           </table>
         </div>
-        <div className="mt-8">
-          <ButtonLink href={p("/start")} size="lg">
-            {v.cta}
-            <ArrowUpRight size={18} />
-          </ButtonLink>
+      </section>
+
+      {/* 05 — CTA */}
+      <section className="container-x pb-20 reveal sm:pb-28">
+        <div className="rounded-xl bg-accent p-7 text-accent-fg sm:p-12">
+          <div className="grid items-end gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-7">
+              <h2 className="font-display text-[1.9rem] leading-[1.08] sm:text-[2.6rem]">{d.home.finalTitle}</h2>
+              <p className="mt-4 max-w-lg text-[15px] opacity-85 sm:text-[16px]">{d.home.finalText}</p>
+            </div>
+            <div className="lg:col-span-4 lg:col-start-9 lg:justify-self-end">
+              <ButtonLink href={p("/start")} size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
+                {v.cta}
+                <ArrowUpRight size={18} />
+              </ButtonLink>
+            </div>
+          </div>
         </div>
       </section>
     </>

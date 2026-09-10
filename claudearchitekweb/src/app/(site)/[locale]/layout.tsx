@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site/footer";
 import { Track } from "@/components/site/track";
 import { MobileCta } from "@/components/site/mobile-cta";
 import { telegramUrl } from "@/components/site/contact-channels";
+import { RevealObserver } from "@/components/reveal";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function SiteLayout({ children, params }: { children: React
       <Suspense fallback={null}>
         <Track locale={locale} />
       </Suspense>
+      <RevealObserver />
     </div>
   );
 }

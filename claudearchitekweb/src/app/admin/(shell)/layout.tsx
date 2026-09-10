@@ -14,7 +14,7 @@ export default async function AdminShellLayout({ children }: { children: React.R
   return (
     <div className="min-h-screen bg-bg text-fg">
       <AdminSidebar user={user} labels={{ ...t.nav }} />
-      <div className="lg:pl-60">
+      <div className="lg:pl-58">
         <AdminTopbar user={user} locale={locale} labels={{ website: t.nav.website, logout: t.nav.logout, search: t.nav.search, theme: t.theme, lang: t.langSwitch }} />
         <main className="mx-auto w-full max-w-7xl px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:py-7 lg:pb-10">{children}</main>
       </div>

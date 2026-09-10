@@ -72,14 +72,14 @@ export default async function PostEditorPage({ params, searchParams }: { params:
                 <Link href={`/admin/projects/${project.id}`} className="text-accent hover:underline">{project.code} · {project.title}</Link>
               </>
             ) : null}
-            <span>· {L.createdAt} {fmtYerevan(post.createdAt)}</span>
+            <span className="num text-[12px]">· {L.createdAt} {fmtYerevan(post.createdAt)}</span>
           </span>
         }
         actions={<Link href="/admin/smm" className="btn-secondary btn-sm">{L.backToHub}</Link>}
       />
       <Notice text={sp.notice} tone={sp.tone} />
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-0">
         <PostEditor
           post={{ id: post.id, title: post.title, goal: post.goal as never, language: post.language as never, status: post.status, scheduledLocal: toYerevanInput(post.scheduledAt), notes: post.notes }}
           variants={variants}
@@ -95,16 +95,16 @@ export default async function PostEditorPage({ params, searchParams }: { params:
           brandName={brand.name}
         />
 
-        <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-20 lg:ml-6 lg:self-start lg:border-l lg:border-line lg:pl-6">
           <Panel title={L.state}>
             <div className="divide-y divide-line">
               <KV label={t.common.status}><StatusBadge value={post.status} label={labelFor(t, "postStatus", post.status)} /></KV>
-              <KV label={L.scheduled}>{fmtYerevan(post.scheduledAt)}</KV>
-              <KV label={L.approvalSent}>{fmtYerevan(post.approvalSentAt)}</KV>
-              <KV label={L.approvedAt}>{fmtYerevan(post.approvedAt)}</KV>
-              <KV label={L.publishedAt}>{fmtYerevan(post.publishedAt)}</KV>
+              <KV label={L.scheduled}><span className="num">{fmtYerevan(post.scheduledAt)}</span></KV>
+              <KV label={L.approvalSent}><span className="num">{fmtYerevan(post.approvalSentAt)}</span></KV>
+              <KV label={L.approvedAt}><span className="num">{fmtYerevan(post.approvedAt)}</span></KV>
+              <KV label={L.publishedAt}><span className="num">{fmtYerevan(post.publishedAt)}</span></KV>
             </div>
-            {post.notes ? <p className="mt-3 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning">{post.notes}</p> : null}
+            {post.notes ? <p className="mt-3 rounded-sm border border-warning/30 bg-warning-soft px-3 py-2 text-[12px] text-warning">{post.notes}</p> : null}
           </Panel>
 
           <Panel title={L.publishLog}>
@@ -114,7 +114,7 @@ export default async function PostEditorPage({ params, searchParams }: { params:
                   <div className="flex flex-wrap items-center gap-2">
                     <PlatformChip platform={v.platform} meta={PLATFORM_META[v.platform]} status={v.status} statusLabel={labelFor(t, "variantStatus", v.status)} />
                     {!v.enabled ? <span className="text-faint">{L.off}</span> : null}
-                    <span className="ml-auto text-faint">{labelFor(t, "connection", statuses[v.platform])}</span>
+                    <span className="ml-auto font-mono text-[10px] tracking-[0.06em] text-faint uppercase">{labelFor(t, "connection", statuses[v.platform])}</span>
                   </div>
                   {v.externalUrl ? (
                     <a href={v.externalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:underline">
@@ -122,7 +122,7 @@ export default async function PostEditorPage({ params, searchParams }: { params:
                     </a>
                   ) : null}
                   {v.error ? <p className="text-fg-2">{v.error}</p> : null}
-                  {v.publishedAt ? <p className="text-faint">{fmtYerevan(v.publishedAt)}</p> : null}
+                  {v.publishedAt ? <p className="num text-[11px] text-faint">{fmtYerevan(v.publishedAt)}</p> : null}
                 </li>
               ))}
             </ul>
@@ -145,7 +145,7 @@ export default async function PostEditorPage({ params, searchParams }: { params:
                 {threads.map((th) => (
                   <li key={th.id} className="flex items-center justify-between gap-2">
                     <StatusBadge value={th.state} label={labelFor(t, "postStatus", th.state)} />
-                    <span className="text-faint">{L.msgLabel} {th.messageId ?? "—"} · {fmtYerevan(th.updatedAt)}</span>
+                    <span className="num text-[10.5px] text-faint">{L.msgLabel} {th.messageId ?? "—"} · {fmtYerevan(th.updatedAt)}</span>
                   </li>
                 ))}
               </ul>

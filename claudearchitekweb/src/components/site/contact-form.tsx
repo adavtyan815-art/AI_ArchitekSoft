@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
-import { Button, Field, Input, Textarea } from "@/components/ui";
+import { Button, Field, Index, Input, Textarea } from "@/components/ui";
 import { trackEvent } from "@/components/site/track";
 import { cn } from "@/lib/utils";
 
@@ -61,11 +61,9 @@ export function ContactForm({ locale, strings, className }: { locale: Locale; st
 
   if (state === "done") {
     return (
-      <div className={cn("rounded-2xl bg-success-soft p-6", className)}>
+      <div className={cn("border-t border-success pt-6", className)}>
         <div className="flex items-start gap-3">
-          <span className="inline-flex h-9 w-9 flex-none items-center justify-center rounded-full bg-success text-[#fff]">
-            <Check size={18} strokeWidth={3} />
-          </span>
+          <Check size={18} strokeWidth={2.5} className="mt-0.5 flex-none text-success" />
           <p className="text-[15px] leading-relaxed text-fg">{c.success}</p>
         </div>
       </div>
@@ -73,7 +71,7 @@ export function ContactForm({ locale, strings, className }: { locale: Locale; st
   }
 
   return (
-    <form onSubmit={submit} className={cn("space-y-5", className)} onFocusCapture={onFocus}>
+    <form onSubmit={submit} className={cn("space-y-6", className)} onFocusCapture={onFocus}>
       <div>
         <span className="label">{c.segment}</span>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -82,19 +80,18 @@ export function ContactForm({ locale, strings, className }: { locale: Locale; st
               ["b2c", c.segB2c],
               ["b2b", c.segB2b],
             ] as [Segment, string][]
-          ).map(([val, label]) => (
-            <label key={val} className="choice items-center py-3.5 text-[15px] font-medium text-fg">
+          ).map(([val, label], i) => (
+            <label key={val} className="choice items-center gap-3 py-3.5 text-[15px] leading-snug font-medium text-fg">
               <input type="radio" name="segment" value={val} checked={segment === val} onChange={() => setSegment(val)} className="sr-only" />
-              <span className={cn("inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border transition-colors", segment === val ? "border-accent bg-accent" : "border-line-strong")}>
-                {segment === val ? <span className="h-2 w-2 rounded-full bg-accent-fg" /> : null}
-              </span>
+              <Index n={i + 1} className={cn("flex-none", segment !== val && "text-faint")} />
+              <span className={cn("h-3.5 w-3.5 flex-none rounded-sm border transition-colors", segment === val ? "border-fg bg-accent" : "border-line-strong")} aria-hidden />
               {label}
             </label>
           ))}
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid items-end gap-5 sm:grid-cols-2">
         <Field label={c.name} required>
           <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={120} autoComplete="name" />
         </Field>
@@ -114,15 +111,17 @@ export function ContactForm({ locale, strings, className }: { locale: Locale; st
       </div>
 
       {state === "error" ? (
-        <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">
+        <p role="alert" className="rounded-md border border-danger/40 bg-danger-soft px-4 py-3 text-sm text-danger">
           {c.error}
         </p>
       ) : null}
 
-      <Button type="submit" size="lg" disabled={state === "sending"} className="w-full sm:w-auto">
-        {state === "sending" ? c.sending : c.send}
-        <ArrowRight size={18} />
-      </Button>
+      <div className="flex items-center gap-4 border-t border-line pt-6">
+        <Button type="submit" size="lg" disabled={state === "sending"} className="w-full sm:w-auto">
+          {state === "sending" ? c.sending : c.send}
+          <ArrowRight size={18} />
+        </Button>
+      </div>
     </form>
   );
 }

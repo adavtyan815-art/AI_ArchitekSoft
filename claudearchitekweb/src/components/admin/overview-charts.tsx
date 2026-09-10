@@ -30,25 +30,25 @@ export function OverviewCharts({ leadsByDay, sourceRows, typeRows, labels }: Pro
       <div className="h-56">
         {data.length === 0 ? <div className="flex h-full items-center justify-center text-sm text-muted">{labels.empty}</div> : <OverviewBars data={data} b2bLabel={labels.b2b} b2cLabel={labels.b2c} />}
       </div>
-      <div className="grid gap-4 text-sm">
+      <div className="grid gap-5 text-[13.5px]">
         <div>
-          <div className="mb-2 text-[11px] font-semibold tracking-wide text-muted uppercase">{labels.sources}</div>
-          <ul className="space-y-1.5">
+          <div className="mb-1 border-b border-line pb-1.5 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{labels.sources}</div>
+          <ul className="divide-y divide-line">
             {sourceRows.slice(0, 5).map((r) => (
-              <li key={r.label} className="flex items-center justify-between gap-3">
+              <li key={r.label} className="flex items-center justify-between gap-3 py-1.5">
                 <span className="truncate text-fg-2">{r.label}</span>
-                <span className="font-medium tabular-nums text-fg">{r.c}</span>
+                <span className="num text-fg">{r.c}</span>
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <div className="mb-2 text-[11px] font-semibold tracking-wide text-muted uppercase">{labels.projectTypes}</div>
-          <ul className="space-y-1.5">
+          <div className="mb-1 border-b border-line pb-1.5 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{labels.projectTypes}</div>
+          <ul className="divide-y divide-line">
             {typeRows.slice(0, 5).map((r) => (
-              <li key={r.label} className="flex items-center justify-between gap-3">
+              <li key={r.label} className="flex items-center justify-between gap-3 py-1.5">
                 <span className="truncate text-fg-2">{r.label}</span>
-                <span className="font-medium tabular-nums text-fg">{r.c}</span>
+                <span className="num text-fg">{r.c}</span>
               </li>
             ))}
           </ul>

@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { Box, RotateCcw, Smartphone } from "lucide-react";
+import { Swatch } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 /**
- * Web Viewer demo: Google <model-viewer> + material swatches.
+ * Web Viewer demo: Google <model-viewer> on a dark stage with corner marks,
+ * a mono toolbar and a material swatch bar.
  * The GLB is loaded lazily (only when the section is near the viewport) to keep the page light.
  */
-type Swatch = { id: string; label: string; hex?: string; original?: boolean };
+type SwatchItem = { id: string; label: string; hex?: string; original?: boolean };
 
 type MVMaterial = {
   name: string;
@@ -22,7 +24,9 @@ type MVMaterial = {
 };
 type MVElement = HTMLElement & { model?: { materials: MVMaterial[] }; canActivateAR?: boolean; activateAR?: () => void; resetTurntableRotation?: () => void };
 
-const DEFAULT_SWATCHES: Swatch[] = [
+const WOOD = "linear-gradient(135deg,#b58a5b,#7a5a3a)";
+
+const DEFAULT_SWATCHES: SwatchItem[] = [
   { id: "wood", label: "Wood", original: true },
   { id: "white", label: "Matt white", hex: "#f2f0ea" },
   { id: "sand", label: "Sand", hex: "#cbb999" },
@@ -54,7 +58,7 @@ export function ViewerDemo({
   src?: string;
   poster?: string;
   materialIndex?: number;
-  swatches?: Swatch[];
+  swatches?: SwatchItem[];
   labels: { hint: string; swatches: string; ar: string; reset?: string; load?: string };
   className?: string;
   height?: string;
@@ -103,7 +107,7 @@ export function ViewerDemo({
     return () => mv.removeEventListener("load", onLoad);
   }, [near, materialIndex]);
 
-  const apply = (s: Swatch) => {
+  const apply = (s: SwatchItem) => {
     setActive(s.id);
     const m = ref.current?.model?.materials?.[materialIndex];
     if (!m) return;
@@ -120,10 +124,16 @@ export function ViewerDemo({
     }
   };
 
+  /** Mono toolbar button: square, hairline, readable on the dark stage. */
+  const toolBtn =
+    "inline-flex h-11 items-center gap-2 rounded-md border border-[#f4f2ed]/25 bg-[#17150f]/55 px-3 font-mono text-[10.5px] uppercase tracking-[0.1em] text-[#f4f2ed] backdrop-blur transition-colors hover:border-[#f4f2ed]/60 hover:bg-[#17150f]/75 disabled:opacity-40 sm:h-9";
+
   return (
-    <div ref={wrap} className={cn("card overflow-hidden", className)}>
+    <div ref={wrap} className={cn("frame", className)}>
       {near ? <Script src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer.min.js" type="module" strategy="lazyOnload" crossOrigin="anonymous" /> : null}
-      <div className={cn("relative bg-surface-2", height)}>
+      <div className={cn("stage frame-marks on-image relative", height)}>
+        {/* subtle grid-paper floor under the model */}
+        <span aria-hidden className="grid-paper pointer-events-none absolute inset-x-0 bottom-0 h-2/5 opacity-40" />
         {near ? (
           <model-viewer
             ref={ref}
@@ -147,46 +157,46 @@ export function ViewerDemo({
           />
         ) : null}
         {!near ? (
-          <button type="button" onClick={() => setNear(true)} className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-2">
+          <button type="button" onClick={() => setNear(true)} className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             {poster ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />
+              <img src={poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />
             ) : null}
-            <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-full bg-fg text-bg shadow-lift">
+            <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-md border border-[#f4f2ed]/35 bg-[#17150f]/60 text-[#f4f2ed] backdrop-blur">
               <Box size={22} />
             </span>
-            <span className="relative rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-fg shadow-soft">{labels.load ?? "3D"}</span>
+            <span className="relative font-mono text-[11px] tracking-[0.12em] text-[#f4f2ed] uppercase">{labels.load ?? "3D"}</span>
           </button>
         ) : !ready ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="flex items-center gap-2 rounded-full bg-surface/85 px-3 py-1.5 text-xs font-medium text-muted backdrop-blur">
+            <span className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.12em] text-[#f4f2ed]/70 uppercase">
               <Box size={14} className="animate-pulse" /> 3D
-            </div>
+            </span>
           </div>
         ) : null}
-        <div className="pointer-events-none absolute top-3 left-3 rounded-full bg-surface/85 px-3 py-1 text-[11px] font-medium text-fg-2 backdrop-blur">{labels.hint}</div>
-        <div className="absolute top-3 right-3 flex gap-1.5">
-          <button type="button" className="btn-secondary btn-icon h-8 w-8" aria-label={labels.reset ?? "Reset"} onClick={() => ref.current?.resetTurntableRotation?.()}>
+
+        {/* mono toolbar: hint · reset · AR */}
+        <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-2 sm:inset-x-4 sm:bottom-4">
+          <span className="hidden items-center rounded-md border border-[#f4f2ed]/20 bg-[#17150f]/55 px-3 py-1.5 font-mono text-[10.5px] tracking-[0.06em] text-[#f4f2ed]/80 backdrop-blur sm:inline-flex">{labels.hint}</span>
+          <button type="button" className={toolBtn} onClick={() => ref.current?.resetTurntableRotation?.()} aria-label={labels.reset ?? "Reset"}>
             <RotateCcw size={14} />
+            <span className="hidden sm:inline">{labels.reset ?? "Reset"}</span>
+          </button>
+          <button type="button" className={cn(toolBtn, !canAr && "opacity-40")} onClick={() => ref.current?.activateAR?.()} disabled={!canAr}>
+            <Smartphone size={14} />
+            {labels.ar}
           </button>
         </div>
       </div>
-      <div className="flex flex-col gap-3 border-t border-line p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="kicker mb-2">{labels.swatches}</div>
-          <div className="flex flex-wrap gap-2">
-            {swatches.map((s) => (
-              <button key={s.id} type="button" onClick={() => apply(s)} className={cn("flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-xs font-medium transition-colors", active === s.id ? "border-fg text-fg" : "border-line text-fg-2 hover:border-line-strong")} aria-pressed={active === s.id} disabled={!ready}>
-                <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: s.hex ?? "linear-gradient(135deg,#b58a5b,#7a5a3a)" }} />
-                {s.label}
-              </button>
-            ))}
-          </div>
+
+      {/* swatch bar */}
+      <div className="flex flex-col gap-3 border-t border-line px-3.5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div className="caption flex-none sm:w-28">{labels.swatches}</div>
+        <div className="flex flex-1 flex-wrap items-start gap-x-4 gap-y-3 sm:justify-end">
+          {swatches.map((s) => (
+            <Swatch key={s.id} hex={s.hex ?? WOOD} label={s.label} active={active === s.id} disabled={!ready} onClick={() => apply(s)} className="disabled:opacity-45" />
+          ))}
         </div>
-        <button type="button" className={cn("btn-soft shrink-0", !canAr && "hidden sm:inline-flex sm:opacity-60")} onClick={() => ref.current?.activateAR?.()} disabled={!canAr}>
-          <Smartphone size={15} />
-          {labels.ar}
-        </button>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { formatDuration, thumbSrcSetFor, thumbUrlFor } from "@/lib/admin-helpers
 import { mediaUrl } from "@/lib/media";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
 import { formatBytes } from "@/lib/utils";
-import { FilterBar, PageHeader, Panel, PillTabs, StatCard } from "@/components/admin/shell";
+import { FilterBar, PageHeader, Panel, PillTabs, SpecStrip, StatCard } from "@/components/admin/shell";
 import { Empty, Input, Select } from "@/components/ui";
 import { UploadZone } from "@/components/admin/media/upload-zone";
 import { MediaLibrary, type MediaCard } from "@/components/admin/media/media-library";
@@ -84,11 +84,11 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
     <>
       <PageHeader title={M.title} subtitle={M.subtitle} />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+      <SpecStrip cols={3} className="mb-5">
         <StatCard label={M.files} value={totals?.c ?? 0} hint={M.shown(rows.length)} />
         <StatCard label={M.storage} value={formatBytes(totals?.b ?? 0)} />
         <StatCard label={M.unassigned} value={unassigned} tone={unassigned ? "warning" : undefined} />
-      </div>
+      </SpecStrip>
 
       <Panel title={M.upload} className="mb-4">
         <UploadZone labels={{ label: M.uploadLibraryLabel, hint: M.uploadHint, busy: M.uploading, uploaded: M.uploaded, failed: M.uploadFailed }} />
@@ -98,7 +98,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
         <PillTabs items={kindTabs} current={kind} />
         <form action="/admin/media" className="flex w-full flex-wrap items-center gap-2">
           {kind !== "all" ? <input type="hidden" name="kind" value={kind} /> : null}
-          <Select name="project" defaultValue={projectFilter} className="w-full py-1.5 text-sm sm:w-64" aria-label={M.project}>
+          <Select name="project" defaultValue={projectFilter} className="h-9 w-full text-[13.5px] sm:w-64" aria-label={M.project}>
             <option value="all">{M.anyProject}</option>
             <option value="none">{M.unassignedOption}</option>
             {projects.map((p) => (
@@ -107,7 +107,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
               </option>
             ))}
           </Select>
-          <Input name="q" defaultValue={q} placeholder={M.searchPlaceholder} className="w-full py-1.5 sm:w-56" aria-label={t.common.search} />
+          <Input name="q" defaultValue={q} placeholder={M.searchPlaceholder} className="h-9 w-full text-[13.5px] sm:w-56" aria-label={t.common.search} />
           <button type="submit" className="btn-secondary btn-sm">
             {t.common.apply}
           </button>

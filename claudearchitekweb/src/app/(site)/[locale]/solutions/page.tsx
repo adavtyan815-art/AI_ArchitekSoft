@@ -3,10 +3,10 @@ import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
-import { ButtonLink, CheckList, SectionHeading } from "@/components/ui";
+import { ButtonLink, CheckList, Frame, Index, Ticks } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
-const IMAGES = ["/demo/cottage.jpg", "/demo/interior.jpg", "/demo/living.jpg", "/demo/wardrobe.jpg"];
+const IMAGES = ["/demo/cottage.webp", "/demo/living.webp", "/demo/wardrobe.webp", "/demo/render-3.webp"];
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
@@ -21,55 +21,67 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
   const d = getDictionary(locale);
   const p = (path: string) => localePath(locale, path);
   const s = d.solutions;
+  const total = String(s.items.length).padStart(2, "0");
 
   return (
     <>
-      {/* ───────────────────────── HERO ───────────────────────── */}
-      <section className="container-x pt-10 sm:pt-16 lg:pt-20">
-        <SectionHeading eyebrow={s.tag} title={s.title} text={s.subtitle} size="display" className="max-w-3xl" />
-      </section>
-
-      {/* ───────────────────────── ALTERNATING ROWS ───────────────────────── */}
-      <section className="container-x section-tight">
-        <div className="space-y-14 sm:space-y-20 lg:space-y-24">
-          {s.items.map((it, i) => {
-            const flip = i % 2 === 1;
-            return (
-              <div key={it.title} className="grid items-center gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-14 reveal">
-                <div className={cn("relative aspect-[4/3] overflow-hidden rounded-3xl border border-line bg-surface-2 shadow-card", flip && "lg:order-2")}>
-                  <Image
-                    src={IMAGES[i] ?? IMAGES[0]}
-                    alt=""
-                    fill
-                    priority={i === 0}
-                    sizes="(min-width: 1024px) 46vw, 100vw"
-                    className="object-cover"
-                  />
-                </div>
-                <div className={cn("min-w-0", flip && "lg:order-1")}>
-                  <div className="kicker">0{i + 1}</div>
-                  <h2 className="mt-3 h-section">{it.title}</h2>
-                  <p className="lead mt-4">{it.text}</p>
-                  <CheckList items={it.bullets} className="mt-6" />
-                </div>
-              </div>
-            );
-          })}
+      {/* ───────────────────────── 01 · HERO ───────────────────────── */}
+      <section className="container-x pt-10 sm:pt-14 lg:pt-20">
+        <div className="grid gap-8 lg:grid-cols-12">
+          <div className="lg:col-span-8">
+            <div className="mb-6 flex items-center gap-3">
+              <Index n={1} />
+              <span className="eyebrow">{s.tag}</span>
+            </div>
+            <h1 className="h-display max-w-3xl">{s.title}</h1>
+          </div>
+          <p className="lead lg:col-span-4 lg:self-end">{s.subtitle}</p>
+        </div>
+        <div className="mt-12 sm:mt-16">
+          <Ticks />
         </div>
       </section>
 
-      {/* ───────────────────────── CTA ───────────────────────── */}
-      <section className="container-x pt-4 pb-10 reveal">
-        <div className="inverse rounded-3xl px-6 py-12 sm:px-12 sm:py-16">
-          <div className="grid items-center gap-8 lg:grid-cols-[1.3fr_auto]">
-            <div>
-              <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{s.cta}</h2>
-              <p className="mt-3 text-lg opacity-75">{d.contact.subtitle}</p>
+      {/* ───────────────────────── 02 · INDUSTRIES ───────────────────────── */}
+      <section className="container-x pt-14 pb-4 sm:pt-20">
+        <ol>
+          {s.items.map((it, i) => {
+            const flip = i % 2 === 1;
+            return (
+              <li key={it.title} className="reveal grid gap-8 border-t border-line py-12 sm:py-16 lg:grid-cols-12 lg:gap-10">
+                <div className={cn("lg:col-span-5", flip ? "lg:order-2 lg:col-start-8" : "")}>
+                  <Index n={i + 1} />
+                  <h2 className="mt-5 font-display text-[1.75rem] leading-[1.1] text-fg sm:text-[2.4rem]">{it.title}</h2>
+                  <p className="mt-5 max-w-lg text-[15.5px] leading-relaxed text-fg-2">{it.text}</p>
+                  <CheckList items={it.bullets} className="mt-7" />
+                </div>
+                <div className={cn("lg:col-span-6", flip ? "lg:order-1 lg:col-start-1" : "lg:col-start-7")}>
+                  <Frame marks className="img-zoom" caption={it.title} captionRight={`${String(i + 1).padStart(2, "0")} / ${total}`}>
+                    <div className="relative aspect-[4/3] bg-surface-2 sm:aspect-[16/10]">
+                      <Image src={IMAGES[i] ?? IMAGES[0]} alt="" fill priority={i === 0} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+                    </div>
+                  </Frame>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
+      {/* ───────────────────────── 03 · CTA ───────────────────────── */}
+      <section className="container-x pt-10 pb-16 sm:pb-24 reveal">
+        <div className="rounded-xl bg-accent p-7 text-accent-fg sm:p-12">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
+            <div className="lg:col-span-7">
+              <h2 className="font-display text-[1.9rem] leading-[1.08] sm:text-[2.6rem]">{s.cta}</h2>
+              <p className="mt-4 max-w-md text-[15px] opacity-85">{d.contact.subtitle}</p>
             </div>
-            <ButtonLink href={p("/contact")} size="lg" className="w-full bg-inverse-fg text-inverse-bg hover:opacity-90 sm:w-fit">
-              {d.common.contactUs}
-              <ArrowUpRight size={18} />
-            </ButtonLink>
+            <div className="lg:col-span-5 lg:justify-self-end">
+              <ButtonLink href={p("/contact")} size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
+                {d.common.contactUs}
+                <ArrowUpRight size={18} />
+              </ButtonLink>
+            </div>
           </div>
         </div>
       </section>

@@ -5,8 +5,10 @@ import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { env } from "@/lib/env";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { BrandLogo } from "@/components/brand-logo";
 import { ViewerDemo } from "@/components/site/viewer-demo";
 import { QrPanel } from "@/components/portal/ar-button";
+import { Index } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -76,59 +78,64 @@ export default async function ArDemoPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
-      <header className="glass sticky top-0 z-30 border-b border-line">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-5 sm:px-8">
-          <a href="/" className="flex shrink-0 items-center gap-2.5" aria-label="ArchiTek Soft">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/logo.png" alt="ArchiTek Soft" className="h-7 w-auto dark:brightness-[1.35]" />
+      <header className="h-16 flex-none border-b border-line bg-surface">
+        <div className="mx-auto flex h-full w-full max-w-5xl items-center justify-between gap-3 px-5 sm:px-8">
+          <a href="/" className="flex shrink-0 items-center gap-3" aria-label="ArchiTek Soft">
+            <BrandLogo className="h-7" />
           </a>
-          <div className="flex items-center gap-2">
-            <span className="badge border-line bg-surface-2 text-fg-2">AR</span>
+          <div className="flex items-center gap-3">
+            <span className="tag">AR</span>
             <ThemeToggle labels={COPY.hy.theme} />
           </div>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1.15fr] lg:items-start">
-          <div className="space-y-8">
-            {(["hy", "ru", "en"] as const).map((l, i) => (
-              <div key={l} lang={l} className={i === 0 ? "" : "border-t border-line pt-6"}>
-                <div className="eyebrow mb-2">{COPY[l].tag}</div>
-                <h2 className={i === 0 ? "h-section text-[2rem] sm:text-[2.5rem]" : "h-card text-xl"}>{COPY[l].title}</h2>
-                <p className={i === 0 ? "lead mt-3" : "mt-2 text-sm leading-relaxed text-muted"}>{COPY[l].text}</p>
-              </div>
-            ))}
+        <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
+          <div className="lg:col-span-5">
+            <div className="mb-5 flex items-center gap-3">
+              <Index n={1} />
+              <span className="eyebrow">{COPY.hy.tag}</span>
+            </div>
+            <h1 className="h-display text-[2.2rem] sm:text-[2.8rem] lg:text-[3rem]">{COPY.hy.title}</h1>
+            <p className="lead mt-6">{COPY.hy.text}</p>
+            <div className="mt-10 divide-y divide-line border-y border-line">
+              {(["ru", "en"] as const).map((l) => (
+                <div key={l} lang={l} className="py-5">
+                  <div className="kicker mb-2">{COPY[l].tag}</div>
+                  <div className="font-display text-[1.2rem] leading-tight text-fg">{COPY[l].title}</div>
+                  <p className="mt-2 text-[14px] leading-relaxed text-muted">{COPY[l].text}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="space-y-5">
+          <div className="lg:col-span-7">
             {modelUrl ? (
               <>
-                <ViewerDemo src={modelUrl} labels={{ hint: COPY.hy.hint, swatches: COPY.hy.swatches, ar: COPY.hy.ar, reset: COPY.hy.reset }} height="h-[380px] sm:h-[480px]" />
+                {/* Same stage treatment as the project viewer (ViewerDemo owns the dark
+                    ground, dot-grid floor, corner marks, mono toolbar and swatch bar). */}
+                <ViewerDemo src={modelUrl} labels={{ hint: COPY.hy.hint, swatches: COPY.hy.swatches, ar: COPY.hy.ar, reset: COPY.hy.reset }} height="h-[380px] sm:h-[520px]" />
                 {qr ? (
-                  <div className="flex justify-center">
+                  <div className="mt-6 flex justify-center">
                     <QrPanel qrDataUrl={qr} note={COPY.hy.note} />
                   </div>
                 ) : null}
-                <div className="card p-4 text-sm leading-relaxed text-muted sm:p-5">
-                  <p lang="hy">{COPY.hy.note}</p>
-                  <p lang="ru" className="mt-2">
-                    {COPY.ru.note}
-                  </p>
-                  <p lang="en" className="mt-2">
-                    {COPY.en.note}
-                  </p>
+                <div className="mt-6 divide-y divide-line border-y border-line">
+                  {(["hy", "ru", "en"] as const).map((l) => (
+                    <p key={l} lang={l} className="caption py-2.5">
+                      {COPY[l].note}
+                    </p>
+                  ))}
                 </div>
               </>
             ) : (
-              <div className="card border-dashed p-10 text-center text-sm text-muted">
-                <p lang="hy">{COPY.hy.missing}</p>
-                <p lang="ru" className="mt-1">
-                  {COPY.ru.missing}
-                </p>
-                <p lang="en" className="mt-1">
-                  {COPY.en.missing}
-                </p>
+              <div className="grid-paper border-y border-line px-6 py-20 text-center">
+                {(["hy", "ru", "en"] as const).map((l, i) => (
+                  <p key={l} lang={l} className={i === 0 ? "h-sub" : "caption mt-2"}>
+                    {COPY[l].missing}
+                  </p>
+                ))}
               </div>
             )}
           </div>
@@ -136,7 +143,7 @@ export default async function ArDemoPage() {
       </main>
 
       <footer className="border-t border-line">
-        <div className="mx-auto w-full max-w-5xl px-5 py-6 text-xs text-muted sm:px-8">© {new Date().getFullYear()} ArchiTek Soft · KitchenPro</div>
+        <div className="caption mx-auto w-full max-w-5xl px-5 py-6 sm:px-8">© {new Date().getFullYear()} ArchiTek Soft · KitchenPro</div>
       </footer>
     </div>
   );

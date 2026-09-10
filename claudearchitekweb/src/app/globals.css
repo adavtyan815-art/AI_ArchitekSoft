@@ -1,120 +1,119 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   ArchiTek Soft design system v2
-   Semantic tokens with two intentionally designed modes:
-   - Light: warm paper, ink text, one cobalt accent, soft layered surfaces.
-   - Dark: deep graphite (never pure black), lifted surfaces, muted cobalt,
-     hairline borders instead of shadows, images slightly dimmed.
+   ArchiTek Soft design system v3 — "Atelier"
+   Warm paper / graphite, serif display + grotesk body + mono details,
+   hairlines instead of shadows, one warm accent, small radii.
+   See docs/14_DESIGN_SYSTEM.md
    ========================================================================== */
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   color-scheme: light;
-  --bg: #f6f6f3;
-  --surface: #ffffff;
-  --surface-2: #f0f0ec;
-  --surface-3: #e8e8e3;
-  --line: #e5e4df;
-  --line-strong: #cfcec8;
-  --fg: #111214;
-  --fg-2: #3d3f43;
-  --muted: #6d7075;
-  --faint: #9a9da3;
-  --accent: #1f5eff;
-  --accent-hover: #1750e6;
-  --accent-fg: #ffffff;
-  --accent-soft: #e9efff;
-  --accent-soft-fg: #1a48c8;
-  --success: #17864a;
-  --success-soft: #e6f5ec;
-  --warning: #b26b0f;
-  --warning-soft: #fdf1df;
-  --danger: #d23a3c;
-  --danger-soft: #fdeaea;
-  --inverse-bg: #111214;
-  --inverse-fg: #f4f4f1;
-  --shadow-sm: 0 1px 2px rgba(17, 18, 20, 0.05), 0 1px 1px rgba(17, 18, 20, 0.03);
-  --shadow-md: 0 2px 4px rgba(17, 18, 20, 0.04), 0 16px 40px -20px rgba(17, 18, 20, 0.22);
-  --shadow-lg: 0 8px 16px -8px rgba(17, 18, 20, 0.12), 0 32px 64px -24px rgba(17, 18, 20, 0.28);
+  --bg: #f4f2ed;
+  --surface: #fbfaf7;
+  --surface-2: #edeae3;
+  --surface-3: #e3dfd6;
+  --line: #ddd8ce;
+  --line-strong: #b9b3a6;
+  --fg: #17150f;
+  --fg-2: #3b3831;
+  --muted: #6b675e;
+  --faint: #9a958a;
+  --accent: #d9491f;
+  --accent-hover: #c13f18;
+  --accent-fg: #fff8f3;
+  --accent-soft: #f8e4db;
+  --accent-soft-fg: #9a2f0f;
+  --success: #2e7d4f;
+  --success-soft: #e1efe5;
+  --warning: #a66a12;
+  --warning-soft: #f6e9d2;
+  --danger: #c0392b;
+  --danger-soft: #f7e0dd;
+  --inverse-bg: #17150f;
+  --inverse-fg: #f4f2ed;
+  --stage: #141311;
+  --shadow-sm: 0 0 0 1px rgba(23, 21, 15, 0.04);
+  --shadow-md: 0 1px 2px rgba(23, 21, 15, 0.04), 0 12px 32px -16px rgba(23, 21, 15, 0.18);
+  --shadow-lg: 0 8px 24px -12px rgba(23, 21, 15, 0.18), 0 32px 64px -32px rgba(23, 21, 15, 0.28);
   --img-filter: none;
-  --header-bg: rgba(246, 246, 243, 0.82);
+  --header-bg: rgba(244, 242, 237, 0.86);
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0d0e10;
-  --surface: #15171a;
-  --surface-2: #1c1f23;
-  --surface-3: #24272c;
-  --line: #262a2f;
-  --line-strong: #363b42;
-  --fg: #f1f1ee;
-  --fg-2: #c9cac7;
-  --muted: #9a9da2;
-  --faint: #6c7076;
-  --accent: #6e9bff;
-  --accent-hover: #88adff;
-  --accent-fg: #0a1430;
-  --accent-soft: #172443;
-  --accent-soft-fg: #a9c1ff;
-  --success: #4cc27f;
-  --success-soft: #12301f;
-  --warning: #e0a44a;
+  --bg: #121110;
+  --surface: #191816;
+  --surface-2: #211f1c;
+  --surface-3: #2a2724;
+  --line: #2b2925;
+  --line-strong: #45413b;
+  --fg: #efebe3;
+  --fg-2: #cfc9be;
+  --muted: #9a948a;
+  --faint: #6e6961;
+  --accent: #ff7a4d;
+  --accent-hover: #ff8f69;
+  --accent-fg: #1a0c06;
+  --accent-soft: #3a1d12;
+  --accent-soft-fg: #ffb399;
+  --success: #5fbf85;
+  --success-soft: #16301f;
+  --warning: #e0a94f;
   --warning-soft: #33250c;
-  --danger: #f06a6b;
-  --danger-soft: #3a1516;
-  --inverse-bg: #f1f1ee;
-  --inverse-fg: #111214;
+  --danger: #f0705f;
+  --danger-soft: #3a1614;
+  --inverse-bg: #efebe3;
+  --inverse-fg: #121110;
+  --stage: #0e0d0c;
   --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.04);
   --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 20px 48px -24px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 40px 80px -32px rgba(0, 0, 0, 0.8);
-  --img-filter: brightness(0.9) saturate(0.95);
-  --header-bg: rgba(13, 14, 16, 0.78);
+  --img-filter: brightness(0.94);
+  --header-bg: rgba(18, 17, 16, 0.82);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0d0e10;
-    --surface: #15171a;
-    --surface-2: #1c1f23;
-    --surface-3: #24272c;
-    --line: #262a2f;
-    --line-strong: #363b42;
-    --fg: #f1f1ee;
-    --fg-2: #c9cac7;
-    --muted: #9a9da2;
-    --faint: #6c7076;
-    --accent: #6e9bff;
-    --accent-hover: #88adff;
-    --accent-fg: #0a1430;
-    --accent-soft: #172443;
-    --accent-soft-fg: #a9c1ff;
-    --success: #4cc27f;
-    --success-soft: #12301f;
-    --warning: #e0a44a;
+    --bg: #121110;
+    --surface: #191816;
+    --surface-2: #211f1c;
+    --surface-3: #2a2724;
+    --line: #2b2925;
+    --line-strong: #45413b;
+    --fg: #efebe3;
+    --fg-2: #cfc9be;
+    --muted: #9a948a;
+    --faint: #6e6961;
+    --accent: #ff7a4d;
+    --accent-hover: #ff8f69;
+    --accent-fg: #1a0c06;
+    --accent-soft: #3a1d12;
+    --accent-soft-fg: #ffb399;
+    --success: #5fbf85;
+    --success-soft: #16301f;
+    --warning: #e0a94f;
     --warning-soft: #33250c;
-    --danger: #f06a6b;
-    --danger-soft: #3a1516;
-    --inverse-bg: #f1f1ee;
-    --inverse-fg: #111214;
+    --danger: #f0705f;
+    --danger-soft: #3a1614;
+    --inverse-bg: #efebe3;
+    --inverse-fg: #121110;
+    --stage: #0e0d0c;
     --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.04);
     --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 20px 48px -24px rgba(0, 0, 0, 0.7);
     --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 40px 80px -32px rgba(0, 0, 0, 0.8);
-    --img-filter: brightness(0.9) saturate(0.95);
-    --header-bg: rgba(13, 14, 16, 0.78);
+    --img-filter: brightness(0.94);
+    --header-bg: rgba(18, 17, 16, 0.82);
   }
 }
 
-/* Map semantic tokens into Tailwind utilities (bg-surface, text-fg, border-line, …).
-   Legacy names from v1 (ink-*, paper, brand-*, white) are aliased so every existing
-   screen switches modes correctly while it is being restyled. */
 @theme inline {
   --font-sans: var(--font-inter), var(--font-armenian), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: var(--font-manrope), var(--font-armenian), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: var(--font-serif), var(--font-serif-armenian), "Times New Roman", Georgia, serif;
+  --font-mono: var(--font-jetbrains), var(--font-armenian), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -139,8 +138,9 @@
   --color-danger-soft: var(--danger-soft);
   --color-inverse-bg: var(--inverse-bg);
   --color-inverse-fg: var(--inverse-fg);
+  --color-stage: var(--stage);
 
-  /* legacy aliases */
+  /* legacy aliases (v1/v2 class names still in a few screens) */
   --color-paper: var(--bg);
   --color-paper-2: var(--surface-2);
   --color-ink-950: var(--fg);
@@ -172,10 +172,12 @@
   --shadow-card: var(--shadow-md);
   --shadow-lift: var(--shadow-lg);
 
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
-  --radius-3xl: 1.5rem;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-3xl: 14px;
 }
 
 /* --------------------------------------------------------------------------
@@ -191,14 +193,14 @@ body {
   color: var(--fg);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "cv11", "ss01", "tnum";
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 ::selection {
-  background: var(--accent-soft);
-  color: var(--accent-soft-fg);
+  background: var(--accent);
+  color: var(--accent-fg);
 }
 img,
 video {
@@ -206,12 +208,15 @@ video {
 }
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  letter-spacing: -0.015em;
   text-wrap: balance;
+  font-variation-settings: "opsz" 60;
 }
 p {
   text-wrap: pretty;
 }
+strong { font-weight: 600; }
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -229,34 +234,47 @@ p {
    Layout & typography utilities
    -------------------------------------------------------------------------- */
 @utility container-x {
-  @apply mx-auto w-full max-w-[1200px] px-5 sm:px-8;
+  @apply mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-10;
 }
 @utility container-narrow {
   @apply mx-auto w-full max-w-3xl px-5 sm:px-8;
 }
 @utility section {
-  @apply py-16 sm:py-24 lg:py-28;
+  @apply py-20 sm:py-28 lg:py-32;
 }
 @utility section-tight {
-  @apply py-12 sm:py-16;
+  @apply py-14 sm:py-20;
 }
 @utility eyebrow {
-  @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent;
+  @apply inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted;
+}
+@utility index {
+  @apply font-mono text-[12px] font-medium tracking-[0.08em] text-accent tabular-nums;
 }
 @utility kicker {
-  @apply text-xs font-medium uppercase tracking-[0.12em] text-muted;
+  @apply font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted;
+}
+@utility caption {
+  @apply font-mono text-[11.5px] leading-relaxed tracking-[0.02em] text-muted;
 }
 @utility h-display {
-  @apply font-display text-[2.5rem] leading-[1.04] font-bold tracking-[-0.03em] text-fg sm:text-[3.4rem] lg:text-[4.2rem];
+  @apply font-display text-[2.5rem] leading-[1.04] font-medium tracking-[-0.02em] text-fg sm:text-[3.2rem] lg:text-[3.5rem] xl:text-[4rem];
+  overflow-wrap: break-word;
 }
 @utility h-section {
-  @apply font-display text-[1.9rem] leading-[1.12] font-bold tracking-[-0.025em] text-fg sm:text-[2.5rem];
+  @apply font-display text-[1.95rem] leading-[1.08] font-medium tracking-[-0.018em] text-fg sm:text-[2.6rem];
+}
+@utility h-sub {
+  @apply font-display text-[1.5rem] leading-[1.15] font-medium tracking-[-0.012em] text-fg sm:text-[1.8rem];
 }
 @utility h-card {
-  @apply font-display text-lg leading-snug font-semibold tracking-[-0.01em] text-fg;
+  @apply font-display text-[1.3rem] leading-[1.2] font-medium tracking-[-0.01em] text-fg;
+}
+@utility h-ui {
+  @apply font-sans text-[1.05rem] leading-snug font-semibold tracking-[-0.01em] text-fg;
 }
 @utility lead {
-  @apply text-[1.05rem] leading-relaxed text-muted sm:text-lg;
+  @apply text-[1.06rem] leading-[1.6] text-fg-2 sm:text-[1.15rem];
 }
 @utility prose-lite {
   @apply text-[15px] leading-relaxed text-fg-2;
@@ -264,102 +282,227 @@ p {
 .prose-lite p + p {
   margin-top: 0.75rem;
 }
+@utility num {
+  @apply font-mono tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Structure: rules, ticks, frames, grids
+   -------------------------------------------------------------------------- */
+@utility rule {
+  @apply border-t border-line;
+}
+@utility rule-strong {
+  @apply border-t border-line-strong;
+}
+@utility hairline {
+  @apply border-t border-line;
+}
+/* Ruler: a hairline with small tick marks every 8px and a taller one every 64px */
+@utility ticks {
+  height: 10px;
+  background-image:
+    linear-gradient(var(--line-strong), var(--line-strong)),
+    repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px 64px);
+  background-size: 100% 1px, 100% 4px, 100% 10px;
+  background-position: left bottom, left bottom, left bottom;
+  background-repeat: no-repeat, repeat-x, repeat-x;
+}
+@utility grid-paper {
+  background-image: radial-gradient(color-mix(in srgb, var(--line-strong) 70%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+@utility frame {
+  @apply relative overflow-hidden rounded-lg border border-line bg-surface-2;
+}
+/* Caption bars never widen their frame (nowrap/truncated text would otherwise set the min-content width). */
+.frame > figcaption,
+.frame-bar {
+  contain: inline-size;
+}
+/* Any row whose nowrap/truncated content must never widen its column. */
+@utility contain-w {
+  contain: inline-size;
+}
+.frame-marks::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  pointer-events: none;
+  --m: color-mix(in srgb, var(--fg) 70%, transparent);
+  background:
+    linear-gradient(var(--m), var(--m)) top left / 14px 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) top left / 1px 14px no-repeat,
+    linear-gradient(var(--m), var(--m)) top right / 14px 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) top right / 1px 14px no-repeat,
+    linear-gradient(var(--m), var(--m)) bottom left / 14px 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) bottom left / 1px 14px no-repeat,
+    linear-gradient(var(--m), var(--m)) bottom right / 14px 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) bottom right / 1px 14px no-repeat;
+}
+.frame-marks.on-image::after {
+  --m: rgba(255, 255, 255, 0.85);
+}
+@utility spec {
+  @apply divide-y divide-line border-y border-line;
+}
+.spec > div {
+  @apply grid grid-cols-[minmax(0,9rem)_1fr] gap-4 py-3 text-[15px];
+}
+.spec > div > dt {
+  @apply font-mono text-[11.5px] uppercase tracking-[0.1em] text-muted leading-6;
+}
+.spec > div > dd {
+  @apply text-fg;
+}
 
 /* --------------------------------------------------------------------------
    Surfaces
    -------------------------------------------------------------------------- */
 @utility card {
-  @apply rounded-2xl border border-line bg-surface shadow-soft;
+  @apply rounded-xl border border-line bg-surface;
 }
 @utility card-hover {
-  @apply transition-[border-color,box-shadow,transform] duration-200 hover:border-line-strong hover:shadow-card;
+  @apply transition-[border-color,background-color,transform] duration-200 hover:border-line-strong;
 }
 @utility card-inset {
-  @apply rounded-xl border border-line bg-surface-2;
+  @apply rounded-lg border border-line bg-surface-2;
 }
 @utility glass {
   background: var(--header-bg);
-  backdrop-filter: saturate(1.4) blur(14px);
-  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.2) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(12px);
 }
 @utility inverse {
   @apply bg-inverse-bg text-inverse-fg;
 }
-@utility hairline {
-  @apply border-t border-line;
+.inverse {
+  --line: color-mix(in srgb, var(--inverse-fg) 16%, transparent);
+  --line-strong: color-mix(in srgb, var(--inverse-fg) 32%, transparent);
+  --muted: color-mix(in srgb, var(--inverse-fg) 62%, transparent);
+  --faint: color-mix(in srgb, var(--inverse-fg) 40%, transparent);
+  --fg: var(--inverse-fg);
+  --fg-2: color-mix(in srgb, var(--inverse-fg) 82%, transparent);
+  --surface: color-mix(in srgb, var(--inverse-fg) 6%, transparent);
+  --surface-2: color-mix(in srgb, var(--inverse-fg) 10%, transparent);
+  --surface-3: color-mix(in srgb, var(--inverse-fg) 16%, transparent);
+}
+@utility stage {
+  @apply bg-stage text-[#efebe3];
+}
+.stage {
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --muted: rgba(239, 235, 227, 0.62);
+  --faint: rgba(239, 235, 227, 0.4);
+  --fg: #efebe3;
+  --fg-2: rgba(239, 235, 227, 0.82);
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-2: rgba(255, 255, 255, 0.08);
+  --surface-3: rgba(255, 255, 255, 0.14);
+  --img-filter: none;
 }
 
 /* --------------------------------------------------------------------------
-   Buttons
+   Buttons — square, 44px, ink primary
    -------------------------------------------------------------------------- */
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-[background-color,color,border-color,transform,box-shadow] duration-150 select-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[14px] font-semibold whitespace-nowrap transition-[background-color,color,border-color,transform,opacity] duration-150 select-none active:translate-y-px disabled:pointer-events-none disabled:opacity-50 max-sm:h-auto max-sm:min-h-11 max-sm:py-2.5 max-sm:text-center max-sm:whitespace-normal;
 }
 @utility btn-primary {
-  @apply btn bg-fg text-bg hover:opacity-90;
+  @apply btn bg-fg text-bg hover:bg-fg-2;
 }
 @utility btn-brand {
   @apply btn bg-accent text-accent-fg hover:bg-accent-hover;
 }
 @utility btn-secondary {
-  @apply btn border border-line-strong bg-surface text-fg hover:bg-surface-2;
+  @apply btn border border-line-strong bg-transparent text-fg hover:border-fg hover:bg-surface;
 }
 @utility btn-ghost {
   @apply btn text-fg-2 hover:bg-surface-2 hover:text-fg;
 }
 @utility btn-soft {
-  @apply btn bg-accent-soft text-accent-soft-fg hover:bg-accent hover:text-accent-fg;
+  @apply btn bg-surface-2 text-fg hover:bg-surface-3;
 }
 @utility btn-danger {
   @apply btn bg-danger-soft text-danger hover:bg-danger hover:text-white;
 }
 @utility btn-lg {
-  @apply px-6 py-3.5 text-[15px];
+  @apply h-13 px-7 text-[15px] max-sm:min-h-13 max-sm:py-3;
 }
 @utility btn-sm {
-  @apply px-3.5 py-1.5 text-xs;
+  @apply h-9 px-3.5 text-[13px];
 }
 @utility btn-icon {
-  @apply h-9 w-9 rounded-full p-0;
+  @apply h-10 w-10 p-0;
+}
+/* Arrow inside a button/link nudges on hover */
+.btn:hover > svg:last-child,
+.link-arrow:hover > svg:last-child {
+  transform: translateX(2px);
+}
+.btn > svg, .link-arrow > svg {
+  transition: transform 0.2s ease;
+}
+@utility link-arrow {
+  @apply inline-flex items-center gap-2 text-[14px] font-semibold text-fg;
+}
+/* Editorial text link: underline that darkens on hover */
+@utility u-link {
+  @apply underline decoration-line-strong decoration-1 underline-offset-[5px] transition-[text-decoration-color] hover:decoration-fg;
 }
 
 /* --------------------------------------------------------------------------
    Forms
    -------------------------------------------------------------------------- */
 @utility input {
-  @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[15px] text-fg placeholder:text-faint transition-[border-color,box-shadow] duration-150 focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent-soft disabled:bg-surface-2 disabled:text-muted;
+  @apply h-11 w-full rounded-md border border-line-strong bg-surface px-3.5 text-[15px] text-fg placeholder:text-faint transition-[border-color,box-shadow] duration-150 focus:border-fg focus:outline-none focus:ring-3 focus:ring-accent-soft disabled:bg-surface-2 disabled:text-muted;
+}
+textarea.input {
+  @apply h-auto py-2.5;
 }
 @utility label {
-  @apply mb-1.5 block text-[12px] font-semibold tracking-wide text-muted;
+  @apply mb-1.5 block font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-muted;
 }
 @utility field-hint {
-  @apply mt-1 block text-xs text-faint;
+  @apply mt-1.5 block text-xs text-faint;
 }
 @utility choice {
-  @apply flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-line-strong has-[:checked]:border-accent has-[:checked]:bg-accent-soft/40;
+  @apply flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface p-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-surface-2;
 }
 
 /* --------------------------------------------------------------------------
-   Badges / pills
+   Badges / chips / swatches
    -------------------------------------------------------------------------- */
 @utility badge {
-  @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tracking-wide;
+  @apply inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-[11px] font-semibold tracking-[0.02em];
 }
 @utility pill {
-  @apply inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1 text-xs font-medium text-fg-2;
+  @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-fg-2;
+}
+@utility tag {
+  @apply inline-flex items-center rounded-sm bg-surface-2 px-2 py-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-fg-2;
 }
 @utility dot {
   @apply inline-block h-1.5 w-1.5 rounded-full;
+}
+@utility swatch {
+  @apply relative inline-flex h-9 w-9 flex-none items-center justify-center rounded-md border border-line transition-[transform,border-color] duration-150 hover:border-fg;
+}
+.swatch[aria-pressed="true"] {
+  border-color: var(--fg);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--fg);
 }
 
 /* --------------------------------------------------------------------------
    Admin tables — cards on small screens, table from md
    -------------------------------------------------------------------------- */
 @utility table-admin {
-  @apply w-full border-collapse text-sm;
+  @apply w-full border-collapse text-[13.5px];
 }
 .table-admin thead th {
-  @apply sticky top-0 z-[1] border-b border-line bg-surface-2 px-3 py-2.5 text-left text-[11px] font-semibold tracking-wide text-muted uppercase;
+  @apply sticky top-0 z-[1] border-b border-line-strong bg-surface px-3 py-2.5 text-left font-mono text-[10.5px] font-medium tracking-[0.1em] text-muted uppercase;
 }
 .table-admin tbody td {
   @apply border-b border-line px-3 py-3 align-middle text-fg-2;
@@ -368,7 +511,10 @@ p {
   border-bottom: 0;
 }
 .table-admin tbody tr:hover td {
-  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+}
+.table-admin td.num, .table-admin th.num {
+  @apply text-right font-mono tabular-nums;
 }
 @media (max-width: 767px) {
   .table-responsive thead {
@@ -382,14 +528,14 @@ p {
     width: 100%;
   }
   .table-responsive tr {
-    @apply mb-3 rounded-xl border border-line bg-surface p-3;
+    @apply mb-3 rounded-lg border border-line bg-surface p-3;
   }
   .table-responsive td {
     @apply flex items-start justify-between gap-3 border-0 px-0 py-1.5 text-right;
   }
   .table-responsive td::before {
     content: attr(data-label);
-    @apply shrink-0 text-left text-[11px] font-semibold tracking-wide text-muted uppercase;
+    @apply shrink-0 text-left font-mono text-[10.5px] font-medium tracking-[0.1em] text-muted uppercase;
   }
   .table-responsive td[data-label=""]::before {
     display: none;
@@ -399,33 +545,37 @@ p {
 /* --------------------------------------------------------------------------
    Motion
    -------------------------------------------------------------------------- */
-/* Scroll-driven reveal: CSS only, no JS dependency; browsers without support simply show content. */
-@keyframes reveal-up {
-  from { opacity: 0.2; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
+/* Reveal on scroll: only when JS has marked the document (no hidden content without JS). */
+html[data-js] .reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-@utility reveal {
-  @supports (animation-timeline: view()) {
-    animation: reveal-up 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 24%;
-  }
+html[data-js] .reveal.is-in {
+  opacity: 1;
+  transform: none;
 }
 @keyframes shimmer {
   from { background-position: -200% 0; }
   to { background-position: 200% 0; }
 }
 @utility skeleton {
-  @apply rounded-lg bg-surface-2;
+  @apply rounded-md bg-surface-2;
   background-image: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
+.img-zoom img, img.img-zoom {
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.img-zoom:hover img, .group:hover .img-zoom img {
+  transform: scale(1.025);
+}
 
 /* Before/after slider handle */
 .ba-handle {
-  @apply absolute top-0 bottom-0 w-0.5 bg-surface;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+  @apply absolute top-0 bottom-0 w-px bg-[#f4f2ed];
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
 /* Scrollbar (desktop) */

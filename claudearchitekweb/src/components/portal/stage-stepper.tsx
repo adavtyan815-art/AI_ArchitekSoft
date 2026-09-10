@@ -1,12 +1,14 @@
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STAGES = ["request", "survey", "design", "configuration", "approval", "production_prep", "production", "installation", "handover"] as const;
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 /**
- * Project-stage stepper (server component). "archived" is never shown.
- * Mobile: compact — current stage + what comes next + a progress rail.
- * Desktop (sm+): the full nine-step rail.
+ * Project-stage ruler (server component). "archived" is never shown.
+ * A hairline with a tick per stage: passed ticks are ink, the current one is accent
+ * and taller. Labels appear from sm upwards; phones get the current + next stage.
  */
 export function StageStepper({ current, labels, statusLabel, nextWord }: { current: string; labels: Record<string, string>; statusLabel?: string; nextWord?: string }) {
   const idx = STAGES.indexOf(current as (typeof STAGES)[number]);
@@ -15,60 +17,48 @@ export function StageStepper({ current, labels, statusLabel, nextWord }: { curre
   const currentLabel = labels[current] ?? current;
   const nextStage = STAGES[safeIdx + 1];
   const nextLabel = nextStage ? (labels[nextStage] ?? nextStage) : null;
+  const progress = ((safeIdx + 0.5) / STAGES.length) * 100;
 
   return (
-    <div className="card p-4 sm:p-5" role="group" aria-label={statusLabel}>
-      {/* Mobile: current + next */}
-      <div className="sm:hidden">
-        <div className="flex items-center justify-between gap-3">
-          <span className="kicker">{statusLabel}</span>
-          <span className="text-[11px] font-semibold text-muted tabular-nums">
-            {safeIdx + 1} / {STAGES.length}
-          </span>
-        </div>
-        <div className="mt-2 flex items-center gap-2.5">
-          <span className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-accent text-[12px] font-bold text-accent-fg">{safeIdx + 1}</span>
-          <span className="font-display text-[17px] leading-tight font-semibold text-fg">{currentLabel}</span>
-        </div>
-        {nextLabel ? (
-          <div className="mt-2 flex items-center gap-1.5 text-xs text-muted">
-            <ArrowRight size={13} className="flex-none text-faint" aria-hidden />
-            <span>
-              {nextWord ? `${nextWord}: ` : ""}
-              {nextLabel}
-            </span>
-          </div>
-        ) : null}
-        <div className="mt-3 flex gap-1" aria-hidden>
-          {STAGES.map((s, i) => (
-            <span key={s} className={cn("h-1.5 flex-1 rounded-full", i <= safeIdx ? "bg-accent" : "bg-surface-3")} />
-          ))}
-        </div>
+    <div role="group" aria-label={statusLabel}>
+      <div className="flex items-baseline justify-between gap-4">
+        <span className="kicker">{statusLabel}</span>
+        <span className="caption tabular-nums">
+          <span className="text-accent">{pad(safeIdx + 1)}</span>
+          <span className="mx-1.5 text-faint">/</span>
+          {pad(STAGES.length)}
+        </span>
       </div>
 
-      {/* Desktop: full stepper */}
-      <ol className="hidden sm:flex sm:items-start">
+      {/* The ruler */}
+      <div className="relative mt-3 h-px w-full bg-line-strong" aria-hidden>
+        <span className="absolute inset-y-0 left-0 block bg-accent" style={{ width: `${progress}%` }} />
+      </div>
+      <ol className="grid grid-cols-9">
         {STAGES.map((s, i) => {
           const done = i < currentIdx;
           const active = i === currentIdx;
           return (
-            <li key={s} className="relative flex min-w-0 flex-1 flex-col items-center text-center" aria-current={active ? "step" : undefined}>
-              {i > 0 ? <span className={cn("absolute top-3.5 right-1/2 left-[-50%] h-0.5", i <= currentIdx ? "bg-accent" : "bg-line")} aria-hidden /> : null}
-              <span
-                className={cn(
-                  "relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border-2 text-[11px] font-semibold",
-                  done && "border-accent bg-accent text-accent-fg",
-                  active && "border-accent bg-surface text-accent ring-4 ring-accent-soft",
-                  !done && !active && "border-line bg-surface text-faint"
-                )}
-              >
-                {done ? <Check size={14} strokeWidth={3} aria-hidden /> : i + 1}
-              </span>
-              <span className={cn("mt-2 px-1 text-[11px] leading-tight lg:text-xs", active ? "font-semibold text-fg" : done ? "text-fg-2" : "text-muted")}>{labels[s] ?? s}</span>
+            <li key={s} className="flex min-w-0 flex-col items-center" aria-current={active ? "step" : undefined}>
+              <span aria-hidden className={cn("w-px", active ? "h-5 bg-accent" : done ? "h-3.5 bg-fg" : "h-2.5 bg-line-strong")} />
+              <span className={cn("mt-2 font-mono text-[11px] leading-none tabular-nums", active ? "text-accent" : done ? "text-fg" : "text-faint")}>{pad(i + 1)}</span>
+              <span className={cn("mt-2 hidden px-1 text-center text-[10.5px] leading-tight sm:block", active ? "font-semibold text-fg" : done ? "text-fg-2" : "text-muted")}>{labels[s] ?? s}</span>
             </li>
           );
         })}
       </ol>
+
+      {/* Phones: the ruler carries no labels, so name the current and the next stage. */}
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 sm:hidden">
+        <span className="font-display text-[1.15rem] leading-tight text-fg">{currentLabel}</span>
+        {nextLabel ? (
+          <span className="inline-flex items-center gap-1.5 text-[12.5px] text-muted">
+            <ArrowRight size={12} className="flex-none text-faint" aria-hidden />
+            {nextWord ? `${nextWord}: ` : ""}
+            {nextLabel}
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 }

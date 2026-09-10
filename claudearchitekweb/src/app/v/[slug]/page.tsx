@@ -1,6 +1,6 @@
 import { cookies, headers } from "next/headers";
 import type { Metadata } from "next";
-import { ArrowLeft, Box, MessageCircleQuestion } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { mediaSrcSet, mediaUrl } from "@/lib/media";
@@ -10,7 +10,8 @@ import { checkAccess, getPortalData, getShareLinkBySlug, passcodeCookieName, rec
 import { ContactChannels } from "@/components/site/contact-channels";
 import { HtmlLang } from "@/components/site/html-lang";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { IconBox } from "@/components/ui";
+import { BrandLogo } from "@/components/brand-logo";
+import { Index } from "@/components/ui";
 import { Gallery } from "@/components/portal/gallery";
 import { PasscodeForm } from "@/components/portal/passcode-form";
 import { ViewerShell } from "@/components/portal/viewer-shell";
@@ -73,9 +74,9 @@ export default async function ProjectViewerPage({ params, searchParams }: { para
   if (access === "expired" || access === "inactive") return <StateShell locale={locale} title={d.portal.expired} brand={brand} dict={d} />;
   if (access === "passcode") {
     return (
-      <div className="flex min-h-dvh flex-col bg-bg">
+      <div className="flex min-h-dvh flex-col justify-center bg-bg">
         <HtmlLang lang={locale} />
-        <div className="mx-auto w-full max-w-5xl px-5 py-16 sm:px-8 sm:py-24">
+        <div className="flex w-full flex-1 items-center px-5 py-16 sm:px-8">
           <PasscodeForm slug={slug} token={token} labels={{ title: d.portal.passcodeTitle, text: d.portal.passcodeText, button: d.portal.passcodeButton, wrong: d.portal.passcodeWrong }} />
         </div>
       </div>
@@ -113,23 +114,27 @@ export default async function ProjectViewerPage({ params, searchParams }: { para
     return (
       <div className="flex min-h-dvh flex-col bg-bg">
         <HtmlLang lang={locale} />
-        <TopBar title={title} backHref={backHref} backLabel={d.common.back} themeLabels={d.nav.theme} />
-        <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
-          <div className="card p-6 text-center sm:p-10">
-            <IconBox tone="soft" size="lg" className="mx-auto">
-              <Box />
-            </IconBox>
-            <h1 className="h-section mt-4 text-[1.5rem] sm:text-[1.9rem]">{t.soonTitle}</h1>
-            <p className="lead mt-3">{t.soonText}</p>
-            <a href={backHref} className="btn-primary btn-lg mt-6 min-h-[52px]">
-              <ArrowLeft size={18} aria-hidden />
-              {t.backToProject}
-            </a>
+        <TopBar title={title} code={project.code} backHref={backHref} backLabel={d.common.back} themeLabels={d.nav.theme} />
+        <main className="flex-1">
+          <div className="grid-paper border-b border-line">
+            <div className="mx-auto w-full max-w-3xl px-5 py-20 text-center sm:px-8 sm:py-28">
+              <div className="kicker">{project.code}</div>
+              <h1 className="h-section mt-5 text-balance">{t.soonTitle}</h1>
+              <p className="lead mx-auto mt-6 max-w-xl">{t.soonText}</p>
+              <div className="mx-auto mt-9 h-px w-16 bg-line-strong" aria-hidden />
+              <a href={backHref} className="btn-secondary btn-lg mt-9 min-h-[52px]">
+                <ArrowLeft size={18} strokeWidth={1.5} aria-hidden />
+                {t.backToProject}
+              </a>
+            </div>
           </div>
           {renders.length ? (
-            <section className="mt-10">
-              <h2 className="h-section text-[1.4rem] sm:text-[1.75rem]">{d.portal.gallery}</h2>
-              <div className="mt-4">
+            <section className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
+              <div className="mb-6 flex items-baseline gap-4 border-t border-line pt-6">
+                <Index n={1} className="flex-none" />
+                <h2 className="font-display text-[1.5rem] leading-tight font-medium text-fg sm:text-[1.75rem]">{d.portal.gallery}</h2>
+              </div>
+              <div>
                 <Gallery
                   title={d.portal.gallery}
                   labels={{ close: d.common.close, prev: d.common.prevImage, next: d.common.nextImage }}
@@ -158,6 +163,7 @@ export default async function ProjectViewerPage({ params, searchParams }: { para
         slug={slug}
         token={token}
         title={title}
+        code={project.code}
         logoSrc="/brand/logo.png"
         glbUrl={mediaUrl(glb.relPath)}
         iosSrc={usdz ? mediaUrl(usdz.relPath) : null}
@@ -180,36 +186,36 @@ export default async function ProjectViewerPage({ params, searchParams }: { para
 }
 
 /** Thin top bar used by the non-3D states of this route. */
-function TopBar({ title, backHref, backLabel, themeLabels }: { title: string; backHref: string; backLabel: string; themeLabels: { light: string; dark: string } }) {
+function TopBar({ title, code, backHref, backLabel, themeLabels }: { title: string; code?: string | null; backHref: string; backLabel: string; themeLabels: { light: string; dark: string } }) {
   return (
-    <header className="h-16 border-b border-line bg-surface">
-      <div className="flex h-full items-center gap-3 px-4 sm:px-6">
-        <a href={backHref} className="btn-ghost btn-icon flex-none" aria-label={backLabel}>
-          <ArrowLeft size={18} aria-hidden />
+    <header className="h-16 flex-none border-b border-line bg-surface">
+      <div className="flex h-full items-center gap-3 px-4 sm:gap-4 sm:px-6">
+        <a href={backHref} className="btn-ghost btn-icon flex-none rounded-md" aria-label={backLabel}>
+          <ArrowLeft size={18} strokeWidth={1.5} aria-hidden />
         </a>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/logo.png" alt="" aria-hidden className="hidden h-6 w-auto flex-none sm:block dark:brightness-[1.35]" />
-        <span className="min-w-0 flex-1 truncate font-display text-[15px] font-semibold tracking-[-0.01em] text-fg sm:text-base">{title}</span>
+        <BrandLogo className="h-6" />
+        <div className="min-w-0 flex-1">
+          {code ? <div className="caption truncate text-accent">{code}</div> : null}
+          <span className="block truncate font-display text-[15px] leading-tight font-medium tracking-[-0.01em] text-fg sm:text-[17px]">{title}</span>
+        </div>
         <ThemeToggle labels={themeLabels} className="flex-none" />
       </div>
     </header>
   );
 }
 
+/** Not found / expired: a centred typographic message on grid paper. */
 function StateShell({ locale, title, brand, dict }: { locale: Locale; title: string; brand: ReturnType<typeof getSetting<"brand">>; dict: ReturnType<typeof getDictionary> }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-bg">
+    <div className="grid-paper flex min-h-dvh flex-col justify-center bg-bg">
       <HtmlLang lang={locale} />
-      <div className="mx-auto w-full max-w-5xl flex-1 px-5 py-16 sm:px-8 sm:py-24">
-        <div className="card mx-auto max-w-xl p-6 text-center sm:p-10">
-          <IconBox tone="neutral" size="lg" className="mx-auto">
-            <MessageCircleQuestion />
-          </IconBox>
-          <h1 className="h-section mt-4 text-[1.5rem] sm:text-[1.75rem]">{title}</h1>
-          <div className="mt-8 text-left">
-            <div className="eyebrow mb-3 justify-center">{dict.portal.contactTitle}</div>
-            <ContactChannels brand={brand} dict={dict} />
-          </div>
+      <div className="mx-auto w-full max-w-md px-5 py-16 text-center sm:px-8">
+        <div className="kicker">ArchiTek Soft</div>
+        <h1 className="h-sub mt-4 text-balance">{title}</h1>
+        <div className="mx-auto mt-8 h-px w-16 bg-line-strong" aria-hidden />
+        <div className="mt-8 text-left">
+          <div className="kicker mb-3">{dict.portal.contactTitle}</div>
+          <ContactChannels brand={brand} dict={dict} />
         </div>
       </div>
     </div>

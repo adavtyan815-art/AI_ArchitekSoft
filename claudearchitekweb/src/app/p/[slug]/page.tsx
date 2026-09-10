@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import type { Metadata } from "next";
 import QRCode from "qrcode";
-import { CheckCircle2, ExternalLink, FileText, MessageCircleQuestion, PencilLine } from "lucide-react";
+import { Check, ExternalLink } from "lucide-react";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { mediaSrcSet, mediaUrl } from "@/lib/media";
@@ -11,7 +11,7 @@ import { checkAccess, getPortalData, getShareLinkBySlug, passcodeCookieName, rec
 import { formatDate } from "@/lib/utils";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { BeforeAfter } from "@/components/site/before-after";
-import { IconBox } from "@/components/ui";
+import { Index, Spec } from "@/components/ui";
 import { PortalActions, DownloadLink } from "@/components/portal/actions";
 import { Gallery } from "@/components/portal/gallery";
 import { FeedbackForm } from "@/components/portal/feedback-form";
@@ -25,10 +25,10 @@ type Params = Promise<{ slug: string }>;
 type Search = Promise<Record<string, string | string[] | undefined>>;
 
 /** A few UI strings the shared dictionary does not carry. */
-const LOCAL: Record<Locale, { view: string; approvedOn: string; error: string; note: string; changeRequested: string; questionAsked: string; premium: string; approveShort: string }> = {
-  hy: { view: "Դիտել", approvedOn: "Հաստատված է", error: "Չհաջողվեց ուղարկել։ Փորձեք կրկին կամ գրեք մեզ։", note: "Հաղորդագրություն", changeRequested: "Փոփոխություն է խնդրվել", questionAsked: "Հարց", premium: "Պրեմիում", approveShort: "Հաստատել" },
-  ru: { view: "Открыть", approvedOn: "Утверждено", error: "Не удалось отправить. Попробуйте ещё раз или напишите нам.", note: "Сообщение", changeRequested: "Запрошены изменения", questionAsked: "Вопрос", premium: "Премиум", approveShort: "Утвердить" },
-  en: { view: "View", approvedOn: "Approved", error: "Could not send. Please try again or message us.", note: "Message", changeRequested: "Change requested", questionAsked: "Question", premium: "Premium", approveShort: "Approve" },
+const LOCAL: Record<Locale, { view: string; approvedOn: string; error: string; note: string; changeRequested: string; questionAsked: string; premium: string; approveShort: string; deliverables: string; file: string }> = {
+  hy: { view: "Դիտել", approvedOn: "Հաստատված է", error: "Չհաջողվեց ուղարկել։ Փորձեք կրկին կամ գրեք մեզ։", note: "Հաղորդագրություն", changeRequested: "Փոփոխություն է խնդրվել", questionAsked: "Հարց", premium: "Պրեմիում", approveShort: "Հաստատել", deliverables: "Ձեր 3D-ն", file: "Ֆայլ" },
+  ru: { view: "Открыть", approvedOn: "Утверждено", error: "Не удалось отправить. Попробуйте ещё раз или напишите нам.", note: "Сообщение", changeRequested: "Запрошены изменения", questionAsked: "Вопрос", premium: "Премиум", approveShort: "Утвердить", deliverables: "Ваш 3D", file: "Файл" },
+  en: { view: "View", approvedOn: "Approved", error: "Could not send. Please try again or message us.", note: "Message", changeRequested: "Change requested", questionAsked: "Question", premium: "Premium", approveShort: "Approve", deliverables: "Your 3D", file: "File" },
 };
 
 export async function generateMetadata({ params, searchParams }: { params: Params; searchParams: Search }): Promise<Metadata> {
@@ -43,6 +43,34 @@ export async function generateMetadata({ params, searchParams }: { params: Param
 
 function firstParam(v: string | string[] | undefined) {
   return Array.isArray(v) ? v[0] : v;
+}
+
+/** Section opener: mono index + serif title on a hairline. */
+function Head({ n, title, id, className }: { n: number; title: string; id?: string; className?: string }) {
+  return (
+    <div className={`flex items-baseline gap-4 border-t border-line pt-6 ${className ?? ""}`}>
+      <Index n={n} className="flex-none" />
+      <h2 id={id} className="font-display text-[1.5rem] leading-tight font-medium text-fg sm:text-[1.75rem]">
+        {title}
+      </h2>
+    </div>
+  );
+}
+
+/** Free-text materials → spec rows when the client wrote "key: value" lines. */
+function parseMaterials(text: string): { k: string; v: string }[] | null {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length < 2) return null;
+  const rows: { k: string; v: string }[] = [];
+  for (const line of lines) {
+    const m = /^([^:—–-]{2,32})\s*[:—–-]\s*(.+)$/.exec(line);
+    if (!m) return null;
+    rows.push({ k: m[1].trim(), v: m[2].trim() });
+  }
+  return rows;
 }
 
 export default async function PortalPage({ params, searchParams }: { params: Params; searchParams: Search }) {
@@ -64,7 +92,7 @@ export default async function PortalPage({ params, searchParams }: { params: Par
   }
   if (access === "passcode") {
     return (
-      <div className="mx-auto w-full max-w-5xl px-5 py-16 sm:px-8 sm:py-24">
+      <div className="flex min-h-[68vh] w-full items-center px-5 py-16 sm:px-8">
         <PasscodeForm slug={slug} token={token} labels={{ title: d.portal.passcodeTitle, text: d.portal.passcodeText, button: d.portal.passcodeButton, wrong: d.portal.passcodeWrong }} />
       </div>
     );
@@ -115,43 +143,58 @@ export default async function PortalPage({ params, searchParams }: { params: Par
   const stageLabels = d.portal.stages as Record<string, string>;
   const docs = [...(pdf ? [pdf] : []), ...documents];
   const showFeedback = data.link.allowFeedback;
+  const materials = project.materials?.trim() ?? "";
+  const materialRows = materials ? parseMaterials(materials) : null;
+
+  // Sections are numbered in the order they actually appear on this sheet.
+  let n = 0;
+  const step = () => (n += 1);
+  const nDeliverables = webViewerHref || showLive || hasAr ? step() : 0;
+  const nBeforeAfter = sketch && firstRender ? step() : 0;
+  const nGallery = renders.length ? step() : 0;
+  const nVideo = videos.length ? step() : 0;
+  const nDocs = showPdf && docs.length ? step() : 0;
+  const nMaterials = materials ? step() : 0;
+  const nFeedback = showFeedback ? step() : 0;
+  const nContact = step();
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-5 pt-8 pb-32 sm:px-8 sm:pt-12 lg:pb-16">
-      {/* HEADER */}
+    <div className="mx-auto w-full max-w-5xl px-5 pt-8 pb-32 sm:px-8 sm:pt-12 lg:pb-20">
+      {/* PROJECT SHEET HEAD */}
       <section>
-        <div className="eyebrow mb-3">
-          <span className="dot bg-accent" aria-hidden />
-          {d.portal.yourProject} · {project.code}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="index">{project.code}</span>
+          <span className="eyebrow">{d.portal.yourProject}</span>
+          {lastApproval ? (
+            <span className="badge ml-auto border-transparent bg-success-soft text-success">
+              <Check size={13} strokeWidth={2.5} aria-hidden />
+              {t.approvedOn} · {formatDate(lastApproval.createdAt)}
+            </span>
+          ) : null}
         </div>
-        <p className="text-[17px] text-muted">
+        <p className="mt-6 text-[15px] text-muted">
           {d.portal.greeting}
           {greetingName ? `, ${greetingName}` : ""}
           {locale === "hy" ? "։" : "!"}
         </p>
-        <h1 className="h-section mt-1 text-[2rem] sm:text-[2.5rem]">{title}</h1>
-        {lastApproval ? (
-          <div className="mt-4">
-            <span className="badge border-transparent bg-success-soft text-success">
-              <CheckCircle2 size={14} aria-hidden />
-              {t.approvedOn} · {formatDate(lastApproval.createdAt)}
-            </span>
-          </div>
-        ) : null}
-        <div className="mt-6">
+        <h1 className="h-display mt-1 text-[2.1rem] sm:text-[2.9rem] lg:text-[3.2rem]">{title}</h1>
+
+        <div className="mt-10">
           <StageStepper current={project.stage} labels={stageLabels} statusLabel={d.portal.status} nextWord={d.common.next} />
         </div>
+
         {data.link.message ? (
-          <div className="card mt-4 border-accent-soft bg-accent-soft/40 p-5 sm:p-6">
-            <div className="eyebrow mb-2">{t.note}</div>
-            <p className="prose-lite text-base leading-relaxed whitespace-pre-line text-fg">{data.link.message}</p>
+          <div className="mt-10 border-l-2 border-accent bg-accent-soft/45 px-5 py-4">
+            <div className="kicker mb-1.5">{t.note}</div>
+            <p className="text-[15px] leading-relaxed whitespace-pre-line text-fg">{data.link.message}</p>
           </div>
         ) : null}
       </section>
 
-      {/* PRIMARY ACTIONS */}
-      {webViewerHref || showLive || hasAr ? (
-        <section className="mt-6">
+      {/* DELIVERABLES */}
+      {nDeliverables ? (
+        <section className="mt-14">
+          <Head n={nDeliverables} title={t.deliverables} className="mb-6" />
           <PortalActions
             slug={slug}
             token={token}
@@ -167,46 +210,55 @@ export default async function PortalPage({ params, searchParams }: { params: Par
       ) : null}
 
       {/* BEFORE / AFTER */}
-      {sketch && firstRender ? (
-        <section className="mt-10">
-          <h2 className="h-section text-[1.4rem] sm:text-[1.75rem]">{d.portal.beforeAfter}</h2>
-          <div className="card mt-4 overflow-hidden">
-            <BeforeAfter before={mediaUrl(sketch.relPath, 1280)} after={mediaUrl(firstRender.relPath, 1280)} labels={[d.portal.before, d.portal.after]} />
-          </div>
+      {nBeforeAfter ? (
+        <section className="mt-14">
+          <Head n={nBeforeAfter} title={d.portal.beforeAfter} className="mb-6" />
+          <figure className="frame">
+            <BeforeAfter before={mediaUrl(sketch!.relPath, 1280)} after={mediaUrl(firstRender!.relPath, 1280)} labels={[d.portal.before, d.portal.after]} />
+            <figcaption className="flex items-center justify-between gap-4 border-t border-line px-3.5 py-2">
+              <span className="caption truncate">{d.portal.before} → {d.portal.after}</span>
+              <span className="caption flex-none">{project.code}</span>
+            </figcaption>
+          </figure>
         </section>
       ) : null}
 
       {/* GALLERY */}
-      {renders.length ? (
-        <section className="mt-10">
-          <h2 className="h-section text-[1.4rem] sm:text-[1.75rem]">{d.portal.gallery}</h2>
-          <div className="mt-4">
-            <Gallery
-              title={d.portal.gallery}
-              labels={{ close: d.common.close, prev: d.common.prevImage, next: d.common.nextImage }}
-              images={renders.map((a) => ({
-                src: mediaUrl(a.relPath, 960),
-                srcSet: mediaSrcSet(a.relPath),
-                thumb: mediaUrl(a.thumbRelPath ?? a.relPath, 480),
-                thumbSrcSet: mediaSrcSet(a.thumbRelPath ?? a.relPath, [320, 480, 960]),
-                caption: a.caption,
-                width: a.width,
-                height: a.height,
-              }))}
-            />
-          </div>
+      {nGallery ? (
+        <section className="mt-14">
+          <Head n={nGallery} title={d.portal.gallery} className="mb-6" />
+          <Gallery
+            title={d.portal.gallery}
+            labels={{ close: d.common.close, prev: d.common.prevImage, next: d.common.nextImage }}
+            images={renders.map((a) => ({
+              src: mediaUrl(a.relPath, 960),
+              srcSet: mediaSrcSet(a.relPath),
+              thumb: mediaUrl(a.thumbRelPath ?? a.relPath, 480),
+              thumbSrcSet: mediaSrcSet(a.thumbRelPath ?? a.relPath, [320, 480, 960]),
+              caption: a.caption,
+              width: a.width,
+              height: a.height,
+            }))}
+          />
         </section>
       ) : null}
 
       {/* VIDEO */}
-      {videos.length ? (
-        <section className="mt-10">
-          <h2 className="h-section text-[1.4rem] sm:text-[1.75rem]">{d.portal.video}</h2>
-          <div className={`mt-4 grid gap-4 ${videos.length > 1 ? "md:grid-cols-2" : ""}`}>
-            {videos.map((v) => (
-              <figure key={v.id} className="card overflow-hidden">
-                <video controls playsInline preload="none" poster={v.thumbRelPath ? mediaUrl(v.thumbRelPath, 960) : undefined} className="aspect-video w-full bg-surface-3" src={mediaUrl(v.relPath)} aria-label={v.caption || d.portal.video} />
-                {v.caption ? <figcaption className="border-t border-line px-4 py-2.5 text-sm text-muted">{v.caption}</figcaption> : null}
+      {nVideo ? (
+        <section className="mt-14">
+          <Head n={nVideo} title={d.portal.video} className="mb-6" />
+          <div className={`grid gap-5 ${videos.length > 1 ? "md:grid-cols-2" : ""}`}>
+            {videos.map((v, i) => (
+              <figure key={v.id} className="frame">
+                <video controls playsInline preload="none" poster={v.thumbRelPath ? mediaUrl(v.thumbRelPath, 960) : undefined} className="aspect-video w-full bg-stage" src={mediaUrl(v.relPath)} aria-label={v.caption || d.portal.video} />
+                <figcaption className="flex items-center justify-between gap-4 border-t border-line px-3.5 py-2">
+                  <span className="caption truncate">
+                    <span className="text-accent">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="mx-2 text-faint">/</span>
+                    {v.caption || d.portal.video}
+                  </span>
+                  <span className="caption flex-none">MP4</span>
+                </figcaption>
               </figure>
             ))}
           </div>
@@ -214,59 +266,52 @@ export default async function PortalPage({ params, searchParams }: { params: Par
       ) : null}
 
       {/* DOCUMENTS */}
-      {showPdf && docs.length ? (
-        <section className="mt-10">
-          <h2 className="h-section text-[1.4rem] sm:text-[1.75rem]">{d.portal.documents}</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      {nDocs ? (
+        <section className="mt-14">
+          <Head n={nDocs} title={d.portal.documents} className="mb-2" />
+          <ul className="divide-y divide-line border-b border-line">
             {docs.map((doc) => {
               const url = mediaUrl(doc.relPath);
+              const ext = (doc.originalName.split(".").pop() || t.file).toUpperCase().slice(0, 4);
               return (
-                <div key={doc.id} className="card flex flex-col gap-4 p-4 sm:p-5">
-                  <div className="flex items-center gap-3">
-                    <IconBox>
-                      <FileText />
-                    </IconBox>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold text-fg">{doc.caption || doc.originalName}</div>
-                      <div className="mt-0.5 truncate text-xs text-muted">
-                        {doc.originalName}
-                        {doc.sizeBytes ? ` · ${(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB` : ""}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="btn-secondary min-h-[44px] flex-1" aria-label={`${t.view}: ${doc.caption || doc.originalName}`}>
-                      <ExternalLink size={16} aria-hidden />
+                <li key={doc.id} className="flex flex-wrap items-center gap-x-5 gap-y-3 py-4">
+                  <span className="caption w-24 flex-none tabular-nums">
+                    <span className="text-fg-2">{ext}</span>
+                    {doc.sizeBytes ? <span className="ml-2 text-faint">{(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB</span> : null}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[15px] font-medium text-fg">{doc.caption || doc.originalName}</span>
+                    {doc.caption ? <span className="caption block truncate">{doc.originalName}</span> : null}
+                  </span>
+                  <span className="flex flex-none flex-wrap gap-2">
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm min-h-[44px]" aria-label={`${t.view}: ${doc.caption || doc.originalName}`}>
+                      <ExternalLink size={15} aria-hidden />
                       {t.view}
                     </a>
-                    {data.link.allowDownload ? <DownloadLink slug={slug} token={token} href={`${url}?download=${encodeURIComponent(doc.originalName)}`} name={doc.originalName} label={d.portal.download} className="btn-primary min-h-[44px] flex-1" /> : null}
-                  </div>
-                </div>
+                    {data.link.allowDownload ? <DownloadLink slug={slug} token={token} href={`${url}?download=${encodeURIComponent(doc.originalName)}`} name={doc.originalName} label={d.portal.download} className="btn-primary btn-sm min-h-[44px]" /> : null}
+                  </span>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </section>
       ) : null}
 
       {/* MATERIALS */}
-      {project.materials?.trim() ? (
-        <section className="mt-10">
-          <h2 className="h-section text-[1.4rem] sm:text-[1.75rem]">{d.portal.materials}</h2>
-          <div className="card mt-4 p-5 sm:p-6">
-            <p className="prose-lite leading-relaxed whitespace-pre-line">{project.materials}</p>
-          </div>
+      {nMaterials ? (
+        <section className="mt-14">
+          <Head n={nMaterials} title={d.portal.materials} className="mb-6" />
+          {materialRows ? <Spec rows={materialRows.map((r) => ({ k: r.k, v: r.v }))} /> : <p className="prose-lite border-y border-line py-4 leading-relaxed whitespace-pre-line">{materials}</p>}
         </section>
       ) : null}
 
-      {/* VARIANTS / DECISION */}
-      {showFeedback ? (
-        <section className="mt-12 scroll-mt-20" id="feedback" aria-labelledby="feedback-title">
-          <h2 id="feedback-title" className="h-section text-[1.4rem] sm:text-[1.75rem]">
-            {d.portal.feedbackTitle}
-          </h2>
+      {/* DECISION */}
+      {nFeedback ? (
+        <section className="mt-14 scroll-mt-20" id="feedback" aria-labelledby="feedback-title">
+          <Head n={nFeedback} title={d.portal.feedbackTitle} id="feedback-title" className="mb-6" />
           {lastApproval ? (
-            <div className="card mt-4 flex items-start gap-3 border-success/40 bg-success-soft p-4 text-sm">
-              <CheckCircle2 size={20} className="mt-0.5 flex-none text-success" aria-hidden />
+            <div className="mb-5 flex items-start gap-3 border-y border-success/40 bg-success-soft px-4 py-3.5 text-sm">
+              <Check size={18} strokeWidth={2.5} className="mt-0.5 flex-none text-success" aria-hidden />
               <div>
                 <div className="font-semibold text-fg">
                   {t.approvedOn} · {formatDate(lastApproval.createdAt, true)}
@@ -276,50 +321,47 @@ export default async function PortalPage({ params, searchParams }: { params: Par
             </div>
           ) : null}
           {recentOther.length ? (
-            <ul className="mt-4 space-y-2">
+            <ul className="mb-6 divide-y divide-line border-y border-line">
               {recentOther.map((f) => (
-                <li key={f.id} className="card flex items-start gap-3 p-4 text-sm">
-                  {f.type === "change_request" ? <PencilLine size={18} className="mt-0.5 flex-none text-warning" aria-hidden /> : <MessageCircleQuestion size={18} className="mt-0.5 flex-none text-accent" aria-hidden />}
-                  <div className="min-w-0">
-                    <div className="kicker">
-                      {f.type === "change_request" ? t.changeRequested : t.questionAsked} · {formatDate(f.createdAt)}
-                      {f.resolved ? <span className="ml-2 text-success">✓</span> : null}
-                    </div>
-                    {f.message ? <p className="mt-1 text-fg-2">{f.message}</p> : null}
+                <li key={f.id} className="py-3.5">
+                  <div className="caption">
+                    <span className={f.type === "change_request" ? "text-warning" : "text-accent"}>{f.type === "change_request" ? t.changeRequested : t.questionAsked}</span>
+                    <span className="mx-2 text-faint">/</span>
+                    {formatDate(f.createdAt)}
+                    {f.resolved ? <span className="ml-2 text-success">✓</span> : null}
                   </div>
+                  {f.message ? <p className="mt-1 text-[15px] text-fg-2">{f.message}</p> : null}
                 </li>
               ))}
             </ul>
           ) : null}
-          <div className="mt-4">
-            <FeedbackForm
-              slug={slug}
-              token={token}
-              defaultContact={client?.phone || client?.telegram || client?.email || ""}
-              labels={{
-                title: d.portal.feedbackTitle,
-                variants: d.portal.variants,
-                approve: d.portal.approve,
-                change: d.portal.change,
-                question: d.portal.question,
-                placeholder: d.portal.feedbackPlaceholder,
-                contact: d.portal.feedbackContact,
-                send: d.portal.feedbackSend,
-                sending: d.common.sending,
-                thanks: d.portal.feedbackThanks,
-                approvedThanks: d.portal.approvedThanks,
-                optional: d.common.optional,
-                error: t.error,
-              }}
-            />
-          </div>
+          <FeedbackForm
+            slug={slug}
+            token={token}
+            defaultContact={client?.phone || client?.telegram || client?.email || ""}
+            labels={{
+              title: d.portal.feedbackTitle,
+              variants: d.portal.variants,
+              approve: d.portal.approve,
+              change: d.portal.change,
+              question: d.portal.question,
+              placeholder: d.portal.feedbackPlaceholder,
+              contact: d.portal.feedbackContact,
+              send: d.portal.feedbackSend,
+              sending: d.common.sending,
+              thanks: d.portal.feedbackThanks,
+              approvedThanks: d.portal.approvedThanks,
+              optional: d.common.optional,
+              error: t.error,
+            }}
+          />
         </section>
       ) : null}
 
       {/* CONTACT */}
-      <section className="mt-12">
-        <h2 className="h-section text-[1.4rem] sm:text-[1.75rem]">{d.portal.contactTitle}</h2>
-        <ContactChannels brand={brand} dict={d} className="mt-4" />
+      <section className="mt-14">
+        <Head n={nContact} title={d.portal.contactTitle} className="mb-4" />
+        <ContactChannels brand={brand} dict={d} />
       </section>
 
       {/* PHONE ACTION BAR */}
@@ -328,16 +370,16 @@ export default async function PortalPage({ params, searchParams }: { params: Par
   );
 }
 
+/** Not found / expired: a centred typographic message on grid paper. */
 function StateCard({ title, brand, dict }: { title: string; brand: ReturnType<typeof getSetting<"brand">>; dict: ReturnType<typeof getDictionary> }) {
   return (
-    <div className="mx-auto w-full max-w-5xl px-5 py-16 sm:px-8 sm:py-24">
-      <div className="card mx-auto max-w-xl p-6 text-center sm:p-10">
-        <IconBox tone="neutral" size="lg" className="mx-auto">
-          <MessageCircleQuestion />
-        </IconBox>
-        <h1 className="h-section mt-4 text-[1.5rem] sm:text-[1.75rem]">{title}</h1>
+    <div className="grid-paper flex min-h-[70vh] items-center">
+      <div className="mx-auto w-full max-w-md px-5 py-16 text-center sm:px-8">
+        <div className="kicker">ArchiTek Soft</div>
+        <h1 className="h-sub mt-4 text-balance">{title}</h1>
+        <div className="mx-auto mt-8 h-px w-16 bg-line-strong" aria-hidden />
         <div className="mt-8 text-left">
-          <div className="eyebrow mb-3 justify-center">{dict.portal.contactTitle}</div>
+          <div className="kicker mb-3">{dict.portal.contactTitle}</div>
           <ContactChannels brand={brand} dict={dict} />
         </div>
       </div>

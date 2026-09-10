@@ -46,6 +46,7 @@ Start with [`docs/00_EXECUTIVE_SUMMARY.md`](docs/00_EXECUTIVE_SUMMARY.md), then:
 11. [`11_INFRASTRUCTURE_PLAN.md`](docs/11_INFRASTRUCTURE_PLAN.md) — every service: what, why, now/later, cost, when to migrate
 12. [`12_OFFERS_AND_POSITIONING.md`](docs/12_OFFERS_AND_POSITIONING.md) — corrected positioning, Web Viewer vs Live 3D, proposed B2B/B2C packages
 13. [`13_PERFORMANCE.md`](docs/13_PERFORMANCE.md) — bottlenecks found, changes, before/after numbers
+14. [`14_DESIGN_SYSTEM.md`](docs/14_DESIGN_SYSTEM.md) — design audit and the v3 "Atelier" system: tokens, type, signature elements, components, layout and motion rules
 
 ## Project layout
 

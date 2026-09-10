@@ -6,7 +6,7 @@ import { getDb, schema } from "@/lib/db";
 import { clientLabel, entityHref } from "@/lib/admin-helpers";
 import { getAdminDict, labelFor, type AdminDict } from "@/lib/i18n/admin";
 import { cn, formatDate } from "@/lib/utils";
-import { FormActions, PageHeader, Panel, StatCard } from "@/components/admin/shell";
+import { FormActions, PageHeader, Panel, SpecStrip, StatCard } from "@/components/admin/shell";
 import { Badge, Button, Field, Input, Select } from "@/components/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { createTaskAction, deleteTaskAction, toggleTaskAction } from "@/app/admin/actions/task-actions";
@@ -56,7 +56,7 @@ export default async function TasksPage() {
           <input type="hidden" name="id" value={task.id} />
           <button
             type="submit"
-            className={cn("flex h-6 w-6 items-center justify-center rounded-md border transition-colors", task.done ? "border-success bg-success text-bg" : "border-line-strong text-transparent hover:border-accent hover:text-accent")}
+            className={cn("flex h-6 w-6 items-center justify-center rounded-sm border transition-colors", task.done ? "border-success bg-success text-bg" : "border-line-strong text-transparent hover:border-accent hover:text-accent")}
             title={task.done ? K.markOpen : K.markDone}
             aria-label={task.done ? K.markOpen : K.markDone}
           >
@@ -64,8 +64,8 @@ export default async function TasksPage() {
           </button>
         </form>
         <div className="min-w-0 flex-1">
-          <div className={cn("text-sm font-medium", task.done ? "text-faint line-through" : "text-fg")}>{task.title}</div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+          <div className={cn("text-[13.5px] font-semibold", task.done ? "text-faint line-through" : "text-fg")}>{task.title}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[11px] text-muted">
             <Badge tone={PRIORITY_TONE[task.priority] ?? "neutral"}>{labelFor(dict, "taskPriority", task.priority)}</Badge>
             {task.dueAt ? <span className={cn(late && "font-semibold text-danger")}>{K.dueOn(formatDate(task.dueAt))}</span> : <span>{K.noDue}</span>}
             {href && label ? (
@@ -89,11 +89,11 @@ export default async function TasksPage() {
     <>
       <PageHeader title={K.title} subtitle={K.subtitle} />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+      <SpecStrip cols={3} className="mb-5">
         <StatCard label={K.open} value={open.length} tone={open.length ? "brand" : undefined} />
         <StatCard label={K.overdue} value={overdue} tone={overdue ? "danger" : undefined} />
         <StatCard label={K.done} value={done.length} />
-      </div>
+      </SpecStrip>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">

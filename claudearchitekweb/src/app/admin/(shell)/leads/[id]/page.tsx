@@ -67,7 +67,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           <>
             <form action={updateLeadStatusAction} className="flex items-center gap-2">
               <input type="hidden" name="id" value={lead.id} />
-              <AutoSubmitSelect name="status" defaultValue={lead.status} className="w-44 py-1.5 text-xs" aria-label={t.common.status}>
+              <AutoSubmitSelect name="status" defaultValue={lead.status} className="h-9 w-44 text-[13px]" aria-label={t.common.status}>
                 {LEAD_STATUSES.map((s) => (
                   <option key={s} value={s}>
                     {labelFor(t, "leadStatus", s)}
@@ -82,7 +82,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
             ) : (
               <form action={convertLeadAction} className="flex items-center gap-2">
                 <input type="hidden" name="id" value={lead.id} />
-                <Select name="projectType" defaultValue={PROJECT_TYPES.includes(lead.roomType as (typeof PROJECT_TYPES)[number]) ? lead.roomType! : "kitchen"} className="w-36 py-1.5 text-xs" aria-label={L.colRoom}>
+                <Select name="projectType" defaultValue={PROJECT_TYPES.includes(lead.roomType as (typeof PROJECT_TYPES)[number]) ? lead.roomType! : "kitchen"} className="h-9 w-36 text-[13px]" aria-label={L.colRoom}>
                   {PROJECT_TYPES.map((ty) => (
                     <option key={ty} value={ty}>
                       {labelFor(t, "rooms", ty)}
@@ -98,8 +98,8 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      <div className="grid gap-6 lg:grid-cols-3 lg:gap-0">
+        <div className="space-y-4 lg:col-span-2 lg:pr-6">
           <Panel title={L.request}>
             <div className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
               <KV label={t.crm.form.service}>{lead.service ? labelFor(t, "services", lead.service) : "—"}</KV>
@@ -121,10 +121,10 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
               </KV>
               {lead.lostReason ? <KV label={L.lostReason}>{lead.lostReason}</KV> : null}
             </div>
-            {lead.message ? <div className="card-inset mt-3 p-4 text-sm whitespace-pre-wrap text-fg-2">{lead.message}</div> : null}
+            {lead.message ? <div className="rounded-md border border-line bg-surface-2 mt-3 p-4 text-[13.5px] whitespace-pre-wrap text-fg-2">{lead.message}</div> : null}
             {Object.keys(details).length ? (
               <div className="mt-4">
-                <div className="mb-1 text-[11px] font-semibold tracking-wide text-muted uppercase">{L.details}</div>
+                <div className="mb-2 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.details}</div>
                 <dl className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
                   {Object.entries(details).map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-3 border-b border-line py-1.5 text-sm">
@@ -175,7 +175,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           </Panel>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 lg:border-l lg:border-line lg:pl-6">
           <Panel title={t.crm.contact.title}>
             <div className="space-y-1 text-sm break-all text-fg-2">
               {lead.phone ? <div>{lead.phone}</div> : null}

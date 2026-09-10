@@ -15,6 +15,8 @@ const TYPE_TONE: Record<string, string> = {
   system: "bg-surface-2 text-muted",
 };
 
+const CHIP = "rounded-sm px-1.5 py-0.5 font-mono text-[10px] tracking-[0.08em] uppercase";
+
 /** Activities list + "add note" form for any CRM entity. Server component. */
 export async function ActivityTimeline({
   entityType,
@@ -49,16 +51,18 @@ export async function ActivityTimeline({
         </Button>
       </form>
       {items.length === 0 ? <div className="text-sm text-muted">{L.empty}</div> : null}
-      <ol className="relative space-y-3 border-l border-line pl-4">
+      <ol className="relative ml-1 space-y-4 border-l border-line pl-5">
         {items.map((a) => (
           <li key={a.id} className="relative">
-            <span className="absolute top-1.5 -left-[21px] h-2.5 w-2.5 rounded-full border-2 border-surface bg-line-strong" />
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span className={`rounded-md px-1.5 py-0.5 font-medium ${TYPE_TONE[a.type] ?? TYPE_TONE.note}`}>{labelFor(t, "activityType", a.type)}</span>
-              <span title={formatDate(a.createdAt, true)}>{relTime(a.createdAt, locale)}</span>
-              {a.userId && users[a.userId] ? <span>· {users[a.userId]}</span> : null}
+            <span aria-hidden className="absolute top-2 -left-[21px] h-px w-3 bg-line-strong" />
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`${CHIP} ${TYPE_TONE[a.type] ?? TYPE_TONE.note}`}>{labelFor(t, "activityType", a.type)}</span>
+              <span className="num text-[11px] text-muted" title={formatDate(a.createdAt, true)}>
+                {relTime(a.createdAt, locale)}
+              </span>
+              {a.userId && users[a.userId] ? <span className="font-mono text-[11px] text-faint">· {users[a.userId]}</span> : null}
             </div>
-            <div className="mt-0.5 whitespace-pre-wrap text-sm text-fg-2">{a.content}</div>
+            <div className="mt-1 whitespace-pre-wrap text-[13.5px] leading-relaxed text-fg-2">{a.content}</div>
           </li>
         ))}
       </ol>

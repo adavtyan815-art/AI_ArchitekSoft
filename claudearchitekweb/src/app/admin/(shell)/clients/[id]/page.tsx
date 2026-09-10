@@ -62,8 +62,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      <div className="grid gap-6 lg:grid-cols-3 lg:gap-0">
+        <div className="space-y-4 lg:col-span-2 lg:pr-6">
           <Panel title={C.profile}>
             <ClientForm client={client} action={updateClientAction} companies={companyOptions()} />
           </Panel>
@@ -79,7 +79,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                       <th>{t.projects.colCode}</th>
                       <th>{t.projects.colTitle}</th>
                       <th>{t.common.stage}</th>
-                      <th className="text-right">{t.projects.quote}</th>
+                      <th className="num">{t.projects.quote}</th>
                       <th>{t.common.updated}</th>
                     </tr>
                   </thead>
@@ -90,17 +90,17 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                           {p.code}
                         </td>
                         <td data-label={t.projects.colTitle}>
-                          <Link href={`/admin/projects/${p.id}`} className="font-medium text-fg transition-colors hover:text-accent">
+                          <Link href={`/admin/projects/${p.id}`} className="font-semibold text-fg transition-colors hover:text-accent">
                             {p.title}
                           </Link>
                         </td>
                         <td data-label={t.common.stage}>
                           <StatusBadge value={p.stage} label={labelFor(t, "projectStage", p.stage)} />
                         </td>
-                        <td data-label={t.projects.quote} className="text-right tabular-nums">
+                        <td data-label={t.projects.quote} className="num">
                           {formatMoney(p.quoteAmount, p.currency)}
                         </td>
-                        <td data-label={t.common.updated} className="whitespace-nowrap text-muted">
+                        <td data-label={t.common.updated} className="font-mono text-[12px] whitespace-nowrap text-muted">
                           {relTime(p.updatedAt, locale)}
                         </td>
                       </tr>
@@ -136,7 +136,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           </Panel>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 lg:border-l lg:border-line lg:pl-6">
           <Panel title={t.crm.contact.title}>
             <div className="space-y-1 text-sm break-all text-fg-2">
               {client.phone ? <div>{client.phone}</div> : null}

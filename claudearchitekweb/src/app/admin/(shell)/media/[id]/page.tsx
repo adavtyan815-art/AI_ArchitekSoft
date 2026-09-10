@@ -64,8 +64,8 @@ export default async function MediaDetailPage({ params }: { params: Promise<{ id
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      <div className="grid gap-6 lg:grid-cols-3 lg:gap-0">
+        <div className="space-y-4 lg:col-span-2 lg:pr-6">
           <Panel title={M.preview}>
             {isImage ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -122,7 +122,7 @@ export default async function MediaDetailPage({ params }: { params: Promise<{ id
                 <Input name="tags" defaultValue={tags.join(", ")} placeholder="խոհանոց, 4k, երեկո" />
               </Field>
               <label className="flex items-center gap-2 text-sm text-fg-2 sm:col-span-2">
-                <input type="checkbox" name="isPublic" defaultChecked={asset.isPublic} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+                <input type="checkbox" name="isPublic" defaultChecked={asset.isPublic} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
                 {M.isPublic}
               </label>
               <FormActions className="sm:col-span-2">
@@ -132,7 +132,7 @@ export default async function MediaDetailPage({ params }: { params: Promise<{ id
           </Panel>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 lg:border-l lg:border-line lg:pl-6">
           <Panel title={M.metadata}>
             <KV label={M.originalName}>{asset.originalName}</KV>
             <KV label={M.storedAs}>{asset.fileName}</KV>

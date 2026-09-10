@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui";
 import type { PostsRow, RevenueRow, ViewsRow } from "@/components/admin/analytics/chart-impl";
 
 function ChartSkeleton() {
-  return <Skeleton className="h-full w-full rounded-xl" />;
+  return <Skeleton className="h-full w-full rounded-sm" />;
 }
 
 function EmptyBox({ text }: { text: string }) {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
-import { SectionHeading } from "@/components/ui";
+import { Index } from "@/components/ui";
 import { StartWizard } from "@/components/site/start-wizard";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -25,8 +25,15 @@ export default async function StartPage({ params, searchParams }: { params: Prom
   }
 
   return (
-    <section className="container-x pt-10 pb-16 sm:pt-14 sm:pb-24">
-      <SectionHeading eyebrow={d.start.tag} title={d.start.title} text={d.start.subtitle} align="center" size="display" className="mb-10" />
+    <section className="container-x pt-10 pb-4 sm:pt-14 md:pb-24">
+      <div className="mx-auto mb-12 max-w-2xl sm:mb-14">
+        <div className="mb-6 flex items-baseline gap-3">
+          <Index n={1} />
+          <span className="eyebrow">{d.start.tag}</span>
+        </div>
+        <h1 className="h-display max-sm:break-words">{d.start.title}</h1>
+        <p className="lead mt-6">{d.start.subtitle}</p>
+      </div>
       <StartWizard
         locale={locale}
         strings={d.start}

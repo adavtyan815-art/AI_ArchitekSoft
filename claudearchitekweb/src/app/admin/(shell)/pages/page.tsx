@@ -8,7 +8,7 @@ import { env } from "@/lib/env";
 import { relTime } from "@/lib/admin-helpers";
 import { getAdminDict, local } from "@/lib/i18n/admin";
 import { formatDate } from "@/lib/utils";
-import { PageHeader, StatCard } from "@/components/admin/shell";
+import { PageHeader, SpecStrip, StatCard } from "@/components/admin/shell";
 import { Badge, Empty } from "@/components/ui";
 import { CopyButton } from "@/components/admin/copy-button";
 import { ConfirmButton } from "@/components/admin/confirm-button";
@@ -56,11 +56,11 @@ export default async function ClientPagesPage() {
     <>
       <PageHeader title={G.title} subtitle={G.subtitle} />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+      <SpecStrip cols={3} className="mb-5">
         <StatCard label={G.links} value={rows.length} hint={G.activeHint(active)} />
         <StatCard label={G.totalViews} value={totalViews} />
         <StatCard label={G.views30} value={views30} tone={views30 ? "brand" : undefined} />
-      </div>
+      </SpecStrip>
 
       {rows.length === 0 ? (
         <Empty
@@ -80,12 +80,12 @@ export default async function ClientPagesPage() {
                 <th>{G.colProject}</th>
                 <th>{G.colUrl}</th>
                 <th className="max-md:hidden!">{t.common.language}</th>
-                <th className="text-right">{G.colViews}</th>
+                <th className="num">{G.colViews}</th>
                 <th>{G.colLastViewed}</th>
                 <th className="max-md:hidden!">{G.colExpires}</th>
                 <th className="max-md:hidden!">{G.colSent}</th>
                 <th>{G.colState}</th>
-                <th className="text-right">{t.common.actions}</th>
+                <th className="num">{t.common.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -96,7 +96,7 @@ export default async function ClientPagesPage() {
                   <tr key={l.id}>
                     <td data-label={G.colProject} className="whitespace-nowrap">
                       {projectId ? (
-                        <Link href={`/admin/projects/${projectId}?tab=client`} className="font-medium text-fg transition-colors hover:text-accent">
+                        <Link href={`/admin/projects/${projectId}?tab=client`} className="font-semibold text-fg transition-colors hover:text-accent">
                           {title}
                         </Link>
                       ) : (
@@ -110,19 +110,19 @@ export default async function ClientPagesPage() {
                         {url}
                       </div>
                     </td>
-                    <td data-label={t.common.language} className="uppercase max-md:hidden!">
+                    <td data-label={t.common.language} className="font-mono text-[11px] tracking-[0.08em] uppercase max-md:hidden!">
                       {l.language}
                     </td>
-                    <td data-label={G.colViews} className="text-right tabular-nums">
+                    <td data-label={G.colViews} className="num">
                       {l.viewsCount}
                     </td>
-                    <td data-label={G.colLastViewed} className="whitespace-nowrap text-muted">
+                    <td data-label={G.colLastViewed} className="font-mono text-[12px] whitespace-nowrap text-muted">
                       {l.lastViewedAt ? relTime(l.lastViewedAt, locale) : "—"}
                     </td>
-                    <td data-label={G.colExpires} className="whitespace-nowrap max-md:hidden!">
+                    <td data-label={G.colExpires} className="font-mono text-[12px] whitespace-nowrap max-md:hidden!">
                       {l.expiresAt ? formatDate(l.expiresAt) : "—"}
                     </td>
-                    <td data-label={G.colSent} className="text-xs whitespace-nowrap text-muted max-md:hidden!">
+                    <td data-label={G.colSent} className="font-mono text-[11px] whitespace-nowrap text-muted max-md:hidden!">
                       {l.sentAt ? `${sentViaNames[l.sentVia ?? ""] ?? l.sentVia} · ${relTime(l.sentAt, locale)}` : "—"}
                     </td>
                     <td data-label={G.colState}>

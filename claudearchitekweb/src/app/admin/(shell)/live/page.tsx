@@ -5,7 +5,7 @@ import { liveConfigured, liveLinkFor, listLiveInstances } from "@/lib/live";
 import { getSetting } from "@/lib/settings";
 import { fmtYerevan } from "@/lib/tz";
 import { getAdminDict } from "@/lib/i18n/admin";
-import { PageHeader, Panel, StatCard, StatusBadge } from "@/components/admin/shell";
+import { PageHeader, Panel, SpecStrip, StatCard, StatusBadge } from "@/components/admin/shell";
 import { Notice } from "@/components/admin/notice";
 import { CopyButton } from "@/components/admin/copy-button";
 import { ConfirmSubmit, SubmitButton } from "@/components/admin/form-buttons";
@@ -45,11 +45,11 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
       />
       <Notice text={sp.notice} tone={sp.tone} />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <SpecStrip cols={3}>
         <StatCard label={L.stats.instances} value={r.instances.length} hint={configured ? L.fromBackend : L.unreachable} />
         <StatCard label={L.stats.running} value={running} tone={running ? "brand" : undefined} />
         <StatCard label={L.stats.backend} value={configured ? L.connected : L.dryRun} tone={configured ? "success" : "warning"} hint={live.backendUrl.replace(/^https?:\/\//, "")} />
-      </div>
+      </SpecStrip>
 
       {!r.ok ? (
         <div className="mt-5">
@@ -83,7 +83,7 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
                       <th>{L.table.display}</th>
                       <th>{L.table.real}</th>
                       <th>{L.table.expires}</th>
-                      <th className="text-right">{L.table.actions}</th>
+                      <th className="num">{L.table.actions}</th>
                     </tr>
                   </thead>
                   <tbody>

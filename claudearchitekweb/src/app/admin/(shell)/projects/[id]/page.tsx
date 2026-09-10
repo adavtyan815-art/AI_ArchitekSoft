@@ -10,7 +10,7 @@ import { liveConfigured } from "@/lib/live";
 import { env } from "@/lib/env";
 import { getAdminDict, labelFor, local } from "@/lib/i18n/admin";
 import { formatDate, formatMoney, parseJson } from "@/lib/utils";
-import { FormActions, KV, PageHeader, Panel, StatCard, StatusBadge, Tabs } from "@/components/admin/shell";
+import { FormActions, KV, PageHeader, Panel, SpecStrip, StatCard, StatusBadge, Tabs } from "@/components/admin/shell";
 import { Badge, Button, Field, Input, Select, Textarea } from "@/components/ui";
 import { AutoSubmitSelect } from "@/components/admin/auto-submit-select";
 import { ConfirmButton } from "@/components/admin/confirm-button";
@@ -142,18 +142,18 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <SpecStrip className="mb-5">
         <StatCard label={P.quote} value={formatMoney(project.quoteAmount, project.currency)} hint={project.depositAmount ? P.depositHint(formatMoney(project.depositAmount, project.currency)) : undefined} />
         <StatCard label={P.paid} value={formatMoney(project.paidAmount, project.currency)} tone={project.paidAmount ? "success" : undefined} />
         <StatCard label={P.pageViews} value={links.reduce((s, l) => s + l.viewsCount, 0)} hint={P.activeLinks(links.filter((l) => l.isActive).length)} />
         <StatCard label={P.openFeedback} value={openFeedback} tone={openFeedback ? "warning" : undefined} hint={P.filesHint(assets.length)} />
-      </div>
+      </SpecStrip>
 
       <Tabs items={tabs} current={tab} base={`/admin/projects/${project.id}`} />
 
       {tab === "" ? (
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Panel title={P.details} className="lg:col-span-2">
+        <div className="grid gap-6 lg:grid-cols-3 lg:gap-0">
+          <Panel title={P.details} className="lg:col-span-2 lg:mr-6">
             <form action={updateProjectAction} className="grid gap-4 sm:grid-cols-2">
               <input type="hidden" name="id" value={project.id} />
               <Field label={P.fTitle} required className="sm:col-span-2">
@@ -243,7 +243,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                 <Textarea name="description" defaultValue={project.description ?? ""} placeholder={P.descriptionPlaceholder} />
               </Field>
               <label className="flex items-center gap-2 text-sm text-fg-2 sm:col-span-2">
-                <input type="checkbox" name="isPortfolio" defaultChecked={project.isPortfolio} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+                <input type="checkbox" name="isPortfolio" defaultChecked={project.isPortfolio} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
                 {P.showInPortfolio}
               </label>
               <FormActions className="sm:col-span-2">
@@ -252,7 +252,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
             </form>
           </Panel>
 
-          <div className="space-y-4">
+          <div className="space-y-4 lg:border-l lg:border-line lg:pl-6">
             <Panel title={P.summary}>
               <KV label={P.colCode}>{project.code}</KV>
               <KV label={t.crm.leads.client}>
@@ -302,8 +302,8 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
       ) : null}
 
       {tab === "client" ? (
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="space-y-4 lg:col-span-2">
+        <div className="grid gap-6 lg:grid-cols-3 lg:gap-0">
+          <div className="space-y-4 lg:col-span-2 lg:pr-6">
             <Panel title={P.clientPages(links.length)}>
               {links.length === 0 ? (
                 <div className="text-sm text-muted">{P.noClientPage}</div>
@@ -314,7 +314,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                     const wa = `https://wa.me/?text=${encodeURIComponent(`${l.title ?? project.title}\n${url}`)}`;
                     const expired = l.expiresAt ? new Date(l.expiresAt).getTime() < Date.now() : false;
                     return (
-                      <li key={l.id} className="rounded-2xl border border-line p-4">
+                      <li key={l.id} className="rounded-md border border-line p-4">
                         <div className="flex flex-wrap items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
@@ -375,7 +375,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                               [P.toggles.feedback, l.allowFeedback],
                             ] as const
                           ).map(([label, on]) => (
-                            <span key={String(label)} className={`rounded-full border px-2 py-0.5 ${on ? "border-line-strong text-fg-2" : "border-line text-faint"}`}>
+                            <span key={String(label)} className={`rounded-sm border px-2 py-0.5 font-mono text-[10px] tracking-[0.06em] uppercase ${on ? "border-line-strong text-fg-2" : "border-line text-faint"}`}>
                               {String(label)}
                             </span>
                           ))}
@@ -395,10 +395,10 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                   {events.map((e) => (
                     <li key={e.id} className="flex items-center justify-between gap-3 py-2">
                       <span className="min-w-0 text-fg-2">
-                        <span className="mr-2 rounded-md bg-surface-2 px-1.5 py-0.5 text-xs font-medium text-fg-2">{eventNames[e.type] ?? e.type.replace(/_/g, " ")}</span>
+                        <span className="tag mr-2">{eventNames[e.type] ?? e.type.replace(/_/g, " ")}</span>
                         <span className="font-mono text-xs text-muted">/p/{linkTitles[e.shareLinkId] ?? "—"}</span>
                       </span>
-                      <span className="text-xs whitespace-nowrap text-muted" title={formatDate(e.createdAt, true)}>
+                      <span className="num text-[11px] whitespace-nowrap text-muted" title={formatDate(e.createdAt, true)}>
                         {relTime(e.createdAt, locale)}
                       </span>
                     </li>
@@ -408,6 +408,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
             </Panel>
           </div>
 
+          <div className="lg:border-l lg:border-line lg:pl-6">
           <Panel title={P.newPage}>
             <form action={createShareLinkAction} className="space-y-3">
               <input type="hidden" name="projectId" value={project.id} />
@@ -443,7 +444,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                   ] as const
                 ).map(([name, label, on]) => (
                   <label key={name} className="flex items-center gap-2">
-                    <input type="checkbox" name={name} defaultChecked={on} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+                    <input type="checkbox" name={name} defaultChecked={on} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
                     {label}
                   </label>
                 ))}
@@ -453,6 +454,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
               </Button>
             </form>
           </Panel>
+          </div>
         </div>
       ) : null}
 

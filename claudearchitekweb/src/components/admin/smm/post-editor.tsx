@@ -202,7 +202,7 @@ export function PostEditor({
   return (
     <div className="min-w-0 space-y-5 pb-24 lg:pb-0">
       {msg ? (
-        <div className={cn("rounded-xl border px-4 py-3 text-sm", msg.tone === "error" ? "border-warning/30 bg-warning-soft text-warning" : "border-success/30 bg-success-soft text-success")}>{msg.text}</div>
+        <div className={cn("rounded-sm border px-4 py-2.5 text-[13.5px]", msg.tone === "error" ? "border-warning/30 bg-warning-soft text-warning" : "border-success/30 bg-success-soft text-success")}>{msg.text}</div>
       ) : null}
 
       <section className="card p-4 sm:p-5">
@@ -235,7 +235,7 @@ export function PostEditor({
 
       <section className="card">
         <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
-          <h2 className="text-sm font-semibold text-fg">
+          <h2 className="font-display text-[1.05rem] leading-tight font-medium tracking-[-0.01em] text-fg">
             {L.media} <span className="text-faint">({attached.length})</span>
           </h2>
           <button type="button" onClick={() => setShowPicker((s) => !s)} className="btn-secondary btn-sm">
@@ -248,7 +248,7 @@ export function PostEditor({
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
               {attached.map((a, i) => (
-                <div key={a.id} className="relative aspect-square overflow-hidden rounded-xl border border-line">
+                <div key={a.id} className="relative aspect-square overflow-hidden rounded-sm border border-line">
                   {a.thumbUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={a.thumbUrl} alt={a.name} loading="lazy" className="h-full w-full object-cover" />
@@ -256,7 +256,7 @@ export function PostEditor({
                     <span className="flex h-full w-full items-center justify-center bg-surface-2 text-[10px] text-muted">{a.kind}</span>
                   )}
                   <span className="absolute top-1 left-1 rounded bg-inverse-bg/80 px-1 text-[10px] font-semibold text-inverse-fg">{i + 1}</span>
-                  <button type="button" onClick={() => setAttached((s) => s.filter((x) => x.id !== a.id))} title={L.remove} aria-label={L.remove} className="absolute top-1 right-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-inverse-bg/80 text-inverse-fg hover:bg-danger">
+                  <button type="button" onClick={() => setAttached((s) => s.filter((x) => x.id !== a.id))} title={L.remove} aria-label={L.remove} className="absolute top-1 right-1 inline-flex h-6 w-6 items-center justify-center rounded-sm bg-inverse-bg/80 text-inverse-fg hover:bg-danger">
                     <X size={12} />
                   </button>
                 </div>
@@ -264,8 +264,8 @@ export function PostEditor({
             </div>
           )}
           {showPicker ? (
-            <div className="card-inset mt-4 p-3">
-              <div className="mb-2 text-[11px] font-semibold tracking-wide text-muted uppercase">
+            <div className="mt-5 border-t border-line pt-4">
+              <div className="mb-2.5 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
                 {L.library} {unattached.length ? `(${unattached.length})` : ""}
               </div>
               {unattached.length === 0 ? (
@@ -273,7 +273,7 @@ export function PostEditor({
               ) : (
                 <div className="grid max-h-64 grid-cols-4 gap-2 overflow-y-auto sm:grid-cols-8">
                   {unattached.map((a) => (
-                    <button key={a.id} type="button" title={a.name} onClick={() => setAttached((s) => [...s, a])} className="aspect-square overflow-hidden rounded-lg border border-line hover:border-accent">
+                    <button key={a.id} type="button" title={a.name} onClick={() => setAttached((s) => [...s, a])} className="aspect-square overflow-hidden rounded-sm border border-line hover:border-fg">
                       {a.thumbUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={a.thumbUrl} alt={a.name} loading="lazy" className="h-full w-full object-cover" />
@@ -292,7 +292,7 @@ export function PostEditor({
 
       {/* Platform strip — mobile only */}
       {variants.length > 1 ? (
-        <div className="card-inset -mx-1 flex gap-1.5 overflow-x-auto p-1.5 lg:hidden" role="tablist" aria-label={L.platformsTab}>
+        <div className="-mx-1 flex gap-4 overflow-x-auto border-b border-line px-1 lg:hidden" role="tablist" aria-label={L.platformsTab}>
           {variants.map((v) => (
             <button
               key={v.id}
@@ -300,7 +300,7 @@ export function PostEditor({
               role="tab"
               aria-selected={active === v.id}
               onClick={() => setActive(v.id)}
-              className={cn("inline-flex flex-none items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors", active === v.id ? "bg-fg text-bg" : "text-fg-2 hover:bg-surface-3", !v.enabled && "opacity-50")}
+              className={cn("-mb-px inline-flex flex-none items-center gap-1.5 border-b-2 py-2.5 font-mono text-[12px] transition-colors", active === v.id ? "border-fg text-fg" : "border-transparent text-muted hover:text-fg", !v.enabled && "opacity-50")}
             >
               <PlatformDot platform={v.platform} meta={metaMap[v.platform]} />
               {metaMap[v.platform]?.label ?? v.platform}
@@ -329,7 +329,7 @@ export function PostEditor({
 
       {results ? (
         <section className="card p-4 sm:p-5">
-          <h2 className="mb-3 text-sm font-semibold text-fg">{L.publishResult}</h2>
+          <h2 className="mb-3 font-display text-[1.05rem] leading-tight font-medium tracking-[-0.01em] text-fg">{L.publishResult}</h2>
           <ul className="space-y-2 text-sm">
             {results.map((r) => (
               <li key={r.platform} className="flex flex-wrap items-center gap-2">
@@ -343,7 +343,7 @@ export function PostEditor({
         </section>
       ) : null}
 
-      <div className="glass pb-safe fixed inset-x-0 bottom-[68px] z-20 flex flex-wrap items-center gap-2 border-t border-line px-4 py-3 lg:static lg:z-auto lg:rounded-xl lg:border lg:border-line lg:bg-surface lg:px-3 lg:py-3 lg:shadow-card">
+      <div className="glass pb-safe fixed inset-x-0 bottom-[68px] z-20 flex flex-wrap items-center gap-2 border-t border-line px-4 py-3 lg:static lg:z-auto lg:rounded-md lg:border lg:border-line lg:bg-surface lg:px-3 lg:py-3">
         <button type="button" onClick={save} disabled={pending} className="btn-brand btn-sm">{pending ? A.working : A.save}</button>
         <button type="button" onClick={approval} disabled={pending} className="btn-secondary btn-sm">{A.sendApproval}</button>
         {post.status === "awaiting_approval" ? <button type="button" onClick={() => setStatus("approved")} disabled={pending} className="btn-secondary btn-sm">{A.approve}</button> : null}
@@ -402,7 +402,7 @@ function VariantCard({
         <PlatformChip platform={v.platform} meta={meta} size="md" status={v.status !== "pending" ? v.status : undefined} statusLabel={variantStatusLabels[v.status]} />
         <span className={cn("ml-auto text-[11px] font-medium tabular-nums", over ? "font-semibold text-danger" : "text-faint")}>{len} / {max}</span>
         <label className="flex items-center gap-2 text-xs text-fg-2">
-          <input type="checkbox" checked={v.enabled} onChange={(e) => onChange({ enabled: e.target.checked })} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+          <input type="checkbox" checked={v.enabled} onChange={(e) => onChange({ enabled: e.target.checked })} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
           {L.enabled}
         </label>
         <Select value={v.format} onChange={(e) => onChange({ format: e.target.value as EditorVariant["format"] })} className="w-32 py-1 text-xs" aria-label={L.format}>
@@ -431,25 +431,25 @@ function VariantCard({
           <Field label={L.cta}>
             <Input value={v.cta} onChange={(e) => onChange({ cta: e.target.value })} maxLength={300} />
           </Field>
-          <div className="card-inset p-3">
-            <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold tracking-wide text-muted uppercase">
+          <div className="border-t border-line pt-4">
+            <div className="mb-2.5 flex items-center gap-2 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
               <Wand2 size={13} /> {L.improve}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Input value={instruction} onChange={(e) => setInstruction(e.target.value)} placeholder={L.improvePlaceholder} className="py-1.5 text-xs" maxLength={500} />
+              <Input value={instruction} onChange={(e) => setInstruction(e.target.value)} placeholder={L.improvePlaceholder} className="h-9 text-[13px]" maxLength={500} />
               <button type="button" disabled={pending || !instruction.trim()} onClick={() => onImprove(instruction)} className="btn-secondary btn-sm whitespace-nowrap">{L.rewrite}</button>
             </div>
           </div>
-          {v.error ? <p className="text-xs text-danger">{L.lastPublish} {v.error}</p> : null}
+          {v.error ? <p className="font-mono text-[11px] text-danger">{L.lastPublish} {v.error}</p> : null}
         </div>
 
-        <div className="card-inset p-3">
-          <div className="mb-2 text-[11px] font-semibold tracking-wide text-muted uppercase">{L.preview}</div>
-          <div className="overflow-hidden rounded-lg border border-line bg-surface">
+        <div>
+          <div className="mb-2.5 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.preview}</div>
+          <div className="frame bg-surface">
             <div className="flex items-center gap-2 border-b border-line px-3 py-2">
-              <span className="h-6 w-6 rounded-full" style={{ backgroundColor: meta?.color ?? "var(--faint)" }} />
-              <span className="text-xs font-semibold text-fg">{brandName}</span>
-              <span className="ml-auto text-[10px] text-faint">{meta?.label ?? v.platform}</span>
+              <span className="h-5 w-5 rounded-sm" style={{ backgroundColor: meta?.color ?? "var(--faint)" }} />
+              <span className="text-[12.5px] font-semibold text-fg">{brandName}</span>
+              <span className="ml-auto font-mono text-[10px] tracking-[0.08em] text-faint uppercase">{meta?.label ?? v.platform}</span>
             </div>
             {cover?.thumbUrl ? (
               // eslint-disable-next-line @next/next/no-img-element

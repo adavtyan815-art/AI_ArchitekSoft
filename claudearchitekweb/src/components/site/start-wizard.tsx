@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Building2, Check, FileText, Home, Loader2, UploadCloud, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Loader2, UploadCloud, X } from "lucide-react";
 import { localePath, type Dictionary, type Locale } from "@/lib/i18n";
-import { Button, Field, Input, Select, Textarea } from "@/components/ui";
+import { Button, Field, Index, Input, Select, Textarea, Ticks } from "@/components/ui";
 import { trackEvent } from "@/components/site/track";
 import { cn, formatBytes } from "@/lib/utils";
 
@@ -192,19 +192,22 @@ export function StartWizard({
   /* ─────────────────────────── success ─────────────────────────── */
   if (result) {
     return (
-      <div className="card mx-auto max-w-xl p-7 text-center sm:p-10">
-        <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success">
-          <Check size={28} strokeWidth={3} />
-        </span>
-        <h2 className="mt-6 font-display text-3xl font-bold tracking-tight text-fg">{s.successTitle}</h2>
-        <p className="mt-4 text-[15px] leading-relaxed text-muted">{s.successText}</p>
+      <div className="mx-auto max-w-2xl">
+        <div className="flex items-center gap-2.5 border-t border-line pt-7">
+          <Check size={16} strokeWidth={2.5} className="text-success" />
+          <span className="kicker text-success">{s.successTitle}</span>
+        </div>
+        <h2 className="h-section mt-6">{s.successTitle}</h2>
+        <p className="lead mt-5">{s.successText}</p>
         {result.code ? (
-          <div className="card-inset mt-5 inline-flex items-center gap-2 px-4 py-2 text-sm">
-            <span className="text-muted">{t.requestNo}</span>
-            <span className="font-mono font-semibold text-fg">{result.code}</span>
-          </div>
+          <figure className="frame mt-9">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 px-5 py-6">
+              <span className="caption">{t.requestNo}</span>
+              <span className="font-mono text-[1.6rem] leading-none tracking-[0.06em] text-fg tabular-nums">{result.code}</span>
+            </div>
+          </figure>
         ) : null}
-        <div className="mt-8">
+        <div className="mt-9">
           <Link href={p("/viewer")} className="btn-secondary w-full sm:w-auto">
             {s.successCta}
             <ArrowRight size={16} />
@@ -243,13 +246,13 @@ export function StartWizard({
 
   return (
     <div className="mx-auto max-w-2xl pb-24 md:pb-0" onFocusCapture={onFormStart}>
-      {/* ── segmented progress ── */}
-      <div className="mb-6">
-        <div className="mb-2 flex items-baseline justify-between gap-3">
-          <span className="kicker">
-            {t.stepOf} {step + 1} {t.of} {total}
+      {/* ── progress: mono counter on a ruler ── */}
+      <div className="mb-8">
+        <div className="mb-3 flex items-baseline justify-between gap-4">
+          <span className="index">
+            {t.stepOf} {String(step + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </span>
-          <span className="text-[13px] font-semibold text-fg sm:hidden">{s.stepLabels[step]}</span>
+          <span className="kicker text-fg">{s.stepLabels[step]}</span>
         </div>
         <ol className="grid grid-cols-4 gap-1.5 sm:gap-2">
           {s.stepLabels.map((label, i) => {
@@ -257,27 +260,28 @@ export function StartWizard({
             const active = i === step;
             return (
               <li key={label} className="min-w-0">
-                <div className={cn("h-1.5 rounded-full transition-colors", done ? "bg-accent" : active ? "bg-fg" : "bg-surface-3")} />
-                <div className={cn("mt-2 hidden truncate text-xs font-semibold sm:block", active ? "text-fg" : done ? "text-accent" : "text-faint")}>{label}</div>
+                <div className={cn("h-[3px] transition-colors", done ? "bg-accent" : active ? "bg-fg" : "bg-surface-3")} />
+                <div className={cn("mt-2 hidden truncate font-mono text-[10.5px] tracking-[0.1em] uppercase sm:block", active ? "text-fg" : done ? "text-accent" : "text-faint")}>{label}</div>
               </li>
             );
           })}
         </ol>
+        <Ticks className="mt-4" />
       </div>
 
-      <div className="card p-5 sm:p-8">
+      <div className="card p-5 sm:p-8 lg:p-10">
         {/* ── STEP 1 · who ── */}
         {step === 0 ? (
           <div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{s.who.title}</h2>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <h2 className="h-sub">{s.who.title}</h2>
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
               {(
                 [
-                  ["b2c", s.who.b2c, Home],
-                  ["b2b", s.who.b2b, Building2],
-                ] as [Segment, { title: string; text: string }, typeof Home][]
-              ).map(([val, card, Icon]) => (
-                <label key={val} className="choice flex-col gap-0 p-5">
+                  ["b2c", s.who.b2c],
+                  ["b2b", s.who.b2b],
+                ] as [Segment, { title: string; text: string }][]
+              ).map(([val, card], i) => (
+                <label key={val} className="choice flex-col gap-0 p-5 sm:p-6">
                   <input
                     type="radio"
                     name="segment"
@@ -289,11 +293,12 @@ export function StartWizard({
                       setError(null);
                     }}
                   />
-                  <span className={cn("inline-flex h-11 w-11 items-center justify-center rounded-xl transition-colors", segment === val ? "bg-accent text-accent-fg" : "bg-accent-soft text-accent-soft-fg")}>
-                    <Icon size={20} />
+                  <span className="flex w-full items-center justify-between gap-3">
+                    <Index n={i + 1} className={cn(segment !== val && "text-faint")} />
+                    <span className={cn("h-3.5 w-3.5 flex-none rounded-sm border transition-colors", segment === val ? "border-fg bg-accent" : "border-line-strong")} aria-hidden />
                   </span>
-                  <span className="mt-4 block h-card">{card.title}</span>
-                  <span className="mt-1 block text-sm leading-relaxed text-muted">{card.text}</span>
+                  <span className="mt-5 block font-display text-[1.25rem] leading-tight text-fg">{card.title}</span>
+                  <span className="mt-2 block text-[14.5px] leading-relaxed text-muted">{card.text}</span>
                 </label>
               ))}
             </div>
@@ -303,13 +308,13 @@ export function StartWizard({
         {/* ── STEP 2 · project ── */}
         {step === 1 ? (
           <div className="space-y-5">
-            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{s.project.title}</h2>
+            <h2 className="h-sub">{s.project.title}</h2>
             {isB2b ? (
               <>
                 <Field label={s.project.companyName}>
                   <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} maxLength={120} autoComplete="organization" />
                 </Field>
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid items-end gap-5 sm:grid-cols-2">
                   <Field label={s.project.companyType}>
                     <Select value={companyType} onChange={(e) => setCompanyType(e.target.value)}>
                       <option value="">{t.choose}</option>
@@ -337,7 +342,7 @@ export function StartWizard({
                     {entries(s.project.services).map(([k, v]) => (
                       <label key={k} className="choice items-center gap-3 p-3.5 text-[15px] leading-snug text-fg">
                         <input type="radio" name="service" value={k} className="sr-only" checked={service === k} onChange={() => setService(k)} />
-                        <span className={cn("inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border transition-colors", service === k ? "border-accent bg-accent" : "border-line-strong")}>
+                        <span className={cn("inline-flex h-5 w-5 flex-none items-center justify-center rounded-sm border transition-colors", service === k ? "border-fg bg-accent" : "border-line-strong")}>
                           {service === k ? <Check size={11} strokeWidth={3} className="text-accent-fg" /> : null}
                         </span>
                         {v}
@@ -357,7 +362,7 @@ export function StartWizard({
                     {entries(s.project.rooms).map(([k, v]) => (
                       <label key={k} className="choice items-center gap-2.5 p-3 text-sm leading-snug text-fg">
                         <input type="radio" name="roomType" value={k} className="sr-only" checked={roomType === k} onChange={() => setRoomType(k)} />
-                        <span className={cn("inline-flex h-4.5 w-4.5 flex-none items-center justify-center rounded-full border transition-colors", roomType === k ? "border-accent bg-accent" : "border-line-strong")}>
+                        <span className={cn("inline-flex h-4.5 w-4.5 flex-none items-center justify-center rounded-sm border transition-colors", roomType === k ? "border-fg bg-accent" : "border-line-strong")}>
                           {roomType === k ? <Check size={10} strokeWidth={3} className="text-accent-fg" /> : null}
                         </span>
                         {v}
@@ -388,7 +393,7 @@ export function StartWizard({
                 <Field label={s.project.appliances}>
                   <Input value={appliances} onChange={(e) => setAppliances(e.target.value)} maxLength={500} />
                 </Field>
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid items-end gap-5 sm:grid-cols-2">
                   <Field label={s.project.budget}>
                     <Select value={budget} onChange={(e) => setBudget(e.target.value)}>
                       <option value="">{t.choose}</option>
@@ -411,7 +416,7 @@ export function StartWizard({
         {/* ── STEP 3 · files ── */}
         {step === 2 ? (
           <div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{s.files.title}</h2>
+            <h2 className="h-sub">{s.files.title}</h2>
             <p className="mt-2 text-[15px] leading-relaxed text-muted">{s.files.text}</p>
             <div
               role="button"
@@ -429,15 +434,13 @@ export function StartWizard({
                 if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
               }}
               className={cn(
-                "mt-6 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-5 py-10 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:py-12",
-                dragging ? "border-accent bg-accent-soft" : "border-line-strong bg-surface-2 hover:border-accent",
+                "grid-paper mt-7 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-5 py-12 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:py-14",
+                dragging ? "border-accent bg-accent-soft" : "border-line-strong bg-surface-2 hover:border-fg",
               )}
             >
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent-soft-fg">
-                <UploadCloud size={22} />
-              </span>
-              <span className="mt-4 block h-card">{s.files.drop}</span>
-              <span className="mt-1 block text-sm text-muted">{s.files.hint}</span>
+              <UploadCloud size={26} className="text-muted" aria-hidden />
+              <span className="mt-4 block font-display text-[1.2rem] leading-tight text-fg">{s.files.drop}</span>
+              <span className="caption mt-2 block">{s.files.hint}</span>
               <input
                 ref={fileInput}
                 type="file"
@@ -454,8 +457,8 @@ export function StartWizard({
             {uploads.length ? (
               <ul className="mt-5 space-y-2">
                 {uploads.map((u) => (
-                  <li key={u.key} className="flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-2">
-                    <span className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-lg bg-surface-2 text-muted">
+                  <li key={u.key} className="flex items-center gap-3 rounded-md border border-line bg-surface p-2.5 pr-2">
+                    <span className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-sm bg-surface-2 text-muted">
                       {u.thumb || u.preview ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={u.thumb || u.preview} alt="" className="h-full w-full object-cover" />
@@ -465,11 +468,11 @@ export function StartWizard({
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-fg">{u.name}</span>
-                      <span className="block text-xs text-muted">
+                      <span className="block font-mono text-[11px] tracking-[0.04em] text-muted tabular-nums">
                         {u.status === "error" ? <span className="text-danger">{u.size > MAX_BYTES ? t.tooLarge : t.uploadFailed}</span> : u.status === "uploading" ? `${t.uploading} ${u.progress}%` : formatBytes(u.size)}
                       </span>
                       {u.status === "uploading" ? (
-                        <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-surface-3">
+                        <span className="mt-1.5 block h-[3px] overflow-hidden bg-surface-3">
                           <span className="block h-full bg-accent transition-[width]" style={{ width: `${u.progress}%` }} />
                         </span>
                       ) : null}
@@ -483,7 +486,7 @@ export function StartWizard({
               </ul>
             ) : null}
 
-            <button type="button" onClick={() => go(3)} className="mt-5 text-sm font-semibold text-muted underline-offset-4 hover:text-fg hover:underline">
+            <button type="button" onClick={() => go(3)} className="u-link mt-6 font-mono text-[11.5px] tracking-[0.08em] text-muted uppercase hover:text-fg">
               {s.files.skip}
             </button>
           </div>
@@ -492,8 +495,8 @@ export function StartWizard({
         {/* ── STEP 4 · contact ── */}
         {step === 3 ? (
           <div className="space-y-5">
-            <h2 className="font-display text-2xl font-bold tracking-tight text-fg">{s.contact.title}</h2>
-            <div className="grid gap-5 sm:grid-cols-2">
+            <h2 className="h-sub">{s.contact.title}</h2>
+            <div className="grid items-end gap-5 sm:grid-cols-2">
               <Field label={s.contact.name} required>
                 <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={120} autoComplete="name" />
               </Field>
@@ -529,7 +532,7 @@ export function StartWizard({
         ) : null}
 
         {error ? (
-          <p role="alert" className="mt-5 rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">
+          <p role="alert" className="mt-5 rounded-md border border-danger/40 bg-danger-soft px-4 py-3 text-sm text-danger">
             {error}
           </p>
         ) : null}

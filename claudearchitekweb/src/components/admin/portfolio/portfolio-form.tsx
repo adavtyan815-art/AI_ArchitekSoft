@@ -147,17 +147,17 @@ export function PortfolioForm({
           </Field>
           <div className="flex flex-wrap items-end gap-4 pb-2">
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" /> {L.published}
+              <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" /> {L.published}
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" /> {L.featured}
+              <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" /> {L.featured}
             </label>
           </div>
         </div>
       </section>
 
       <section className="card">
-        <header className="border-b border-line px-4 py-3 sm:px-5"><h2 className="text-sm font-semibold text-fg">{L.cover}</h2></header>
+        <header className="border-b border-line px-4 py-2.5 sm:px-5"><h2 className="font-display text-[1.05rem] leading-tight font-medium tracking-[-0.01em] text-fg">{L.cover}</h2></header>
         <div className="p-4 sm:p-5">
           {images.length === 0 ? (
             <p className="text-sm text-muted">{L.noImages}</p>
@@ -176,7 +176,7 @@ export function PortfolioForm({
 
       <section className="card">
         <header className="border-b border-line px-4 py-3 sm:px-5">
-          <h2 className="text-sm font-semibold text-fg">{L.gallery} <span className="text-faint">({assetIds.length})</span></h2>
+          <h2 className="font-display text-[1.05rem] leading-tight font-medium tracking-[-0.01em] text-fg">{L.gallery} <span className="num text-[12px] text-faint">({assetIds.length})</span></h2>
         </header>
         <div className="p-4 sm:p-5">
           {scoped.length === 0 ? (
@@ -193,7 +193,7 @@ export function PortfolioForm({
                     ) : (
                       <span className="flex h-full w-full items-center justify-center bg-surface-2 text-[10px] text-muted">{L.video}</span>
                     )}
-                    {idx >= 0 ? <span className="absolute top-1 right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-fg">{idx + 1}</span> : null}
+                    {idx >= 0 ? <span className="absolute top-1 right-1 inline-flex h-5 w-5 items-center justify-center rounded-sm bg-accent font-mono text-[10px] font-bold text-accent-fg tabular-nums">{idx + 1}</span> : null}
                   </button>
                 );
               })}

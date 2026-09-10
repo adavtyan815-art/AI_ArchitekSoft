@@ -65,16 +65,16 @@ export function MediaLibrary({
 
   return (
     <form>
-      <div className="card-inset mb-3 flex flex-wrap items-center gap-2 p-2.5">
-        <label className="flex items-center gap-2 text-sm font-medium text-fg-2">
-          <input type="checkbox" checked={allSelected} onChange={() => setSelected(allSelected ? [] : assets.map((a) => a.id))} className="h-4 w-4 rounded border-line-strong accent-[var(--accent)]" />
+      <div className="mb-4 flex flex-wrap items-center gap-2 border-y border-line py-2">
+        <label className="flex items-center gap-2 font-mono text-[11px] tracking-[0.06em] text-fg-2 uppercase">
+          <input type="checkbox" checked={allSelected} onChange={() => setSelected(allSelected ? [] : assets.map((a) => a.id))} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
           {selected.length ? labels.selected.replace("{n}", String(selected.length)) : labels.selectAll}
         </label>
         <span className="hidden flex-1 sm:block" />
         {selected.map((id) => (
           <input key={id} type="hidden" name="ids" value={id} />
         ))}
-        <select name="projectId" className="input w-full py-1.5 text-sm sm:w-56" defaultValue="" disabled={!selected.length}>
+        <select name="projectId" className="input h-9 w-full text-[13.5px] sm:w-56" defaultValue="" disabled={!selected.length}>
           <option value="">{labels.unassignOption}</option>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
@@ -102,33 +102,33 @@ export function MediaLibrary({
         {assets.map((a) => {
           const on = selected.includes(a.id);
           return (
-            <div key={a.id} className={cn("card overflow-hidden", on && "ring-2 ring-accent")}>
+            <figure key={a.id} className={cn("frame bg-surface", on ? "border-fg" : "hover:border-line-strong")}>
               <div className="relative">
                 <button type="button" onClick={() => toggle(a.id)} className="block w-full bg-surface-2 text-left" aria-pressed={on}>
                   {a.thumbUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={a.thumbUrl} srcSet={a.thumbSrcSet} sizes="(max-width: 640px) 45vw, 220px" loading="lazy" alt={a.caption ?? a.originalName} className="aspect-square w-full object-cover" />
                   ) : (
-                    <div className="flex aspect-square w-full flex-col items-center justify-center gap-1 text-muted">
+                    <div className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 text-muted">
                       <KindIcon kind={a.kind} />
-                      <span className="text-[11px] font-semibold uppercase">{a.originalName.split(".").pop()}</span>
+                      <span className="font-mono text-[10px] tracking-[0.1em] uppercase">{a.originalName.split(".").pop()}</span>
                     </div>
                   )}
                 </button>
                 <span className="absolute top-2 left-2">
-                  <input type="checkbox" checked={on} onChange={() => toggle(a.id)} className="h-4 w-4 rounded border-line-strong bg-surface accent-[var(--accent)]" aria-label={a.originalName} />
+                  <input type="checkbox" checked={on} onChange={() => toggle(a.id)} className="h-4 w-4 rounded-none border-line-strong bg-surface accent-[var(--accent)]" aria-label={a.originalName} />
                 </span>
-                {a.durationLabel ? <span className="absolute right-2 bottom-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">{a.durationLabel}</span> : null}
-                {a.isPublic ? <span className="absolute top-2 right-2 rounded bg-success px-1.5 py-0.5 text-[10px] font-semibold text-bg">{labels.publicShort}</span> : null}
+                {a.durationLabel ? <span className="absolute right-2 bottom-2 rounded-sm bg-[#17150f]/75 px-1.5 py-0.5 font-mono text-[10px] text-[#f4f2ed]">{a.durationLabel}</span> : null}
+                {a.isPublic ? <span className="absolute top-2 right-2 rounded-sm border border-success/40 bg-success-soft px-1.5 py-0.5 font-mono text-[9.5px] tracking-[0.08em] text-success uppercase">{labels.publicShort}</span> : null}
               </div>
-              <div className="space-y-0.5 p-2.5">
-                <Link href={`/admin/media/${a.id}`} className="block truncate text-xs font-medium text-fg transition-colors hover:text-accent" title={a.originalName}>
+              <figcaption className="space-y-1 border-t border-line px-2.5 py-2">
+                <Link href={`/admin/media/${a.id}`} className="block truncate text-[12.5px] font-semibold text-fg transition-colors hover:text-accent" title={a.originalName}>
                   {a.caption || a.originalName}
                 </Link>
-                <div className="truncate text-[11px] text-muted">
+                <div className="caption truncate">
                   {a.kindLabel} · {formatBytes(a.sizeBytes)} · {formatDate(a.createdAt)}
                 </div>
-                <div className="truncate text-[11px] text-muted">
+                <div className="caption truncate">
                   {a.projectId && a.projectLabel ? (
                     <Link href={`/admin/projects/${a.projectId}`} className="transition-colors hover:text-accent">
                       {a.projectLabel}
@@ -137,8 +137,8 @@ export function MediaLibrary({
                     <span className="text-faint">{labels.noProject}</span>
                   )}
                 </div>
-              </div>
-            </div>
+              </figcaption>
+            </figure>
           );
         })}
       </div>

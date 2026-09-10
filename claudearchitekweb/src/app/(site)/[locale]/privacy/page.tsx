@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
 import { getSetting } from "@/lib/settings";
+import { Index, Ticks } from "@/components/ui";
 
 type PrivacyText = { title: string; updated: string; intro: string; sections: { h: string; p: string }[]; contact: string };
 
@@ -59,23 +60,30 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
 
   return (
     <section className="container-narrow pt-10 pb-16 sm:pt-16 sm:pb-24">
-      <div className="eyebrow mb-4">{d.footer.privacy}</div>
-      <h1 className="h-section">{t.title}</h1>
-      <p className="mt-3 text-sm text-faint">{t.updated}</p>
-      <p className="lead mt-6">{t.intro}</p>
+      <div className="mb-6 flex items-center gap-3">
+        <Index n={1} />
+        <span className="eyebrow">{d.footer.privacy}</span>
+      </div>
+      <h1 className="font-display text-[2.1rem] leading-[1.05] font-medium tracking-[-0.02em] text-fg sm:text-[3rem]">{t.title}</h1>
+      <p className="caption mt-4">{t.updated}</p>
+      <p className="lead mt-8">{t.intro}</p>
 
-      <div className="mt-10 space-y-4">
+      <div className="mt-12 sm:mt-16">
+        <Ticks />
+      </div>
+
+      <div className="mt-2">
         {t.sections.map((s) => (
-          <div key={s.h} className="card p-5 sm:p-6">
-            <h2 className="h-card">{s.h}</h2>
-            <p className="prose-lite mt-2">{s.p}</p>
+          <div key={s.h} className="grid gap-x-8 gap-y-3 border-b border-line py-7 sm:grid-cols-[10rem_1fr] sm:py-9">
+            <h2 className="font-mono text-[11.5px] leading-6 font-medium tracking-[0.1em] text-muted uppercase">{s.h}</h2>
+            <p className="text-[15.5px] leading-relaxed text-fg-2">{s.p}</p>
           </div>
         ))}
       </div>
 
       <p className="mt-10 text-[15px] text-fg-2">
         {t.contact}{" "}
-        <a href={`mailto:${brand.email}`} className="font-semibold text-accent hover:underline">
+        <a href={`mailto:${brand.email}`} className="u-link font-medium text-fg">
           {brand.email}
         </a>
       </p>

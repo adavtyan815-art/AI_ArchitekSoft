@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, HelpCircle, PencilLine, ThumbsUp } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Kind = "approve" | "change" | "question";
@@ -30,10 +30,10 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [doneKind, setDoneKind] = useState<Kind | null>(null);
 
-  const options: { key: Kind; label: string; icon: typeof ThumbsUp; tone: string }[] = [
-    { key: "approve", label: labels.approve, icon: ThumbsUp, tone: "bg-success-soft text-success" },
-    { key: "change", label: labels.change, icon: PencilLine, tone: "bg-warning-soft text-warning" },
-    { key: "question", label: labels.question, icon: HelpCircle, tone: "bg-accent-soft text-accent-soft-fg" },
+  const options: { key: Kind; label: string }[] = [
+    { key: "approve", label: labels.approve },
+    { key: "change", label: labels.change },
+    { key: "question", label: labels.question },
   ];
 
   async function submit(e: React.FormEvent) {
@@ -57,9 +57,9 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
 
   if (state === "done") {
     return (
-      <div className="card flex items-start gap-4 border-success/40 bg-success-soft p-5 sm:p-6" role="status">
-        <CheckCircle2 className="mt-0.5 flex-none text-success" size={24} aria-hidden />
-        <p className="text-base leading-relaxed text-fg">{doneKind === "approve" ? labels.approvedThanks : labels.thanks}</p>
+      <div className="flex items-start gap-4 border-y border-success/40 bg-success-soft px-5 py-6" role="status">
+        <Check size={20} strokeWidth={2} className="mt-0.5 flex-none text-success" aria-hidden />
+        <p className="text-[15px] leading-relaxed text-fg">{doneKind === "approve" ? labels.approvedThanks : labels.thanks}</p>
       </div>
     );
   }
@@ -67,33 +67,34 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
   const canSend = !!kind && (kind === "approve" || message.trim().length > 0);
 
   return (
-    <form onSubmit={submit} className="card p-4 sm:p-6">
+    <form onSubmit={submit}>
       <fieldset className="border-0 p-0">
-        <legend className="kicker mb-2.5">{labels.variants}</legend>
-        <div className="grid gap-2.5 sm:grid-cols-3">
-          {options.map((o) => (
-            <label key={o.key} className="choice min-h-[60px] items-center gap-3 has-[:focus-visible]:border-accent has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-accent-soft sm:min-h-[104px] sm:flex-col sm:items-start sm:justify-center">
+        <legend className="kicker mb-3">{labels.variants}</legend>
+        <div className="grid gap-2">
+          {options.map((o, i) => (
+            <label key={o.key} className="choice group min-h-[56px] items-center gap-4 has-[:focus-visible]:border-fg has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-accent-soft">
               <input type="radio" name="portal-feedback-kind" value={o.key} className="sr-only" checked={kind === o.key} onChange={() => setKind(o.key)} />
-              <span className={cn("inline-flex h-9 w-9 flex-none items-center justify-center rounded-xl", o.tone)} aria-hidden>
-                <o.icon size={18} />
+              <span className="index flex-none">{String(i + 1).padStart(2, "0")}</span>
+              <span className="flex-1 font-display text-[1.15rem] leading-tight text-fg">{o.label}</span>
+              <span aria-hidden className="flex h-5 w-5 flex-none items-center justify-center rounded-sm border border-line-strong text-bg transition-colors group-has-[:checked]:border-fg group-has-[:checked]:bg-fg">
+                <Check size={13} strokeWidth={3} className="opacity-0 transition-opacity group-has-[:checked]:opacity-100" />
               </span>
-              <span className="text-[15px] leading-snug font-semibold text-fg">{o.label}</span>
             </label>
           ))}
         </div>
       </fieldset>
 
       {kind ? (
-        <div className="mt-5 space-y-4">
+        <div className="mt-6 space-y-4">
           <label className="block">
             <span className="sr-only">{labels.placeholder}</span>
-            <textarea className="input min-h-[120px] text-base" placeholder={labels.placeholder} value={message} onChange={(e) => setMessage(e.target.value)} required={kind !== "approve"} maxLength={4000} />
+            <textarea className="input min-h-[120px] text-[15px]" placeholder={labels.placeholder} value={message} onChange={(e) => setMessage(e.target.value)} required={kind !== "approve"} maxLength={4000} />
           </label>
           <label className="block">
             <span className="label">
               {labels.contact} <span className="font-normal tracking-normal text-faint normal-case">({labels.optional})</span>
             </span>
-            <input className="input text-base" value={contact} onChange={(e) => setContact(e.target.value)} maxLength={200} autoComplete="tel" />
+            <input className="input text-[15px]" value={contact} onChange={(e) => setContact(e.target.value)} maxLength={200} autoComplete="tel" />
           </label>
           {state === "error" ? (
             <p role="alert" className="text-sm text-danger">
