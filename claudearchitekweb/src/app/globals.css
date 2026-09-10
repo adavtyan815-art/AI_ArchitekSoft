@@ -572,6 +572,30 @@ html[data-js] .reveal.is-in {
   transform: scale(1.025);
 }
 
+
+/* --------------------------------------------------------------------------
+   Showcase (home): fullscreen stage + 5s auto-advance progress line
+   -------------------------------------------------------------------------- */
+.showcase-stage:fullscreen {
+  aspect-ratio: auto;
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+  background: var(--stage);
+}
+.showcase-stage:fullscreen .frame-marks::after {
+  inset: 18px;
+}
+@keyframes showcase-progress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.showcase-progress {
+  width: 100%;
+  animation: showcase-progress 5s linear forwards;
+}
+
 /* Before/after slider handle */
 .ba-handle {
   @apply absolute top-0 bottom-0 w-px bg-[#f4f2ed];

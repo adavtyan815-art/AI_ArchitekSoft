@@ -13,10 +13,10 @@ const LOCAL: Record<Locale, { popular: string; quotaTitle: string; quotaText: st
   hy: {
     popular: "Ամենապահանջվածը",
     quotaTitle: "Ինչպես է աշխատում քվոտան",
-    quotaText: "Live 3D-ն աշխատում է ամպային սերվերից, ուստի վաճառվում է ժամային քվոտայով (օր.՝ 4 ժամ / 30 օր)։ Այն նախատեսված է սրահի էկրանի, շնորհանդեսների և կարևոր հաճախորդների համար։ Ձեր մնացած պատվիրատուները ստանում են Web Viewer հղումը՝ առանց սահմանափակման։",
+    quotaText: "Live 3D-ն յուրաքանչյուր սեսիայի համար զբաղեցնում է առանձին ռեալ-թայմ հզորություն, ուստի վաճառվում է ժամային քվոտայով (օր.՝ 4 ժամ / 30 օր)։ Այն նախատեսված է սրահի էկրանի, շնորհանդեսների և կարևոր հաճախորդների համար։ Ձեր մնացած պատվիրատուները ստանում են Web Viewer հղումը՝ առանց սահմանափակման։",
     quotaSpec: [
       { k: "Քվոտա", v: "օր.՝ 4 ժամ / 30 օր" },
-      { k: "Սերվեր", v: "Ամպային GPU · Unreal Engine 5" },
+      { k: "Որակ", v: "Կինեմատոգրաֆիկ · 4K · ռեալ-թայմ" },
       { k: "Ում համար", v: "Սրահի էկրան, շնորհանդեսներ, կարևոր հաճախորդներ" },
       { k: "Մնացածը", v: "Web Viewer հղում՝ առանց սահմանափակման" },
     ],
@@ -24,10 +24,10 @@ const LOCAL: Record<Locale, { popular: string; quotaTitle: string; quotaText: st
   ru: {
     popular: "Чаще всего выбирают",
     quotaTitle: "Как работает квота",
-    quotaText: "Live 3D работает с облачного сервера, поэтому продаётся по временной квоте (например, 4 часа / 30 дней). Он нужен для экрана в салоне, презентаций и важных клиентов. Остальные ваши заказчики получают ссылку Web Viewer без ограничений.",
+    quotaText: "Live 3D резервирует отдельную мощность рендеринга на каждую сессию, поэтому продаётся по временной квоте (например, 4 часа / 30 дней). Он нужен для экрана в салоне, презентаций и важных клиентов. Остальные ваши заказчики получают ссылку Web Viewer без ограничений.",
     quotaSpec: [
       { k: "Квота", v: "напр. 4 часа / 30 дней" },
-      { k: "Сервер", v: "Облачный GPU · Unreal Engine 5" },
+      { k: "Качество", v: "Кинематографическое · 4K · реальное время" },
       { k: "Для кого", v: "Экран в салоне, презентации, важные клиенты" },
       { k: "Остальные", v: "Ссылка Web Viewer без ограничений" },
     ],
@@ -35,10 +35,10 @@ const LOCAL: Record<Locale, { popular: string; quotaTitle: string; quotaText: st
   en: {
     popular: "Most chosen",
     quotaTitle: "How the quota works",
-    quotaText: "Live 3D runs on a cloud server, so it is sold as a time quota (e.g. 4 hours / 30 days). It is meant for the showroom screen, presentations and key clients. All your other customers get the Web Viewer link with no limits.",
+    quotaText: "Live 3D reserves dedicated real-time rendering capacity per session, so it is sold as a time quota (e.g. 4 hours / 30 days). It is meant for the showroom screen, presentations and key clients. All your other customers get the Web Viewer link with no limits.",
     quotaSpec: [
       { k: "Quota", v: "e.g. 4 hours / 30 days" },
-      { k: "Server", v: "Cloud GPU · Unreal Engine 5" },
+      { k: "Quality", v: "Cinematic · 4K · real time" },
       { k: "For", v: "Showroom screen, presentations, key clients" },
       { k: "Everyone else", v: "Web Viewer link, no limits" },
     ],
@@ -190,7 +190,7 @@ export default async function ForBusinessPage({ params }: { params: Promise<{ lo
                 </ButtonLink>
               </div>
               <div className="lg:col-span-6 lg:col-start-7">
-                <Frame marks aspect="aspect-[4/3]" caption="Unreal Engine 5 · 4K · 60 FPS" captionRight={d.common.addon}>
+                <Frame marks aspect="aspect-[4/3]" caption="Live 3D · 4K · 60 FPS" captionRight={d.common.addon}>
                   <Image src="/demo/interior.jpg" alt="" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
                 </Frame>
               </div>

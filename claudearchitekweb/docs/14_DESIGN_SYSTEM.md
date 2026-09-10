@@ -108,3 +108,15 @@ Portal = a project sheet: project code (mono), serif title, stage ruler, media i
 Verification: 100 full-page screenshots (every page × light/dark × desktop/mobile) before and after; console sweep over 35 routes with zero errors or warnings; no horizontal overflow at 390 px on any public page; `tsc` and `next build` clean.
 
 Known limits: long Armenian display words can still break mid-word below 640 px (`overflow-wrap`), the admin "client pages" table scrolls horizontally at 1440 px, and headless captures of the 3D demo render the GLB without proper shading (real browsers are fine).
+
+## 12. Interactive showcase (home)
+
+`src/components/site/showcase.tsx` — one stage, three demonstrations: **01 sketch → finished picture** (comparison
+slider), **02 Web Viewer** (rotate, change colour; AR on phones), **03 Live 3D** (a 10 s cinematic walkthrough clip).
+Rules: clear manual controls (tabs with progress line, prev/next, ← → keys); auto-advance after **5 s** of no
+interaction and keep cycling while idle; any click, drag, key or tab stops auto mode for good (the visitor can restart
+it with the play chip); cycling pauses when the section is off-screen, the tab is hidden, in fullscreen, or with
+reduced motion. **Fullscreen** on the stage (hidden where the API is missing). **Performance**: the 3D library and model
+load only when tab 02 is opened (tap-to-load on phones), the clip (≈450 KB, 720p, muted) only when tab 03 is opened;
+the initial page carries just two images. Media lives in `public/demo/showcase-*`; the sample model is a placeholder and
+should be replaced with a real KitchenPro export.

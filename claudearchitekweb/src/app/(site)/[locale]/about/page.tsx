@@ -18,12 +18,12 @@ const MATERIALS: { label: string; fill: string }[] = [
   { label: "EGGER U626", fill: "#6c7a5c" },
 ];
 
-/** Technology stack as a spec list — technical values, language-neutral. */
+/** Capabilities as a spec list — customer-facing, language-neutral. No implementation details on the public site. */
 const STACK: { k: string; v: string }[] = [
-  { k: "Engine", v: "Unreal Engine 5 · Lumen · Nanite" },
-  { k: "Web", v: "Web 3D · glTF / GLB · WebGL" },
-  { k: "AR", v: "iOS Quick Look · Android Scene Viewer · 1:1" },
-  { k: "Live 3D", v: "Cloud GPU · Pixel Streaming · 4K / 60 FPS" },
+  { k: "3D", v: "Real-time · true to size · real materials" },
+  { k: "Web", v: "Interactive viewing · any phone or computer · no installation" },
+  { k: "AR", v: "In the customer's room · 1:1 scale" },
+  { k: "Live 3D", v: "Cinematic presentation · 4K · showroom screens" },
   { k: "Platform", v: "KitchenPro · client pages · production documents" },
 ];
 
@@ -59,7 +59,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
       {/* full-bleed frame */}
       <section className="container-x mt-12 sm:mt-16">
-        <Frame marks caption={a.whatTitle} captionRight="ArchiTek Soft · UE5">
+        <Frame marks caption={a.whatTitle} captionRight="ArchiTek Soft · Studio">
           <div className="relative aspect-[4/3] bg-surface-2 sm:aspect-[21/9]">
             <Image src="/demo/interior.webp" alt="" fill priority sizes="100vw" className="object-cover" />
           </div>

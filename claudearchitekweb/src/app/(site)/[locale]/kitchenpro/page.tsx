@@ -58,7 +58,7 @@ export default async function KitchenProPage({ params }: { params: Promise<{ loc
             <p className="caption mt-5">{d.home.heroNote}</p>
           </div>
           <div className="lg:col-span-6 lg:col-start-7">
-            <Frame marks caption="KitchenPro · Unreal Engine 5" captionRight="01 / RENDER">
+            <Frame marks caption="KitchenPro · 3D" captionRight="01 / RENDER">
               <div className="relative aspect-[4/3] bg-surface-2 sm:aspect-[16/10]">
                 <Image src="/demo/render-1.webp" alt="" fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
               </div>

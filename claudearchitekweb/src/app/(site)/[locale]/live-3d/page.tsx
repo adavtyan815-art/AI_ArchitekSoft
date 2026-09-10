@@ -9,7 +9,7 @@ import { pageMeta } from "../meta";
 const LOCAL: Record<Locale, { spec: { k: string; v: string }[] }> = {
   hy: {
     spec: [
-      { k: "Շարժիչ", v: "Unreal Engine 5 · Pixel Streaming" },
+      { k: "Փորձառություն", v: "Ազատ քայլում · նյութերի ակնթարթային փոփոխություն" },
       { k: "Որակ", v: "4K · 60 FPS · իրական ժամանակի լուսավորություն" },
       { k: "Քվոտա", v: "օր.՝ 4 ժամ / 30 օր" },
       { k: "Սարք", v: "Հեռախոս, պլանշետ, սրահի էկրան, VR" },
@@ -18,7 +18,7 @@ const LOCAL: Record<Locale, { spec: { k: string; v: string }[] }> = {
   },
   ru: {
     spec: [
-      { k: "Движок", v: "Unreal Engine 5 · Pixel Streaming" },
+      { k: "Опыт", v: "Свободное перемещение · мгновенная смена материалов" },
       { k: "Качество", v: "4K · 60 FPS · свет в реальном времени" },
       { k: "Квота", v: "напр. 4 часа / 30 дней" },
       { k: "Устройство", v: "Телефон, планшет, экран в салоне, VR" },
@@ -27,7 +27,7 @@ const LOCAL: Record<Locale, { spec: { k: string; v: string }[] }> = {
   },
   en: {
     spec: [
-      { k: "Engine", v: "Unreal Engine 5 · Pixel Streaming" },
+      { k: "Experience", v: "Free walkthrough · instant material changes" },
       { k: "Quality", v: "4K · 60 FPS · real-time lighting" },
       { k: "Quota", v: "e.g. 4 hours / 30 days" },
       { k: "Device", v: "Phone, tablet, showroom screen, VR" },
@@ -76,7 +76,7 @@ export default async function LivePage({ params }: { params: Promise<{ locale: s
               </div>
             </div>
             <div className="lg:col-span-5 lg:col-start-8 lg:self-center">
-              <Frame marks aspect="aspect-[4/3]" caption="UE5 · 4K · 60 FPS" captionRight="Pixel Streaming">
+              <Frame marks aspect="aspect-[4/3]" caption="Live 3D · 4K · 60 FPS" captionRight="Real time">
                 <Image src="/demo/interior.jpg" alt="" fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
                 <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-sm bg-[#17150f]/70 px-2.5 py-1 font-mono text-[10.5px] tracking-[0.12em] text-[#f4f2ed] uppercase backdrop-blur">
                   <span className="dot bg-accent" />

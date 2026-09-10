@@ -56,7 +56,7 @@ export default async function ViewerPage({ params }: { params: Promise<{ locale:
             <Index n={2} />
             <span className="eyebrow">{v.demoTitle}</span>
           </div>
-          <span className="caption">GLB · AR · {d.home.viewerSwatches}</span>
+          <span className="caption">3D · AR · {d.home.viewerSwatches}</span>
         </div>
         <ViewerDemo
           labels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }}

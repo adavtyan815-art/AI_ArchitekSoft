@@ -112,7 +112,7 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
             © {new Date().getFullYear()} {brand.name} · {dict.footer.rights}
           </div>
           <div className="flex items-center gap-4">
-            <span>Yerevan · UE5 · Web 3D · AR</span>
+            <span>Yerevan · 3D · AR · KitchenPro</span>
             <Link href="/admin" className="transition-colors hover:text-fg">
               {dict.footer.admin}
             </Link>

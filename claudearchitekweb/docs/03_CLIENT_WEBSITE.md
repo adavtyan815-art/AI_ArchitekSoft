@@ -39,12 +39,12 @@ Footer:  Solutions (KitchenPro + the five above) · Company (How it works, Work,
 ```
 
 Rules applied: one H1 per page; every homepage block ends with a link to its dedicated page; the interactive 3D demo is
-loaded only on `/viewer` (and project pages), the homepage shows a poster card instead; FAQ content is shared between
+loaded only when its showcase tab is opened (and on `/viewer` / project pages); FAQ content is shared between
 `/faq` and the dictionaries (single source).
 
 | URL (hy) | ru / en | Purpose | Primary CTA |
 |---|---|---|---|
-| `/` | `/ru`, `/en` | **Compact entry point** (6 short blocks): what ArchiTek Soft is + value + before/after, proof strip, KitchenPro intro (3 pillars → /kitchenpro), B2B / B2C doors, Web Viewer + Live 3D entry cards, 3 featured works, "where next" links + contact | Start a project / Try the Web Viewer |
+| `/` | `/ru`, `/en` | **Compact entry point**: statement + intro + CTAs, then the **interactive showcase** (sketch → 3D comparison, Web Viewer, Live 3D walkthrough in one stage: manual tabs/arrows/keyboard, auto-advance every 5 s while idle, stops on any interaction, fullscreen), proof strip, KitchenPro intro (3 pillars → /kitchenpro), B2B / B2C doors, 3 featured works, "where next" links + contact | Start a project / Try the Web Viewer |
 | `/kitchenpro` | | The maker platform: problem → solution, 8 capabilities, workflow 0–6 (the maker produces), B2B/B2C views, honest status | Discuss your project |
 | `/viewer` | | Web Viewer: live demo (rotate, colour swatches, AR), features, Web Viewer vs Live 3D table | Get my Web Viewer link |
 | `/for-business` | | B2B: pains, offer, how we start (pilot), packages (Project / Studio / Factory) | Order a pilot project |
@@ -54,7 +54,7 @@ loaded only on `/viewer` (and project pages), the homepage shows a poster card i
 | `/portfolio`, `/portfolio/[slug]` | | Real projects with gallery, video, live link | Start |
 | `/contact` | | Telegram / WhatsApp / phone / e-mail + short form (B2B/B2C toggle) | Send |
 | `/start` | | **Intake wizard** (4 steps): Who → Project → Files → Contact | Send request |
-| `/live-3d` | | Live 3D (Pixel Streaming) as a premium B2B demo: who it is for, how a session works, quota/pricing note, link to compare with Web Viewer | Book a Live 3D demo |
+| `/live-3d` | | Live 3D as a premium B2B demo: who it is for, how a session works, quota/pricing note, link to compare with Web Viewer | Book a Live 3D demo |
 | `/about` | | Who we are, what we do (and do not do), approach, technology, key facts | Contact |
 | `/faq` | | All questions (home FAQ + extended), sticky contact card | Start a project |
 | `/privacy` | | Privacy note | — |
@@ -104,3 +104,12 @@ Header: KitchenPro · For business · For home · Other solutions · Work · How
 ## Measuring
 
 Built-in analytics (Admin → Analytics): page views, unique visitors (daily-rotating hash), CTA clicks, form starts/submits, conversion, sources (referrer/UTM), locales, B2B vs B2C submissions. Use UTM links in social posts (`?utm_source=instagram&utm_campaign=aren`) — the SMM composer can add them.
+
+## Public copy rule (confidentiality)
+
+The public website explains **what ArchiTek Soft can do, not how it is built**. Copy, captions and spec lists use
+customer-facing language (capabilities, results, benefits: "real-time", "cinematic", "opens from a link on any device",
+"in your room at 1:1"). Engines, cloud providers, streaming implementation, file formats, frameworks and infrastructure
+are never named on the site; they live in the internal docs (`02_ARCHITECTURE.md`, `06`, `11`). The admin, client
+portal and viewer show no implementation names either. A sweep is part of every copy change: grep the dictionaries and
+`src/app/(site)` for engine/cloud/format names before shipping.
