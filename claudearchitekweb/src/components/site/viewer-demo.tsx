@@ -54,6 +54,8 @@ export function ViewerDemo({
   className,
   height = "h-[420px] sm:h-[520px]",
   autoload = false,
+  defaultSwatch = "wood",
+  cameraOrbit = "-28deg 82deg auto",
 }: {
   src?: string;
   poster?: string;
@@ -63,13 +65,17 @@ export function ViewerDemo({
   className?: string;
   height?: string;
   autoload?: boolean;
+  /** Swatch applied as soon as the model loads (a clean finish reads better than the sample texture). */
+  defaultSwatch?: string;
+  /** Initial camera: front view, slightly above eye level. */
+  cameraOrbit?: string;
 }) {
   const ref = useRef<MVElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const original = useRef<unknown>(null);
   const [near, setNear] = useState(false);
   const [ready, setReady] = useState(false);
-  const [active, setActive] = useState(swatches.find((s) => s.original)?.id ?? swatches[0]?.id);
+  const [active, setActive] = useState(defaultSwatch ?? swatches.find((s) => s.original)?.id ?? swatches[0]?.id);
   const [canAr, setCanAr] = useState(false);
 
   // Loading strategy: the model (a few MB) is fetched automatically only on desktop-class devices
@@ -102,14 +108,15 @@ export function ViewerDemo({
       if (m) original.current = m.pbrMetallicRoughness.baseColorTexture.texture;
       setReady(true);
       setCanAr(!!mv.canActivateAR);
+      const first = swatches.find((s) => s.id === defaultSwatch);
+      if (first && !first.original) paint(m, first);
     };
     mv.addEventListener("load", onLoad);
     return () => mv.removeEventListener("load", onLoad);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [near, materialIndex]);
 
-  const apply = (s: SwatchItem) => {
-    setActive(s.id);
-    const m = ref.current?.model?.materials?.[materialIndex];
+  const paint = (m: MVMaterial | undefined, s: SwatchItem) => {
     if (!m) return;
     if (s.original || !s.hex) {
       m.pbrMetallicRoughness.baseColorTexture.setTexture(original.current);
@@ -122,6 +129,10 @@ export function ViewerDemo({
       m.pbrMetallicRoughness.setRoughnessFactor?.(0.45);
       m.pbrMetallicRoughness.setMetallicFactor?.(0);
     }
+  };
+  const apply = (s: SwatchItem) => {
+    setActive(s.id);
+    paint(ref.current?.model?.materials?.[materialIndex], s);
   };
 
   /** Mono toolbar button: square, hairline, readable on the dark stage. */
@@ -141,6 +152,7 @@ export function ViewerDemo({
             poster={poster}
             alt="3D furniture model"
             camera-controls
+            camera-orbit={cameraOrbit}
             touch-action="pan-y"
             auto-rotate
             auto-rotate-delay="1500"

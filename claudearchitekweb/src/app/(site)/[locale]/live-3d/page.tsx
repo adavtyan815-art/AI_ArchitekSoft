@@ -62,7 +62,7 @@ export default async function LivePage({ params }: { params: Promise<{ locale: s
                 <Index n={1} />
                 <span className="eyebrow">{l.tag}</span>
               </div>
-              <h1 className="h-display max-sm:break-words lg:text-[3rem] xl:text-[3.6rem]">{l.title}</h1>
+              <h1 className="h-display max-sm:break-words text-[2.2rem] sm:text-[3rem] lg:text-[3rem] xl:text-[3.6rem]">{l.title}</h1>
               <p className="lead mt-7 max-w-[34rem]">{l.subtitle}</p>
               <CheckList items={d.home.liveBullets} className="mt-8" />
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
