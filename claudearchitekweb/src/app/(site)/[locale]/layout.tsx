@@ -29,7 +29,7 @@ export default async function SiteLayout({ children, params }: { children: React
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
   const brand = getSetting("brand");
-  const nav = { ...dict.nav };
+  const nav = { kitchenpro: dict.nav.kitchenpro, howItWorks: dict.nav.howItWorks, portfolio: dict.nav.portfolio, contact: dict.nav.contact, start: dict.nav.start, menu: dict.nav.menu, theme: dict.nav.theme, solutions: dict.siteNav.solutions, about: dict.siteNav.about, faq: dict.siteNav.faq, solutionsMenu: dict.siteNav.solutionsMenu };
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader locale={locale} nav={nav} />

@@ -102,7 +102,7 @@ export function SectionHeading({ eyebrow, title, text, align = "left", className
   return (
     <div className={cn("max-w-2xl", align === "center" && "mx-auto text-center", className)}>
       {eyebrow ? <div className="eyebrow mb-4">{eyebrow}</div> : null}
-      <h2 className={size === "display" ? "h-display" : "h-section"}>{title}</h2>
+      {size === "display" ? <h1 className="h-display">{title}</h1> : <h2 className="h-section">{title}</h2>}
       {text ? <p className="lead mt-5">{text}</p> : null}
     </div>
   );

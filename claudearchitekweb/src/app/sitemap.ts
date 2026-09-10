@@ -13,6 +13,10 @@ const ROUTES: { path: string; priority: number; changeFrequency: "weekly" | "mon
   { path: "/portfolio", priority: 0.8, changeFrequency: "weekly" },
   { path: "/contact", priority: 0.6, changeFrequency: "yearly" },
   { path: "/start", priority: 0.8, changeFrequency: "yearly" },
+  { path: "/viewer", priority: 0.8, changeFrequency: "monthly" },
+  { path: "/live-3d", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/about", priority: 0.5, changeFrequency: "yearly" },
+  { path: "/faq", priority: 0.5, changeFrequency: "monthly" },
   { path: "/privacy", priority: 0.2, changeFrequency: "yearly" },
 ];
 

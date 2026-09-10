@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ArrowUpRight, Check, Minus } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
-import { ButtonLink, SectionHeading } from "@/components/ui";
+import { ButtonLink, SectionHeading, CheckList } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 /** Page-only strings that have no dictionary key yet. */
@@ -124,6 +124,18 @@ export default async function HowItWorksPage({ params }: { params: Promise<{ loc
               <ArrowUpRight size={18} />
             </ButtonLink>
           </div>
+        </div>
+      </section>
+
+      {/* WHAT YOU NEED */}
+      <section className="container-x section-tight">
+        <div className="card-inset grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_1fr] lg:items-center">
+          <div>
+            <div className="eyebrow">{d.home.needTag}</div>
+            <h2 className="mt-3 h-section">{d.home.needTitle}</h2>
+            <p className="mt-3 text-sm text-muted">{d.home.needNote}</p>
+          </div>
+          <CheckList items={d.home.needItems} />
         </div>
       </section>
     </>

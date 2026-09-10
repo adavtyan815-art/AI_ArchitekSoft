@@ -26,7 +26,7 @@ export default async function StartPage({ params, searchParams }: { params: Prom
 
   return (
     <section className="container-x pt-10 pb-16 sm:pt-14 sm:pb-24">
-      <SectionHeading eyebrow={d.start.tag} title={d.start.title} text={d.start.subtitle} align="center" className="mb-10" />
+      <SectionHeading eyebrow={d.start.tag} title={d.start.title} text={d.start.subtitle} align="center" size="display" className="mb-10" />
       <StartWizard
         locale={locale}
         strings={d.start}

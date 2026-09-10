@@ -7,20 +7,16 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
   const p = (path: string) => localePath(locale, path);
   const cols = [
     {
-      title: dict.footer.product,
-      links: [
-        [p("/kitchenpro"), dict.nav.kitchenpro],
-        [p("/for-business"), dict.nav.business],
-        [p("/for-home"), dict.nav.home],
-        [p("/viewer"), dict.nav.viewer],
-        [p("/solutions"), dict.nav.solutions],
-      ],
+      title: dict.siteNav.solutions,
+      links: [[p("/kitchenpro"), dict.nav.kitchenpro], ...dict.siteNav.solutionsMenu.map((m) => [p(m.href), m.title] as [string, string])],
     },
     {
       title: dict.footer.company,
       links: [
         [p("/how-it-works"), dict.nav.howItWorks],
         [p("/portfolio"), dict.nav.portfolio],
+        [p("/about"), dict.siteNav.about],
+        [p("/faq"), dict.siteNav.faq],
         [p("/contact"), dict.nav.contact],
         [p("/privacy"), dict.footer.privacy],
       ],

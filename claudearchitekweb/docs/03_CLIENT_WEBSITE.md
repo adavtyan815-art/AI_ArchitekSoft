@@ -11,18 +11,52 @@
 
 ## Information architecture
 
+
+## Information architecture (v3 — multi-page)
+
+The site is a multi-page corporate/product website, not a single long landing page. The homepage is a compact entry point
+that answers "what is this, who is it for, where do I go" and hands the visitor to a dedicated page. Detail lives once,
+on its own page, and is never repeated on the homepage.
+
+```
+Header:  KitchenPro · Solutions ▾ · How it works · Work · About · Contact · [hy/ru/en] [theme] [Start]
+         Solutions ▾  →  For business · For home · Web Viewer · Live 3D · Other industries
+Footer:  Solutions (KitchenPro + the five above) · Company (How it works, Work, About, FAQ, Contact, Privacy) · Contact
+
+/                 entry point (hero, proof, KitchenPro intro, B2B/B2C doors, Viewer/Live entry, 3 works, where next)
+├── /kitchenpro   the product
+├── /for-business B2B offer + packages            ─┐
+├── /for-home     B2C journey                      │ "Solutions" group
+├── /viewer       Web Viewer demo (interactive 3D) │
+├── /live-3d      Live 3D premium demo             │
+├── /solutions    other industries                ─┘
+├── /how-it-works process, timeline, what you need
+├── /portfolio    works (+ /portfolio/[slug])
+├── /about        company
+├── /faq          questions
+├── /contact      channels + short form
+└── /start        intake wizard
+```
+
+Rules applied: one H1 per page; every homepage block ends with a link to its dedicated page; the interactive 3D demo is
+loaded only on `/viewer` (and project pages), the homepage shows a poster card instead; FAQ content is shared between
+`/faq` and the dictionaries (single source).
+
 | URL (hy) | ru / en | Purpose | Primary CTA |
 |---|---|---|---|
-| `/` | `/ru`, `/en` | Home: promise, proof strip, two doors, KitchenPro in 3 verbs, 3 steps, what you need, other solutions, portfolio, about, FAQ, contact | Start a project |
+| `/` | `/ru`, `/en` | **Compact entry point** (6 short blocks): what ArchiTek Soft is + value + before/after, proof strip, KitchenPro intro (3 pillars → /kitchenpro), B2B / B2C doors, Web Viewer + Live 3D entry cards, 3 featured works, "where next" links + contact | Start a project / Try the Web Viewer |
 | `/kitchenpro` | | The maker platform: problem → solution, 8 capabilities, workflow 0–6 (the maker produces), B2B/B2C views, honest status | Discuss your project |
 | `/viewer` | | Web Viewer: live demo (rotate, colour swatches, AR), features, Web Viewer vs Live 3D table | Get my Web Viewer link |
 | `/for-business` | | B2B: pains, offer, how we start (pilot), packages (Project / Studio / Factory) | Order a pilot project |
 | `/for-home` | | B2C: benefits, 4 steps, what you need, price note | Start in 5 minutes |
 | `/solutions` | | Real estate, showrooms, AR/VR, custom software | Discuss your case |
-| `/how-it-works` | | 4 stages with outputs, timeline, comparison vs standard render | Start |
+| `/how-it-works` | | 4 stages with outputs, timeline, **what you need** checklist, comparison vs standard render | Start |
 | `/portfolio`, `/portfolio/[slug]` | | Real projects with gallery, video, live link | Start |
 | `/contact` | | Telegram / WhatsApp / phone / e-mail + short form (B2B/B2C toggle) | Send |
 | `/start` | | **Intake wizard** (4 steps): Who → Project → Files → Contact | Send request |
+| `/live-3d` | | Live 3D (Pixel Streaming) as a premium B2B demo: who it is for, how a session works, quota/pricing note, link to compare with Web Viewer | Book a Live 3D demo |
+| `/about` | | Who we are, what we do (and do not do), approach, technology, key facts | Contact |
+| `/faq` | | All questions (home FAQ + extended), sticky contact card | Start a project |
 | `/privacy` | | Privacy note | — |
 
 Header: KitchenPro · For business · For home · Other solutions · Work · How it works · Contact · language switch · **Start a project**.

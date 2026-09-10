@@ -10,8 +10,11 @@ Start with `start_local.bat` (or `npm run dev`). Everything below works with **n
 ## 1. Client website (5 min)
 | Step | URL | What to look for |
 |---|---|---|
-| Home in Armenian | http://localhost:3100 | One promise ("see the furniture before it is made"), sketch→3D slider, how we help, two doors (business / customers), **Web Viewer demo** (rotate, change colour, AR), KitchenPro, 3 steps, Live 3D as premium, work, FAQ |
+| Home in Armenian | http://localhost:3100 | Compact entry page: promise + sketch→3D slider, proof strip, KitchenPro intro, two doors (business / customers), Web Viewer + Live 3D entry cards, 3 works, "where next" links. Detail lives on the dedicated pages below |
 | Web Viewer page | /viewer | Full demo + Web Viewer vs Live 3D table |
+| Live 3D page | /live-3d | Premium demo: audience, session flow, quota note |
+| About | /about | Company, approach, technology, facts |
+| FAQ | /faq | All questions + sticky contact card |
 | Russian / English | /ru · /en | Language switch keeps the page; all text translated |
 | KitchenPro | /kitchenpro | Problem → solution, capabilities, stages 0–6 |
 | B2B / B2C | /for-business · /for-home | Different promise, proof and CTA for each audience |
