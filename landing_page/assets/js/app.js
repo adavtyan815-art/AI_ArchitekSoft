@@ -935,7 +935,14 @@ function initBeforeAfterSlider() {
     let pos = (x - rect.left) / rect.width;
     pos = Math.max(0.02, Math.min(0.98, pos));
     const percentage = pos * 100;
-    if (beforeImg) beforeImg.style.width = percentage + '%';
+    if (beforeImg) {
+      if (beforeImg.tagName && beforeImg.tagName.toLowerCase() === 'img') {
+        beforeImg.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
+        beforeImg.style.width = '100%';
+      } else {
+        beforeImg.style.width = percentage + '%';
+      }
+    }
     if (handle) handle.style.left = percentage + '%';
   }
 
@@ -962,6 +969,14 @@ function initBeforeAfterSlider() {
   container.addEventListener('touchstart', startDragging, { passive: true });
   window.addEventListener('touchmove', onPointerMove, { passive: true });
   window.addEventListener('touchend', stopDragging);
+
+  // Set initial 50% split
+  requestAnimationFrame(() => {
+    const rect = container.getBoundingClientRect();
+    if (rect.width > 0) {
+      updateSlider(rect.left + rect.width * 0.5);
+    }
+  });
 }
 
 let scene, camera, renderer, currentModel, materialMeshList = [];
@@ -971,8 +986,8 @@ function init3DViewer() {
   const canvasContainer = document.getElementById('three-canvas-container');
   if (!canvasContainer || typeof THREE === 'undefined') return;
 
-  const width = canvasContainer.clientWidth;
-  const height = canvasContainer.clientHeight;
+  const width = canvasContainer.clientWidth || 800;
+  const height = canvasContainer.clientHeight || 460;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(currentTheme === 'light' ? 0xf8fafc : 0x0a0e17);
