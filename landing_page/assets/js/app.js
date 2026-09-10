@@ -442,7 +442,8 @@ function setLanguage(lang) {
   });
 }
 
-let currentTheme = localStorage.getItem('architek_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+const urlTheme = new URLSearchParams(window.location.search).get('theme');
+let currentTheme = (urlTheme === 'light' || urlTheme === 'dark') ? urlTheme : (localStorage.getItem('architek_theme') || 'dark');
 
 // Apply theme immediately on script execution to prevent flash
 document.documentElement.setAttribute('data-theme', currentTheme);
@@ -766,6 +767,14 @@ function setTheme(theme, save = true) {
   document.documentElement.setAttribute('data-theme', currentTheme);
   if (save) {
     localStorage.setItem('architek_theme', currentTheme);
+  }
+
+  // Switch hero showcase image dynamically
+  const showcaseImg = document.getElementById('device-slideshow-img');
+  if (showcaseImg) {
+    showcaseImg.src = currentTheme === 'light' 
+      ? 'assets/images/hero_showcase_light_clean.png' 
+      : 'assets/images/hero_showcase_dark_clean.png';
   }
 
   // If Three.js viewer is active, adapt scene background

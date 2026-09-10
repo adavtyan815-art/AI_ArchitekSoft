@@ -40,6 +40,7 @@ Start with [`docs/00_EXECUTIVE_SUMMARY.md`](docs/00_EXECUTIVE_SUMMARY.md), then:
 7. [`07_SECURITY_SCALABILITY.md`](docs/07_SECURITY_SCALABILITY.md)
 8. [`08_DEPLOYMENT.md`](docs/08_DEPLOYMENT.md) — local → staging → production, without touching the current site until you decide
 9. [`09_ROADMAP.md`](docs/09_ROADMAP.md) — what is done, what is next
+10. [`10_TESTING_GUIDE.md`](docs/10_TESTING_GUIDE.md) — a 30-minute click-through of everything
 
 ## Project layout
 

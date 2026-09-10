@@ -2343,7 +2343,7 @@ p {
 }
 
 /* RESPONSIVE */
-@media (max-width: 1180px) {
+@media (max-width: 860px) {
   .site-nav {
     height: 68px;
     width: 100%;
@@ -4582,28 +4582,37 @@ p {
 }
 
 /* ==========================================================================
-   FLAGSHIP 50/50 ZERO-SCROLL ARCHITECTURE (MAGNIFICENT EXPANDED CONTAINER)
-   Fills Vertical Space Seamlessly (660px-700px) | Zero Scrollbar Guaranteed
+   FLAGSHIP 100% PIXEL-PERFECT SHOWCASE ARCHITECTURE
+   Matches Reference Designs for Dark & Light Modes | Zero Scrollbar Guaranteed
    ========================================================================== */
 
 /* 1. Global Viewport Fit */
 html, body.flagship-home {
-  height: 100vh;
-  min-height: 100vh;
-  max-height: 100vh;
-  width: 100vw;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-  background: radial-gradient(ellipse 70% 60% at 75% 35%, #0f1c2e 0%, #060a12 60%, #03060a 100%) !important;
-  background-color: #03060a !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: 100vh !important;
+  width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  background: radial-gradient(ellipse 85% 70% at 75% 35%, #081d33 0%, #041220 55%, #020b14 100%) !important;
+  background-color: #020b14 !important;
 }
 
 body.flagship-home {
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
+}
+
+/* Ambient layers - pure studio environment */
+body.flagship-home .ambient-cyber-orbit,
+body.flagship-home .ambient-room-glow,
+body.flagship-home .ambient-grid,
+body.flagship-home .ambient-glow-1,
+body.flagship-home .ambient-glow-2 {
+  display: none !important;
 }
 
 /* 2. Top Luxury Navbar */
@@ -4613,17 +4622,56 @@ body.flagship-home .site-nav {
   left: auto !important;
   right: auto !important;
   flex-shrink: 0 !important;
-  height: 74px !important;
-  background: rgba(6, 10, 18, 0.75) !important;
+  height: clamp(52px, 6.5vh, 60px) !important;
+  background: rgba(4, 12, 22, 0.85) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
   z-index: 100 !important;
+}
+
+body.flagship-home .site-nav .nav-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 clamp(16px, 2.5vw, 42px) !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body.flagship-home .brand-logo {
+  margin-right: clamp(12px, 2vw, 30px) !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+body.flagship-home .brand-img {
+  height: 36px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.45)) !important;
+}
+
+body.flagship-home .site-nav .nav-menu {
+  display: flex !important;
+  align-items: center !important;
+  gap: clamp(6px, 1.1vw, 16px) !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 1 1 auto !important;
 }
 
 body.flagship-home .site-nav .nav-link {
   color: #cbd5e1 !important;
   font-weight: 500 !important;
+  font-size: clamp(0.72rem, 0.80vw, 0.86rem) !important;
+  padding: 5px 8px !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
   transition: all 0.25s ease !important;
 }
 
@@ -4632,63 +4680,56 @@ body.flagship-home .site-nav .nav-link:hover {
 }
 
 body.flagship-home .site-nav .nav-link.active {
-  background: rgba(0, 240, 255, 0.08) !important;
-  border: 1px solid rgba(0, 240, 255, 0.45) !important;
+  background: rgba(0, 240, 255, 0.06) !important;
+  border: 1.5px solid #00b4d8 !important;
   border-radius: 50px !important;
   color: #00f0ff !important;
-  box-shadow: 0 0 16px rgba(0, 240, 255, 0.18) !important;
-  padding: 7px 18px !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.16) !important;
+  padding: 4px 14px !important;
 }
 
-body.flagship-home .btn-nav-cta,
-body.flagship-home .btn-primary {
-  background: linear-gradient(135deg, #00d2ff 0%, #0084ff 100%) !important;
+body.flagship-home .site-nav .mobile-toggle {
+  display: none !important;
+}
+
+body.flagship-home .nav-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-shrink: 0 !important;
+}
+
+body.flagship-home .btn-nav-cta {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: linear-gradient(90deg, #00d2ff 0%, #0077ff 100%) !important;
   color: #04080e !important;
   font-weight: 800 !important;
+  font-size: clamp(0.74rem, 0.82vw, 0.86rem) !important;
   border-radius: 50px !important;
-  box-shadow: 0 4px 20px rgba(0, 210, 255, 0.4) !important;
+  box-shadow: 0 4px 18px rgba(0, 210, 255, 0.38) !important;
   border: none !important;
-  transition: all 0.3s ease !important;
+  padding: 6px 16px !important;
+  transition: all 0.25s ease !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
 }
 
-body.flagship-home .btn-nav-cta:hover,
-body.flagship-home .btn-primary:hover {
-  box-shadow: 0 6px 26px rgba(0, 210, 255, 0.6) !important;
+body.flagship-home .btn-nav-cta:hover {
   transform: translateY(-2px) !important;
+  box-shadow: 0 6px 24px rgba(0, 210, 255, 0.55) !important;
 }
 
-/* Ambient Cyber Orbits & Room Glow */
-.ambient-cyber-orbit {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.85;
-}
-
-.ambient-room-glow {
-  position: absolute;
-  top: 5%;
-  right: -5%;
-  width: 680px;
-  height: 580px;
-  background: radial-gradient(circle at 60% 40%, rgba(245, 158, 11, 0.12) 0%, rgba(0, 240, 255, 0.08) 40%, transparent 70%);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* 3. Central Hero Section (Open Canvas Architecture) */
+/* 3. Central Hero Section (Open Studio Canvas) */
 body.flagship-home .hero-section {
-  flex: 1 1 auto !important;
+  flex: 1 1 0% !important;
   min-height: 0 !important;
   width: 100% !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: clamp(6px, 1vh, 14px) 0 !important;
+  padding: clamp(2px, 0.8vh, 10px) 0 !important;
   margin: 0 !important;
   position: relative !important;
   box-sizing: border-box !important;
@@ -4697,18 +4738,18 @@ body.flagship-home .hero-section {
 
 body.flagship-home .hero-section .container {
   width: 100% !important;
-  max-width: 1620px !important;
-  padding: 0 clamp(16px, 2.2vw, 36px) !important;
-  margin: 0 auto !important;
+  max-width: 100% !important;
+  padding: 0 0 0 clamp(16px, 2.5vw, 42px) !important;
+  margin: 0 !important;
   box-sizing: border-box !important;
 }
 
-/* Hero Grid - Open Luxurious Canvas */
+/* Hero Grid - 2 Columns (Content Left, Visual Edge-to-Edge Right) */
 body.flagship-home .hero-grid {
   width: 100% !important;
   display: grid !important;
-  grid-template-columns: 1fr 1.08fr !important;
-  gap: clamp(28px, 3.5vw, 56px) !important;
+  grid-template-columns: 1fr 1.25fr !important;
+  gap: clamp(16px, 2.2vw, 36px) !important;
   align-items: center !important;
   background: transparent !important;
   backdrop-filter: none !important;
@@ -4722,16 +4763,10 @@ body.flagship-home .hero-grid {
   box-sizing: border-box !important;
 }
 
-body.flagship-home .hero-grid:hover {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-
 /* Left Column (Hero Content) */
 body.flagship-home .hero-content {
   width: 100% !important;
-  max-width: 100% !important;
+  max-width: 540px !important;
   margin: 0 !important;
   padding: 0 !important;
   background: transparent !important;
@@ -4742,7 +4777,123 @@ body.flagship-home .hero-content {
   align-self: center !important;
 }
 
-/* Right Column (Device Stage) */
+/* Standalone Luxury Badge Pill */
+.hero-badge-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: rgba(0, 240, 255, 0.05) !important;
+  border: 1px solid rgba(0, 240, 255, 0.25) !important;
+  border-radius: 50px !important;
+  color: #00f0ff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  font-size: clamp(0.64rem, 0.72vw, 0.74rem) !important;
+  padding: 4px 12px !important;
+  margin: 0 0 clamp(6px, 1.2vh, 12px) 0 !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.12) !important;
+}
+
+.hero-badge-pill .pulse-led {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background-color: #00f0ff !important;
+  box-shadow: 0 0 8px #00f0ff !important;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+}
+
+/* Left Hero Title */
+body.flagship-home .hero-title {
+  font-size: clamp(1.7rem, 2.3vw, 2.5rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  margin: 0 0 clamp(4px, 1.0vh, 8px) 0 !important;
+  letter-spacing: -0.025em !important;
+  width: 100% !important;
+  color: #ffffff !important;
+}
+
+body.flagship-home .hero-title .gradient-text {
+  background: linear-gradient(90deg, #00f0ff 0%, #38bdf8 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.45)) !important;
+}
+
+/* Subtitle */
+body.flagship-home .hero-sub-title {
+  font-size: clamp(0.82rem, 0.94vw, 1.0rem) !important;
+  font-weight: 600 !important;
+  color: #cbd5e1 !important;
+  margin: 0 0 clamp(4px, 1.0vh, 8px) 0 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.01em !important;
+  width: 100% !important;
+}
+
+/* Description */
+body.flagship-home .hero-description {
+  font-size: clamp(0.72rem, 0.80vw, 0.86rem) !important;
+  color: #94a3b8 !important;
+  line-height: 1.45 !important;
+  margin: 0 0 clamp(8px, 1.4vh, 14px) 0 !important;
+  max-width: 480px !important;
+}
+
+/* Actions */
+body.flagship-home .hero-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+}
+
+body.flagship-home .hero-actions .btn-primary {
+  background: linear-gradient(90deg, #00e5ff 0%, #0099ff 100%) !important;
+  color: #030a14 !important;
+  font-weight: 800 !important;
+  border-radius: 50px !important;
+  padding: 8px 18px !important;
+  font-size: clamp(0.76rem, 0.84vw, 0.88rem) !important;
+  box-shadow: 0 4px 18px rgba(0, 229, 255, 0.35) !important;
+  border: none !important;
+  transition: all 0.25s ease !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.flagship-home .hero-actions .btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 24px rgba(0, 229, 255, 0.52) !important;
+}
+
+body.flagship-home .hero-actions .btn-secondary {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  border-radius: 50px !important;
+  padding: 8px 16px !important;
+  backdrop-filter: blur(10px) !important;
+  font-size: clamp(0.76rem, 0.84vw, 0.88rem) !important;
+  font-weight: 600 !important;
+  transition: all 0.25s ease !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.flagship-home .hero-actions .btn-secondary:hover {
+  border-color: #00f0ff !important;
+  color: #00f0ff !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Right Column (Visual Stage) */
 body.flagship-home .hero-device-stage {
   width: 100% !important;
   max-width: 100% !important;
@@ -4750,255 +4901,116 @@ body.flagship-home .hero-device-stage {
   padding: 0 !important;
   display: flex !important;
   flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
   align-self: center !important;
   position: relative !important;
 }
 
-/* Glossy Studio Reflection beneath Devices */
 body.flagship-home .hero-device-stage::after {
-  content: '';
-  position: absolute;
-  bottom: -15px;
-  left: 8%;
-  right: 8%;
-  height: 65px;
-  background: radial-gradient(ellipse at center, rgba(0, 240, 255, 0.18) 0%, rgba(10, 22, 38, 0.7) 45%, transparent 75%);
-  filter: blur(16px);
-  pointer-events: none;
-  z-index: 1;
+  display: none !important;
 }
 
-/* Subtle Circuit Lines */
-.circuit-line-left,
-.circuit-line-right,
-body.flagship-home .circuit-line-left,
-body.flagship-home .circuit-line-right {
-  flex: 1 1 0% !important;
-  height: 1px !important;
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.3), transparent) !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-}
-
-/* Top Circuit Badges */
-body.flagship-home .hero-circuit-top {
-  height: 32px !important;
-  min-height: 32px !important;
-  max-height: 32px !important;
-  margin: 0 0 clamp(16px, 2.2vh, 26px) 0 !important;
-  padding: 0 !important;
-  width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 12px !important;
-  box-sizing: border-box !important;
-}
-
-body.flagship-home .circuit-hub-label {
-  background: rgba(0, 240, 255, 0.06) !important;
-  border: 1px solid rgba(0, 240, 255, 0.35) !important;
-  border-radius: 50px !important;
-  color: #00f0ff !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.08em !important;
-  font-size: 0.76rem !important;
-  padding: 6px 16px !important;
-  box-shadow: 0 0 14px rgba(0, 240, 255, 0.15) !important;
-}
-
-body.flagship-home .circuit-hub-label .pulse-led {
-  background-color: #00f0ff !important;
-  box-shadow: 0 0 10px #00f0ff !important;
-}
-
-/* Left Title */
-body.flagship-home .hero-title {
-  font-size: clamp(2.2rem, 3.1vw, 3.0rem) !important;
-  font-weight: 800 !important;
-  line-height: 1.15 !important;
-  margin: 0 0 12px 0 !important;
-  letter-spacing: -0.025em !important;
-  width: 100% !important;
-  color: #ffffff !important;
-}
-
-body.flagship-home .hero-title .gradient-text {
-  background: linear-gradient(135deg, #00f0ff 0%, #38bdf8 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.45)) !important;
-}
-
-/* Subtitle: Crisp Slate Silver */
-body.flagship-home .hero-sub-title {
-  font-size: clamp(1.05rem, 1.2vw, 1.22rem) !important;
-  font-weight: 600 !important;
-  color: #cbd5e1 !important;
-  margin: 0 0 14px 0 !important;
-  line-height: 1.4 !important;
-  letter-spacing: -0.01em !important;
-  width: 100% !important;
-}
-
-body.flagship-home .hero-description {
-  font-size: clamp(0.88rem, 0.94vw, 0.96rem) !important;
-  color: #94a3b8 !important;
-  line-height: 1.6 !important;
-  margin: 0 0 22px 0 !important;
-  max-width: 530px !important;
-}
-
-body.flagship-home .hero-actions {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 14px !important;
-  margin: 0 !important;
-}
-
-body.flagship-home .hero-actions .btn-secondary {
-  background: rgba(15, 23, 42, 0.7) !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  color: #ffffff !important;
-  border-radius: 50px !important;
-  padding: 13px 26px !important;
-  backdrop-filter: blur(10px) !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  transition: all 0.3s ease !important;
-}
-
-body.flagship-home .hero-actions .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-color: #00f0ff !important;
-  color: #00f0ff !important;
-  box-shadow: 0 0 16px rgba(0, 240, 255, 0.2) !important;
-  transform: translateY(-2px) !important;
-}
-
-/* Right Column Mockup Image with Floor Reflection */
 body.flagship-home .hero-device-mockup-wrapper {
   width: 100% !important;
-  max-width: 680px !important;
-  margin: 0 auto !important;
+  max-width: 100% !important;
+  margin: 0 !important;
   position: relative !important;
   display: flex !important;
-  justify-content: center !important;
+  justify-content: flex-end !important;
   align-items: center !important;
   z-index: 2 !important;
 }
 
 body.flagship-home .hero-device-mockup-img {
-  max-height: clamp(280px, 42vh, 410px) !important;
+  max-height: clamp(220px, 39vh, 340px) !important;
   width: auto !important;
   max-width: 100% !important;
   object-fit: contain !important;
   display: block !important;
-  filter: drop-shadow(0 20px 45px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 35px rgba(0, 240, 255, 0.12)) !important;
-  -webkit-box-reflect: below 2px linear-gradient(to bottom, transparent 65%, rgba(0, 0, 0, 0.35) 100%) !important;
+  -webkit-box-reflect: none !important;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.45)) !important;
   transition: transform 0.4s ease !important;
 }
 
-/* Floating Interactive Visual Annotation */
-.hero-annotation-badge {
-  position: absolute !important;
-  top: -5px !important;
-  right: 15px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  z-index: 10 !important;
-  pointer-events: none !important;
-}
-
-.hero-annotation-badge span {
-  font-size: 0.88rem !important;
-  font-weight: 600 !important;
-  color: #e2e8f0 !important;
-  white-space: nowrap !important;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 240, 255, 0.3) !important;
-}
-
-.hand-drawn-arrow {
-  width: 46px !important;
-  height: 32px !important;
-  margin-top: 2px !important;
-  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.6)) !important;
-}
-
-/* Bottom Feature Strip - 4 Equal Luxury Glass Cards */
+/* 4. Bottom Feature Strip - 4 Equal Luxury Cards */
 body.flagship-home .hero-bottom-strip {
   grid-column: 1 / -1 !important;
   display: grid !important;
   grid-template-columns: repeat(4, 1fr) !important;
-  gap: clamp(14px, 1.6vw, 22px) !important;
+  gap: clamp(8px, 1.2vw, 16px) !important;
   padding-top: 0 !important;
-  margin-top: clamp(16px, 2.2vh, 26px) !important;
+  padding-right: clamp(16px, 2.5vw, 42px) !important;
+  margin-top: clamp(6px, 1.2vh, 14px) !important;
   border-top: none !important;
   width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 body.flagship-home .strip-card {
   display: flex !important;
   align-items: center !important;
-  gap: 16px !important;
-  background: rgba(10, 18, 30, 0.72) !important;
+  gap: 12px !important;
+  background: rgba(8, 18, 32, 0.72) !important;
   backdrop-filter: blur(14px) !important;
   -webkit-backdrop-filter: blur(14px) !important;
-  border: 1px solid rgba(0, 240, 255, 0.15) !important;
+  border: 1px solid rgba(0, 240, 255, 0.16) !important;
   border-radius: 14px !important;
-  padding: 14px 18px !important;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  padding: clamp(6px, 1.0vh, 10px) clamp(10px, 1.2vw, 14px) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   position: relative !important;
   overflow: hidden !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
 body.flagship-home .strip-card:hover {
-  background: rgba(14, 26, 45, 0.88) !important;
-  border-color: rgba(0, 240, 255, 0.5) !important;
-  transform: translateY(-3px) !important;
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.55), 0 0 20px rgba(0, 240, 255, 0.15) !important;
+  background: rgba(12, 24, 42, 0.88) !important;
+  border-color: rgba(0, 240, 255, 0.45) !important;
+  transform: translateY(-2px) !important;
 }
 
 body.flagship-home .strip-icon {
-  width: 44px !important;
-  height: 44px !important;
-  border-radius: 12px !important;
-  background: rgba(0, 240, 255, 0.08) !important;
-  border: 1.5px solid rgba(0, 240, 255, 0.5) !important;
+  width: clamp(34px, 3.0vw, 42px) !important;
+  height: clamp(34px, 3.0vw, 42px) !important;
+  border-radius: 10px !important;
+  background: rgba(0, 240, 255, 0.05) !important;
+  border: 1.5px solid rgba(0, 240, 255, 0.42) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   color: #00f0ff !important;
   flex-shrink: 0 !important;
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15) !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.12) !important;
+}
+
+body.flagship-home .strip-icon svg {
+  width: clamp(16px, 1.6vw, 20px) !important;
+  height: clamp(16px, 1.6vw, 20px) !important;
 }
 
 body.flagship-home .strip-val {
-  font-family: var(--font-mono) !important;
-  font-size: clamp(0.92rem, 1.0vw, 1.05rem) !important;
+  font-size: clamp(0.78rem, 0.88vw, 0.94rem) !important;
   font-weight: 700 !important;
   color: #ffffff !important;
+  line-height: 1.2 !important;
 }
 
 body.flagship-home .strip-lbl {
-  font-size: clamp(0.74rem, 0.8vw, 0.84rem) !important;
+  font-size: clamp(0.66rem, 0.72vw, 0.78rem) !important;
   font-weight: 500 !important;
   color: #94a3b8 !important;
   margin-top: 2px !important;
+  line-height: 1.2 !important;
 }
 
-/* 4. Luxury Single-Line Footer */
+/* 5. Luxury Single-Line Footer */
 body.flagship-home .site-footer.flagship-footer {
   flex-shrink: 0 !important;
-  padding: 12px 0 16px 0 !important;
-  background: rgba(6, 10, 18, 0.85) !important;
+  padding: 6px 0 8px 0 !important;
+  background: rgba(4, 10, 18, 0.85) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
   position: relative !important;
   z-index: 100 !important;
   width: 100% !important;
@@ -5006,9 +5018,9 @@ body.flagship-home .site-footer.flagship-footer {
 
 body.flagship-home .site-footer.flagship-footer .footer-container {
   width: 100% !important;
-  max-width: 1620px !important;
-  padding: 0 clamp(16px, 2.2vw, 36px) !important;
-  margin: 0 auto !important;
+  max-width: 100% !important;
+  padding: 0 clamp(16px, 2.5vw, 42px) !important;
+  margin: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -5018,58 +5030,72 @@ body.flagship-home .site-footer.flagship-footer .footer-container {
 body.flagship-home .site-footer.flagship-footer .footer-left {
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
-  font-size: clamp(0.82rem, 0.9vw, 0.92rem) !important;
-  color: var(--text-muted) !important;
+  gap: 10px !important;
+  font-size: clamp(0.70rem, 0.76vw, 0.82rem) !important;
+  color: #94a3b8 !important;
 }
 
 body.flagship-home .site-footer.flagship-footer .footer-copy {
-  font-family: var(--font-mono) !important;
   font-weight: 700 !important;
-  color: var(--text-pure) !important;
+  color: #ffffff !important;
 }
 
 body.flagship-home .site-footer.flagship-footer .footer-dot {
-  color: var(--accent-cyan) !important;
+  color: #00f0ff !important;
   opacity: 0.6 !important;
 }
 
 body.flagship-home .site-footer.flagship-footer .footer-tagline {
   font-weight: 500 !important;
-  color: var(--text-dim) !important;
+  color: #94a3b8 !important;
 }
 
 body.flagship-home .site-footer.flagship-footer .footer-social-links {
   display: flex !important;
   align-items: center !important;
-  gap: 10px !important;
+  gap: 8px !important;
 }
 
 body.flagship-home .footer-social-btn {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 38px !important;
-  height: 38px !important;
+  width: 30px !important;
+  height: 30px !important;
   border-radius: 50% !important;
-  background: var(--bg-surface-2) !important;
-  border: 1px solid var(--border-subtle) !important;
-  color: var(--text-muted) !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   text-decoration: none !important;
   box-sizing: border-box !important;
 }
 
 body.flagship-home .footer-social-btn:hover {
-  background: var(--bg-surface-1) !important;
-  border-color: var(--accent-cyan) !important;
-  color: var(--accent-cyan) !important;
-  transform: translateY(-3px) scale(1.08) !important;
-  box-shadow: 0 0 16px var(--glow-cyan) !important;
+  border-color: #00f0ff !important;
+  color: #00f0ff !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.4) !important;
 }
 
-/* 5. Mobile & Small Screen Overrides */
-@media (max-width: 1024px), (max-height: 580px) {
+/* 6. Floating Quick Controls Dock */
+.floating-quick-dock {
+  position: fixed !important;
+  bottom: 48px !important;
+  right: 18px !important;
+  top: auto !important;
+  transform: scale(0.85) !important;
+  z-index: 999 !important;
+  opacity: 0.75;
+  transition: opacity 0.2s ease;
+}
+
+.floating-quick-dock:hover {
+  opacity: 1;
+}
+
+/* 7. Mobile & Small Screen Overrides */
+@media (max-width: 860px), (max-height: 440px) {
   html, body.flagship-home {
     height: auto !important;
     min-height: 100vh !important;
@@ -5080,69 +5106,79 @@ body.flagship-home .footer-social-btn:hover {
     position: fixed !important;
   }
   body.flagship-home .hero-section {
-    padding-top: 86px !important;
+    padding-top: 76px !important;
   }
   body.flagship-home .hero-grid {
     grid-template-columns: 1fr !important;
   }
-  body.flagship-home .hero-content {
-    max-width: 100% !important;
+  body.flagship-home .hero-bottom-strip {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
   body.flagship-home .site-footer.flagship-footer .footer-container {
     flex-direction: column !important;
     text-align: center !important;
-    gap: 12px !important;
+    gap: 10px !important;
   }
 }
 
 /* ==========================================================================
-   FLAGSHIP LIGHT THEME LUXURY STYLING OVERRIDES ([data-theme="light"])
-   Ultra-Clean High-Contrast Diamond White / Frosted Glass Aesthetic
+   FLAGSHIP LIGHT THEME 100% PIXEL-PERFECT STYLING OVERRIDES ([data-theme="light"])
+   Exact Match to Light Reference Image
    ========================================================================== */
 
-/* 1. Global Ambient & Background in Light Mode */
+[data-theme="light"] html,
 [data-theme="light"] body.flagship-home {
-  background: #f8fafc !important;
-  background-color: #f8fafc !important;
+  background: radial-gradient(ellipse 80% 65% at 75% 35%, #edf3f9 0%, #f4f8fc 50%, #ffffff 100%) !important;
+  background-color: #ffffff !important;
 }
 
+[data-theme="light"] .ambient-cyber-orbit,
+[data-theme="light"] .ambient-room-glow,
+[data-theme="light"] .ambient-grid,
 [data-theme="light"] .ambient-glow-1,
-[data-theme="light"] .ambient-glow-2,
-[data-theme="light"] .ambient-glow-3 {
+[data-theme="light"] .ambient-glow-2 {
   display: none !important;
 }
 
-[data-theme="light"] .ambient-grid {
-  background-image: 
-    linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px) !important;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
-  opacity: 0.6 !important;
-}
-
-/* 2. Top Luxury Navbar in Light Mode (Crystal Glass with Blur Matching Container) */
+/* Light Navbar */
 [data-theme="light"] body.flagship-home .site-nav {
-  background: rgba(255, 255, 255, 0.02) !important;
-  backdrop-filter: blur(6px) !important;
-  -webkit-backdrop-filter: blur(6px) !important;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: none !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.03) !important;
 }
 
-[data-theme="light"] .site-nav .nav-link {
+[data-theme="light"] body.flagship-home .brand-img {
+  filter: none !important;
+}
+
+[data-theme="light"] body.flagship-home .site-nav .nav-link {
   color: #334155 !important;
 }
 
-[data-theme="light"] .site-nav .nav-link:hover {
+[data-theme="light"] body.flagship-home .site-nav .nav-link:hover {
   color: #0f172a !important;
   background: rgba(15, 23, 42, 0.04) !important;
 }
 
-[data-theme="light"] .site-nav .nav-link.active {
-  color: #0f172a !important;
-  background: rgba(15, 23, 42, 0.06) !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+[data-theme="light"] body.flagship-home .site-nav .nav-link.active {
+  background: #e1effe !important;
+  border: none !important;
+  color: #1a73e8 !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] body.flagship-home .btn-nav-cta {
+  background: #1a73e8 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.3) !important;
+}
+
+[data-theme="light"] body.flagship-home .btn-nav-cta:hover {
+  box-shadow: 0 6px 20px rgba(26, 115, 232, 0.45) !important;
 }
 
 [data-theme="light"] .brand-pill {
@@ -5151,11 +5187,7 @@ body.flagship-home .footer-social-btn:hover {
   border-color: rgba(15, 23, 42, 0.08) !important;
 }
 
-[data-theme="light"] .brand-img {
-  filter: none !important;
-}
-
-/* 3. Navigation Dropdowns & Language Switcher in Light Mode */
+/* Light Dropdowns */
 [data-theme="light"] .nav-dropdown-menu {
   background: rgba(255, 255, 255, 0.96) !important;
   backdrop-filter: blur(16px) !important;
@@ -5164,15 +5196,7 @@ body.flagship-home .footer-social-btn:hover {
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08) !important;
 }
 
-[data-theme="light"] .dropdown-item:hover {
-  background: rgba(15, 23, 42, 0.04) !important;
-}
-
 [data-theme="light"] .dropdown-title {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .dropdown-item:hover .dropdown-title {
   color: #0f172a !important;
 }
 
@@ -5186,22 +5210,10 @@ body.flagship-home .footer-social-btn:hover {
   color: #334155 !important;
 }
 
-[data-theme="light"] .dropdown-item:hover .dropdown-icon {
-  background: #e2e8f0 !important;
-  border-color: rgba(15, 23, 42, 0.16) !important;
-  color: #0f172a !important;
-}
-
 [data-theme="light"] .lang-btn {
   background: rgba(255, 255, 255, 0.6) !important;
   border: 1px solid rgba(15, 23, 42, 0.08) !important;
   color: #0f172a !important;
-}
-
-[data-theme="light"] .lang-btn:hover {
-  background: #ffffff !important;
-  border-color: rgba(15, 23, 42, 0.2) !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important;
 }
 
 [data-theme="light"] .lang-dropdown {
@@ -5220,27 +5232,20 @@ body.flagship-home .footer-social-btn:hover {
   color: #0f172a !important;
 }
 
-[data-theme="light"] .lang-badge {
-  background: #e2e8f0 !important;
-  color: #334155 !important;
+/* Light Badge Pill */
+[data-theme="light"] .hero-badge-pill {
+  background: rgba(26, 115, 232, 0.05) !important;
+  border: 1px solid rgba(26, 115, 232, 0.18) !important;
+  color: #1a73e8 !important;
+  box-shadow: none !important;
 }
 
-/* 4. Central Hero Grid (Pure Transparency / High-Tech Glass) */
-[data-theme="light"] body.flagship-home .hero-grid {
-  background: rgba(255, 255, 255, 0.02) !important;
-  backdrop-filter: blur(6px) !important;
-  -webkit-backdrop-filter: blur(6px) !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.03) !important;
+[data-theme="light"] .hero-badge-pill .pulse-led {
+  background-color: #1a73e8 !important;
+  box-shadow: 0 0 6px rgba(26, 115, 232, 0.4) !important;
 }
 
-[data-theme="light"] body.flagship-home .hero-grid:hover {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border-color: rgba(15, 23, 42, 0.16) !important;
-  box-shadow: 0 16px 45px rgba(15, 23, 42, 0.06) !important;
-}
-
-/* 5. Typography in Light Mode */
+/* Light Typography */
 [data-theme="light"] body.flagship-home .hero-title {
   color: #0f172a !important;
 }
@@ -5248,10 +5253,12 @@ body.flagship-home .footer-social-btn:hover {
 [data-theme="light"] body.flagship-home .hero-title .gradient-text {
   background: none !important;
   -webkit-background-clip: unset !important;
-  -webkit-text-fill-color: #0f172a !important;
-  color: #0f172a !important;
+  -webkit-text-fill-color: #1a73e8 !important;
+  color: #1a73e8 !important;
+  filter: none !important;
 }
 
+/* Light Subtitle & Description */
 [data-theme="light"] body.flagship-home .hero-sub-title {
   color: #334155 !important;
 }
@@ -5260,155 +5267,76 @@ body.flagship-home .footer-social-btn:hover {
   color: #64748b !important;
 }
 
-/* 6. Circuit Badges & Lines in Light Mode (Clean Slate / Subtle Borders) */
-[data-theme="light"] .circuit-hub-label,
-[data-theme="light"] body.flagship-home .circuit-hub-label {
-  background: rgba(15, 23, 42, 0.03) !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  color: #334155 !important;
-  box-shadow: none !important;
+/* Light Buttons */
+[data-theme="light"] body.flagship-home .hero-actions .btn-primary {
+  background: #1a73e8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(26, 115, 232, 0.3) !important;
 }
 
-[data-theme="light"] .circuit-hub-label .pulse-led,
-[data-theme="light"] body.flagship-home .circuit-hub-label .pulse-led {
-  background-color: #475569 !important;
-  box-shadow: 0 0 6px rgba(71, 85, 105, 0.4) !important;
+[data-theme="light"] body.flagship-home .hero-actions .btn-primary:hover {
+  box-shadow: 0 6px 22px rgba(26, 115, 232, 0.45) !important;
+  transform: translateY(-2px) !important;
 }
 
-[data-theme="light"] .circuit-line-left,
-[data-theme="light"] .circuit-line-right,
-[data-theme="light"] body.flagship-home .circuit-line-left,
-[data-theme="light"] body.flagship-home .circuit-line-right {
-  background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.1), transparent) !important;
+[data-theme="light"] body.flagship-home .hero-actions .btn-secondary {
+  background: #ffffff !important;
+  border: 1px solid rgba(203, 213, 225, 0.8) !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
 }
 
-/* 7. Right Mockup Image & Ambilight in Light Mode */
-[data-theme="light"] .studio-ambilight-glow,
-[data-theme="light"] body.flagship-home .studio-ambilight-glow {
-  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.03) 0%, transparent 65%) !important;
+[data-theme="light"] body.flagship-home .hero-actions .btn-secondary:hover {
+  background: #ffffff !important;
+  border-color: #1a73e8 !important;
+  color: #1a73e8 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
 }
 
+/* Light Mockup Image */
 [data-theme="light"] body.flagship-home .hero-device-mockup-img {
-  filter: drop-shadow(0 20px 40px rgba(15, 23, 42, 0.12)) !important;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.07)) !important;
 }
 
-/* 8. Bottom 4 Cards in Light Mode (Pure Transparent) */
-[data-theme="light"] body.flagship-home .hero-bottom-strip {
-  border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
-}
-
+/* Light Bottom Cards */
 [data-theme="light"] body.flagship-home .strip-card {
-  background: rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: none !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04) !important;
 }
 
 [data-theme="light"] body.flagship-home .strip-card:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-color: rgba(15, 23, 42, 0.18) !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05) !important;
+  background: #ffffff !important;
+  border-color: rgba(26, 115, 232, 0.3) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07) !important;
   transform: translateY(-2px) !important;
 }
 
 [data-theme="light"] body.flagship-home .strip-icon {
-  background: rgba(15, 23, 42, 0.03) !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  color: #334155 !important;
+  background: rgba(26, 115, 232, 0.06) !important;
+  border: 1.5px solid rgba(26, 115, 232, 0.25) !important;
+  color: #1a73e8 !important;
+  box-shadow: none !important;
 }
 
 [data-theme="light"] body.flagship-home .strip-card:hover .strip-icon {
-  background: #0f172a !important;
+  background: #1a73e8 !important;
   color: #ffffff !important;
-  border-color: #0f172a !important;
-  box-shadow: 0 0 10px rgba(15, 23, 42, 0.2) !important;
+  border-color: #1a73e8 !important;
 }
 
 [data-theme="light"] body.flagship-home .strip-val {
   color: #0f172a !important;
-  font-weight: 800 !important;
 }
 
 [data-theme="light"] body.flagship-home .strip-lbl {
   color: #64748b !important;
-  font-weight: 500 !important;
 }
 
-/* 9. Buttons in Light Mode (Logo-Matched Gradient for Primary) */
-[data-theme="light"] .btn-primary {
-  background: linear-gradient(135deg, #58a2eb 0%, #3b82f6 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 16px rgba(88, 162, 235, 0.35) !important;
-}
-
-[data-theme="light"] .btn-primary:hover {
-  box-shadow: 0 8px 25px rgba(88, 162, 235, 0.5) !important;
-  transform: translateY(-2px) !important;
-}
-
-[data-theme="light"] .btn-secondary {
-  background: transparent !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  color: #0f172a !important;
-  box-shadow: none !important;
-}
-
-[data-theme="light"] .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.5) !important;
-  border-color: rgba(15, 23, 42, 0.2) !important;
-  color: #0f172a !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
-  transform: translateY(-2px) !important;
-}
-
-[data-theme="light"] .btn-nav-cta {
-  background: linear-gradient(135deg, #58a2eb 0%, #3b82f6 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 16px rgba(88, 162, 235, 0.35) !important;
-}
-
-[data-theme="light"] .btn-nav-cta:hover {
-  box-shadow: 0 6px 22px rgba(88, 162, 235, 0.5) !important;
-}
-
-/* 10. Floating Quick Controls Dock in Light Mode */
-[data-theme="light"] .floating-quick-dock {
-  background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05) !important;
-}
-
-[data-theme="light"] .floating-quick-dock:hover {
-  border-color: rgba(15, 23, 42, 0.18) !important;
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08) !important;
-}
-
-[data-theme="light"] .quick-dock-divider {
-  background: rgba(15, 23, 42, 0.08) !important;
-}
-
-[data-theme="light"] .quick-dock-btn {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .quick-dock-btn:hover {
-  background: #ffffff !important;
-  border-color: rgba(15, 23, 42, 0.2) !important;
-  color: #0f172a !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important;
-}
-
-/* 11. Luxury Single-Line Footer in Light Mode (Crystal Glass with Blur Matching Container) */
+/* Light Footer */
 [data-theme="light"] body.flagship-home .site-footer.flagship-footer {
-  background: rgba(255, 255, 255, 0.02) !important;
-  backdrop-filter: blur(6px) !important;
-  -webkit-backdrop-filter: blur(6px) !important;
-  border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-top: 1px solid rgba(15, 23, 42, 0.06) !important;
   box-shadow: none !important;
 }
 
@@ -5425,19 +5353,39 @@ body.flagship-home .footer-social-btn:hover {
 }
 
 [data-theme="light"] body.flagship-home .footer-social-btn {
-  background: rgba(255, 255, 255, 0.3) !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(203, 213, 225, 0.7) !important;
   color: #475569 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
 
 [data-theme="light"] body.flagship-home .footer-social-btn:hover {
   background: #ffffff !important;
-  border-color: rgba(15, 23, 42, 0.2) !important;
-  color: #0f172a !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+  border-color: #1a73e8 !important;
+  color: #1a73e8 !important;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.2) !important;
 }
 
-/* 12. Modals in Light Mode */
+/* Light Quick Dock */
+[data-theme="light"] .floating-quick-dock {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-theme="light"] .quick-dock-btn {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .quick-dock-btn:hover {
+  background: #f1f5f9 !important;
+  color: #1a73e8 !important;
+}
+
+/* Modals Light */
 [data-theme="light"] .modal-content {
   background: #ffffff !important;
   border: 1px solid rgba(15, 23, 42, 0.08) !important;
@@ -5461,3 +5409,4 @@ body.flagship-home .footer-social-btn:hover {
   background: #e2e8f0 !important;
   color: #0f172a !important;
 }
+
