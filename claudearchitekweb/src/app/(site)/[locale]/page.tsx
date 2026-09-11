@@ -29,8 +29,8 @@ const MATERIALS: { label: string; fill: string }[] = [
 ];
 
 /**
- * Compact entry page. The first screen carries the whole message: a two-line statement, what we do,
- * two CTAs and the interactive showcase (sketch → 3D, Web Viewer, Live 3D) with its three option tiles.
+ * Compact entry page. The first screen is a product console: the showcase stage (sketch → 3D, Web Viewer,
+ * Live 3D) takes the width, a rail beside it carries the headline, the three option buttons and the CTAs.
  * Below: proof strip → 02 the platform → 03 who it is for → 04 selected work → 05 where next.
  * Heavy content (3D model, video) is loaded only when its demonstration is opened.
  */
@@ -45,42 +45,48 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      {/* 01 — FIRST SCREEN: statement + what we do + the showcase */}
-      <section className="container-x pt-6 sm:pt-9 lg:pt-10">
-        <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-8">
-          <div className="lg:col-span-7">
-            <div className="mb-4 flex items-center gap-3">
-              <Index n={1} />
-              <span className="eyebrow">{d.home.heroBadge}</span>
-            </div>
-            <h1 className="h-display text-[2rem] sm:text-[2.9rem] lg:text-[3.1rem] xl:text-[3.4rem]">{d.home.heroTitle}</h1>
-          </div>
-          <div className="lg:col-span-5 lg:pb-1">
-            <p className="hidden text-[15.5px] leading-relaxed text-fg-2 sm:block lg:max-w-[30rem]">{c.intro}</p>
-            <div className="flex flex-row gap-2.5 sm:mt-5">
-              <ButtonLink href={p("/start")} className="w-full sm:w-auto">
+      {/* 01 — FIRST SCREEN: the product console. Stage first; headline, selector and CTAs in the rail. */}
+      <section className="container-x pt-5 sm:pt-7 lg:pt-8">
+        <Showcase
+          locale={locale}
+          s={d.showcase}
+          viewerLabels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }}
+          compareLabels={[d.portal.before, d.portal.after]}
+          media={{ before: "/demo/sketch.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/wardrobe.webp" }}
+          headline={
+            <>
+              <div className="mb-3 flex items-center gap-3">
+                <Index n={1} />
+                <span className="eyebrow">{d.home.heroBadge}</span>
+              </div>
+              <h1 className="h-display text-[2rem] leading-[1.06] xl:text-[2.25rem]">{d.home.heroTitle}</h1>
+              <p className="mt-3 text-[14px] leading-relaxed text-fg-2 xl:text-[14.5px]">{c.intro}</p>
+            </>
+          }
+          headlineMobile={
+            <>
+              <div className="mb-3 flex items-center gap-3">
+                <Index n={1} />
+                <span className="eyebrow">{d.home.heroBadge}</span>
+              </div>
+              <h2 className="h-display text-[1.9rem] sm:text-[2.4rem]" aria-hidden>
+                {d.home.heroTitle}
+              </h2>
+            </>
+          }
+          ctas={
+            <>
+              <ButtonLink href={p("/start")}>
                 {d.home.heroPrimary}
                 <ArrowUpRight size={16} />
               </ButtonLink>
-              <ButtonLink href={p("/viewer")} variant="secondary" className="hidden sm:inline-flex">
+              <ButtonLink href={p("/viewer")} variant="secondary">
                 {d.home.heroSecondary}
               </ButtonLink>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 sm:mt-6">
-          <Showcase
-            locale={locale}
-            s={d.showcase}
-            viewerLabels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }}
-            compareLabels={[d.portal.before, d.portal.after]}
-            media={{ before: "/demo/sketch.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/wardrobe.webp" }}
-          />
-        </div>
-
-        {/* Phones: the intro reads after the showcase */}
-        <p className="mt-5 text-[15px] leading-relaxed text-fg-2 sm:hidden">{c.intro}</p>
+            </>
+          }
+          introMobile={<p className="text-[14.5px] leading-relaxed text-fg-2">{c.intro}</p>}
+        />
         <p className="caption mt-4">{d.home.heroNote}</p>
       </section>
 

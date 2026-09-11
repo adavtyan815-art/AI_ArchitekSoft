@@ -484,6 +484,7 @@ export const en = {
     paused: "In your hands",
     prev: "Previous",
     next: "Next",
+    choose: "Choose a demonstration",
     fullscreen: "Fullscreen",
     exitFullscreen: "Exit fullscreen",
     items: [

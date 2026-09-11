@@ -44,7 +44,7 @@ loaded only when its showcase tab is opened (and on `/viewer` / project pages); 
 
 | URL (hy) | ru / en | Purpose | Primary CTA |
 |---|---|---|---|
-| `/` | `/ru`, `/en` | **First screen carries the message**: two-line statement, one paragraph on what we do, two CTAs and the **interactive showcase** (sketch → 3D comparison, Web Viewer, Live 3D walkthrough on one stage with three always-visible option tiles — the selected tile is larger; prev/next, ← →, fullscreen; auto-advance every 5 s while idle, stops on any interaction). Then proof strip, platform intro (3 pillars → /platform), B2B / B2C doors, 3 featured works, "where next" links + contact | Start a project / Try the Web Viewer |
+| `/` | `/ru`, `/en` | **First screen = product console**: the showcase stage (sketch → 3D comparison, Web Viewer, Live 3D walkthrough) with a rail beside it — headline, one paragraph, three option buttons (manual selection only, the selected one filled and larger), two CTAs; fullscreen and ← → keys. Then proof strip, platform intro (3 pillars → /platform), B2B / B2C doors, 3 featured works, "where next" links + contact | Start a project / Try the Web Viewer |
 | `/platform` | | The maker platform (old `/kitchenpro` URL redirects): problem → solution, 8 capabilities, workflow 0–6 (the maker produces), B2B/B2C views, honest status | Discuss your project |
 | `/viewer` | | Web Viewer: live demo (rotate, colour swatches, AR), features, Web Viewer vs Live 3D table | Get my Web Viewer link |
 | `/for-business` | | B2B: pains, offer, how we start (pilot), packages (Project / Studio / Factory) | Order a pilot project |

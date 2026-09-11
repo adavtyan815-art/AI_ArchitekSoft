@@ -502,6 +502,7 @@ export const hy = {
     paused: "Ձեր վերահսկողությամբ",
     prev: "Նախորդը",
     next: "Հաջորդը",
+    choose: "Ընտրեք ցուցադրությունը",
     fullscreen: "Լիաէկրան",
     exitFullscreen: "Փակել լիաէկրանը",
     items: [

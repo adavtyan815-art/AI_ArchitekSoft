@@ -574,7 +574,7 @@ html[data-js] .reveal.is-in {
 
 
 /* --------------------------------------------------------------------------
-   Showcase (home): fullscreen stage + 5s auto-advance progress line
+   Showcase (home): fullscreen stage
    -------------------------------------------------------------------------- */
 .showcase-stage:fullscreen {
   aspect-ratio: auto;
@@ -586,14 +586,6 @@ html[data-js] .reveal.is-in {
 }
 .showcase-stage:fullscreen .frame-marks::after {
   inset: 18px;
-}
-@keyframes showcase-progress {
-  from { width: 0; }
-  to { width: 100%; }
-}
-.showcase-progress {
-  width: 100%;
-  animation: showcase-progress 5s linear forwards;
 }
 
 /* Before/after slider handle */

@@ -109,14 +109,15 @@ Verification: 100 full-page screenshots (every page × light/dark × desktop/mob
 
 Known limits: long Armenian display words can still break mid-word below 640 px (`overflow-wrap`), the admin "client pages" table scrolls horizontally at 1440 px, and headless captures of the 3D demo render the GLB without proper shading (real browsers are fine).
 
-## 12. Interactive showcase (home)
+## 12. Interactive showcase (home, first screen)
 
-`src/components/site/showcase.tsx` — sits in the first screen (statement above, stage below, three option tiles under the stage; the selected tile grows to ~1.9× and carries the progress line). One stage, three demonstrations: **01 sketch → finished picture** (comparison
-slider), **02 Web Viewer** (rotate, change colour; AR on phones), **03 Live 3D** (a 10 s cinematic walkthrough clip).
-Rules: clear manual controls (tabs with progress line, prev/next, ← → keys); auto-advance after **5 s** of no
-interaction and keep cycling while idle; any click, drag, key or tab stops auto mode for good (the visitor can restart
-it with the play chip); cycling pauses when the section is off-screen, the tab is hidden, in fullscreen, or with
-reduced motion. **Fullscreen** on the stage (hidden where the API is missing). **Performance**: the 3D library and model
-load only when tab 02 is opened (tap-to-load on phones), the clip (≈450 KB, 720p, muted) only when tab 03 is opened;
-the initial page carries just two images. Media lives in `public/demo/showcase-*`; the sample model is a placeholder and
-should be replaced with a real KitchenPro export.
+`src/components/site/showcase.tsx` — the product console. On wide screens the stage (16:10) takes 8 of 12 columns
+and a rail beside it carries the headline, one paragraph, the **selector** and the CTAs; on phones the headline
+comes first, then the stage, the selector as a segmented row, then the intro. Three demonstrations: **01 sketch →
+finished picture** (comparison slider), **02 Web Viewer** (rotate, change colour; AR on phones), **03 Live 3D**
+(10 s cinematic walkthrough clip). **Selection is manual only** — three option buttons (the selected one is filled
+ink with the accent index and a left accent bar, larger on wide screens), ← → keys; no automatic switching. A
+caption bar under the stage names the active demonstration and links to its page. **Fullscreen** on the stage
+(hidden where the API is missing). **Performance**: the 3D library and model load only when 02 is opened
+(tap-to-load on phones), the clip (≈450 KB, 720p, muted) only when 03 is opened. Media lives in
+`public/demo/showcase-*`; the sample model is a placeholder and should be replaced with a real export.

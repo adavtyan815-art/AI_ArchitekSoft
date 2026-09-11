@@ -484,6 +484,7 @@ export const ru = {
     paused: "Под вашим управлением",
     prev: "Назад",
     next: "Дальше",
+    choose: "Выберите демонстрацию",
     fullscreen: "На весь экран",
     exitFullscreen: "Выйти из полноэкранного режима",
     items: [
