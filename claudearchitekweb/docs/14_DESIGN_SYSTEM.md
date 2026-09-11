@@ -121,3 +121,12 @@ caption bar under the stage names the active demonstration and links to its page
 (hidden where the API is missing). **Performance**: the 3D library and model load only when 02 is opened
 (tap-to-load on phones), the clip (≈450 KB, 720p, muted) only when 03 is opened. Media lives in
 `public/demo/showcase-*`; the sample model is a placeholder and should be replaced with a real export.
+
+## 13. Homepage experiment (v5, under review)
+
+The homepage alone carries a more contemporary interpretation of the identity, scoped to `.home-x` in
+`src/app/(site)/[locale]/home.css` (no other page is affected): sans display type (the serif stays as an
+accent), a split first screen with a large floating canvas + control dock and a "now showing" block next to
+the headline, tonal floating cards instead of hairline boxes, a dark platform canvas, image-card doors, link
+cards and a gradient CTA. Restore point before the experiment: commit `fba965e`. If the direction is adopted,
+the same treatment should be propagated deliberately page by page; if not, revert the three homepage files.
