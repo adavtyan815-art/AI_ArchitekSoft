@@ -200,12 +200,12 @@ export function Showcase({
               aria-selected={active}
               onClick={() => select(k)}
               className={cn(
-                "group relative min-w-0 rounded-md border text-left transition-[background-color,border-color,color,padding,transform] duration-200",
+                "opt group relative min-w-0 rounded-lg border text-left transition-[background-color,border-color,color,padding,transform] duration-200",
                 "px-3.5 py-2.5 lg:px-4",
                 active ? "border-fg bg-fg text-bg py-3 pl-4 lg:py-4 lg:pl-5" : "border-line bg-surface text-fg-2 hover:border-fg hover:text-fg lg:py-3",
               )}
             >
-              {active ? <span aria-hidden className="absolute inset-y-2 left-0 w-[3px] rounded-r bg-accent lg:inset-y-3" /> : null}
+              {active ? <span aria-hidden className="opt-bar absolute inset-y-2 left-0 w-[3px] rounded-r bg-accent lg:inset-y-3" /> : null}
               <span className="flex items-center gap-2">
                 <span className={cn("index", active ? "text-accent" : "text-faint")}>{idx(k)}</span>
                 <span className={cn("truncate font-mono text-[10.5px] uppercase tracking-[0.12em]", active ? "text-bg/70" : "text-muted")}>{it.tag}</span>
@@ -231,16 +231,16 @@ export function Showcase({
   );
 
   return (
-    <div className="grid gap-5 lg:grid-cols-12 lg:gap-6">
+    <div className="console grid gap-5 lg:grid-cols-12 lg:gap-6">
       <div className="lg:hidden">{headlineMobile}</div>
-      <div className="frame overflow-hidden lg:col-span-8 lg:flex lg:flex-col">
+      <div className="stage-frame stage-in frame overflow-hidden lg:col-span-8 lg:flex lg:flex-col">
         {stage}
         {caption}
       </div>
       <div className="flex flex-col lg:col-span-4">
         <div className="hidden lg:block">{headline}</div>
-        <div className="lg:mt-5">{selector}</div>
-        <div className="mt-5 flex flex-col gap-2.5 sm:flex-row lg:mt-5 [&>a]:w-full sm:[&>a]:w-auto lg:[&>a]:flex-1">{ctas}</div>
+        <div className="rise lg:mt-5" style={{ "--d": "300ms" } as React.CSSProperties}>{selector}</div>
+        <div className="rise mt-5 flex flex-col gap-2.5 sm:flex-row lg:mt-5 [&>a]:w-full sm:[&>a]:w-auto lg:[&>a]:flex-1" style={{ "--d": "380ms" } as React.CSSProperties}>{ctas}</div>
         <div className="mt-5 lg:hidden">{introMobile}</div>
       </div>
     </div>

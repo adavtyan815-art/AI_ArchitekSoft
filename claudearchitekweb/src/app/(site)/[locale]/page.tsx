@@ -10,6 +10,7 @@ import { ContactChannels } from "@/components/site/contact-channels";
 import { PortfolioGrid } from "@/components/site/portfolio-grid";
 import { Showcase } from "@/components/site/showcase";
 import { pageMeta } from "./meta";
+import "./home.css";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
@@ -44,7 +45,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const work = getPortfolio(locale, { featuredOnly: true, limit: 3 });
 
   return (
-    <>
+    <div className="home-x">
       {/* 01 — FIRST SCREEN: the product console. Stage first; headline, selector and CTAs in the rail. */}
       <section className="container-x pt-5 sm:pt-7 lg:pt-8">
         <Showcase
@@ -55,12 +56,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           media={{ before: "/demo/sketch.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/wardrobe.webp" }}
           headline={
             <>
-              <div className="mb-3 flex items-center gap-3">
+              <div className="rise mb-3 flex items-center gap-3" style={{ "--d": "80ms" } as React.CSSProperties}>
                 <Index n={1} />
                 <span className="eyebrow">{d.home.heroBadge}</span>
               </div>
-              <h1 className="h-display text-[2rem] leading-[1.06] xl:text-[2.25rem]">{d.home.heroTitle}</h1>
-              <p className="mt-3 text-[14px] leading-relaxed text-fg-2 xl:text-[14.5px]">{c.intro}</p>
+              <h1 className="rise h-display text-[2rem] leading-[1.06] xl:text-[2.3rem]" style={{ "--d": "140ms" } as React.CSSProperties}>
+                {d.home.heroTitle}
+              </h1>
+              <p className="rise mt-3 text-[14px] leading-relaxed text-fg-2 xl:text-[14.5px]" style={{ "--d": "220ms" } as React.CSSProperties}>
+                {c.intro}
+              </p>
             </>
           }
           headlineMobile={
@@ -69,7 +74,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <Index n={1} />
                 <span className="eyebrow">{d.home.heroBadge}</span>
               </div>
-              <h2 className="h-display text-[1.9rem] sm:text-[2.4rem]" aria-hidden>
+              <h2 className="rise h-display text-[1.9rem] sm:text-[2.4rem]" aria-hidden>
                 {d.home.heroTitle}
               </h2>
             </>
@@ -95,8 +100,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <Ticks />
         <ul className="mt-6 grid grid-cols-2 gap-x-8 gap-y-8 md:grid-cols-4">
           {d.home.proof.map((it) => (
-            <li key={it.label}>
-              <Stat value={it.value} label={it.label} />
+            <li key={it.label} className="proof-item pt-4">
+              <Stat value={it.value} label={it.label} className="border-t-0 pt-0" />
             </li>
           ))}
         </ul>
@@ -104,7 +109,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* 02 — THE PLATFORM (inverse band) */}
       <section className="mt-20 sm:mt-28">
-        <div className="inverse">
+        <div className="inverse band">
           <div className="container-x py-16 sm:py-24">
             <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
               <div className="lg:col-span-5">
@@ -154,7 +159,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             { card: d.home.b2bCard, href: p("/for-business"), img: "/demo/kitchen-walnut.webp", code: "B2B" },
             { card: d.home.b2cCard, href: p("/for-home"), img: "/demo/render-2.webp", code: "B2C" },
           ].map(({ card, href, img, code }) => (
-            <Link key={href} href={href} className="group reveal block">
+            <Link key={href} href={href} className="door group reveal block">
               <div className="frame img-zoom">
                 <div className="relative aspect-[16/10] bg-surface-2">
                   <Image src={img} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
@@ -223,7 +228,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </ul>
           </div>
           <div className="lg:col-span-6 lg:col-start-7">
-            <div className="rounded-xl bg-accent p-7 text-accent-fg sm:p-10">
+            <div className="cta-block rounded-2xl p-7 text-accent-fg sm:p-10">
               <h2 className="font-display text-[1.9rem] leading-[1.08] sm:text-[2.4rem]">{d.home.finalTitle}</h2>
               <p className="mt-3 max-w-md text-[15px] opacity-85">{d.home.finalText}</p>
               <ButtonLink href={p("/start")} size="lg" className="mt-7 bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620]">
@@ -237,6 +242,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
