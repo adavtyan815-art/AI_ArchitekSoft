@@ -77,8 +77,10 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
         {/* Index: brand + two link columns (a 2-column matrix on phones) + social */}
         <div className="grid grid-cols-2 gap-x-6 gap-y-9 border-t border-line py-9 md:grid-cols-12 md:gap-10 md:py-10">
           <div className="col-span-2 md:col-span-4">
-            <BrandLogo className="h-7" />
-            <p className="mt-4 max-w-xs text-[13.5px] leading-relaxed text-muted">{dict.meta.description}</p>
+            <div className="hidden md:block">
+              <BrandLogo className="h-8" />
+            </div>
+            <p className="max-w-xs text-[13.5px] leading-relaxed text-muted md:mt-4">{dict.meta.description}</p>
           </div>
           {cols.map((c) => (
             <div key={c.title} className="md:col-span-3">

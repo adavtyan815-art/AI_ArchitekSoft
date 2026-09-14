@@ -367,6 +367,7 @@ export const en = {
     stepLabels: ["Who you are", "The project", "Files", "Contact"],
     who: {
       title: "Who are you?",
+      hint: "Choose one option to continue.",
       b2c: { title: "I am ordering furniture", text: "For a house or apartment. I want to see and choose before ordering." },
       b2b: { title: "I make or sell furniture", text: "Maker, showroom, design studio, developer" },
     },

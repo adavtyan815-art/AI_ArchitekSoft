@@ -186,9 +186,14 @@ segmented language switch, the start button at the bottom. **Start flow**: the c
 hairline and ink type — separated and important without a black block; dark keeps the graphite panel.
 **Audiences** are named symmetrically: Բիզնեսին / Անհատներին, Бизнесу / Частным клиентам, For business /
 For individuals. **Start** sits in the page grid: the ask on the left (sticky), the form on the right behind
-a vertical rule (a strong rule above it on phones). **Comparison slider**: fractional position, a 44 px
-grip on the divider with `touch-action: none` (drag never scrolls; the rest of the image keeps `pan-y`),
-← → 1 unit, Shift ×10. **Live 3D on phones**: the 16:9 clip is framed on the furniture in the square stage
+a vertical rule (a strong rule above it on phones). **Comparison slider**: pointer moves never go through React
+state — every move (coalesced events included) writes a ref and one requestAnimationFrame paints a
+`clip-path` on the "before" layer and the handle position, so nothing re-lays out the images and the divider
+tracks the pointer 1:1 at any speed; a 44 px grip on the divider has `touch-action: none` (drag never
+scrolls; the rest of the image keeps `pan-y`); ← → 1 unit, Shift ×10; aria values update on release.
+**Header logo**: 36 px in the 76 px desktop header, 32 px in the 64 px phone header; the phone footer has no
+logo (the description opens the brand block). **Start, step 1**: an instruction line under the question and
+radio rings on the cards, so "choose one" is read before anything is picked; nothing is preselected. **Live 3D on phones**: the 16:9 clip is framed on the furniture in the square stage
 (bottom-anchored, 1.32×) so the scene's TV screen no longer fills the top as a black rectangle.
 **No public admin link** in the footer.
 

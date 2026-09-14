@@ -274,7 +274,8 @@ export function StartWizard({
         {step === 0 ? (
           <div>
             <h2 className="h-sub">{s.who.title}</h2>
-            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+            <p className="mt-2 text-[14.5px] text-muted">{s.who.hint}</p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label={s.who.title}>
               {(
                 [
                   ["b2c", s.who.b2c],
@@ -295,7 +296,10 @@ export function StartWizard({
                   />
                   <span className="flex w-full items-center justify-between gap-3">
                     <Index n={i + 1} className={cn(segment !== val && "text-faint")} />
-                    <span className={cn("h-3.5 w-3.5 flex-none rounded-sm border transition-colors", segment === val ? "border-fg bg-accent" : "border-line-strong")} aria-hidden />
+                    {/* radio: a ring that fills when chosen — reads as "one of these" before anything is picked */}
+                    <span className={cn("relative h-[18px] w-[18px] flex-none rounded-full border-[1.5px] transition-colors", segment === val ? "border-fg" : "border-line-strong")} aria-hidden>
+                      <span className={cn("absolute inset-[3px] rounded-full bg-accent transition-transform", segment === val ? "scale-100" : "scale-0")} />
+                    </span>
                   </span>
                   <span className="mt-5 block font-display text-[1.25rem] leading-tight text-fg">{card.title}</span>
                   <span className="mt-2 block text-[14.5px] leading-relaxed text-muted">{card.text}</span>
