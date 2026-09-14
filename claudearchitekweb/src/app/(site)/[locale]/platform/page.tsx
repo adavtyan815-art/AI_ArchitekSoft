@@ -114,7 +114,7 @@ export default async function PlatformPage({ params }: { params: Promise<{ local
             <div className="mt-8 lg:sticky lg:top-28">
               <Frame marks caption="Sketch → room model" captionRight="STAGE 01">
                 <div className="relative aspect-[4/3] bg-surface-2">
-                  <Image src="/demo/sketch.webp" alt="" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+                  <Image src="/demo/sketch-plan.webp" alt="" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
                 </div>
               </Frame>
             </div>

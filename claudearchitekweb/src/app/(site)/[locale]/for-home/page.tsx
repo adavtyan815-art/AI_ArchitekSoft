@@ -46,7 +46,7 @@ export default async function ForHomePage({ params }: { params: Promise<{ locale
           </div>
           <div className="lg:col-span-6">
             <Frame marks caption={d.home.heroCaption} captionRight="B2C">
-              <BeforeAfter before="/demo/sketch.webp" after="/demo/render-1.webp" labels={[d.portal.before, d.portal.after]} aspect="aspect-[4/3] sm:aspect-[16/11]" />
+              <BeforeAfter before="/demo/sketch-plan.webp" after="/demo/render-1.webp" labels={[d.portal.before, d.portal.after]} aspect="aspect-[4/3] sm:aspect-[16/11]" />
             </Frame>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default async function ForHomePage({ params }: { params: Promise<{ locale
           </div>
           <div className="lg:col-span-6 lg:col-start-7">
             <Frame caption={d.portal.beforeAfter} captionRight={d.home.heroCaption}>
-              <BeforeAfter before="/demo/sketch.webp" after="/demo/render-3.webp" labels={[d.portal.before, d.portal.after]} aspect="aspect-[4/3] sm:aspect-[16/10]" />
+              <BeforeAfter before="/demo/sketch-plan.webp" after="/demo/render-3.webp" labels={[d.portal.before, d.portal.after]} aspect="aspect-[4/3] sm:aspect-[16/10]" />
             </Frame>
           </div>
         </div>
