@@ -137,9 +137,10 @@ Scoped to `.home-x` in `src/app/(site)/[locale]/home.css`:
   header, every section, the phone menu and the footer alike — the logo sits on the eyebrow's left edge and
   the header CTA on the canvas's right edge. At 1440 the content spans 1325 px, at 1920 1416 px. The hero
   splits 8/13, bands 5/7.
-- Header: transparent at the top of the page; once scrolled it takes the page colour at 97 % (dark 96 %)
-  with a light 8 px blur and a hairline, so even an ink button passing underneath cannot show through the
-  navigation. The phone sheet is opaque.
+- Header: transparent at the top of the page; once scrolled it takes the page colour (opaque) with a
+  hairline and a faint shadow, so nothing passing underneath can show through the navigation. Translucent
+  variants (92–97 % with blur) were tried and rejected: high-contrast content such as ink buttons still
+  ghosted through. The phone sheet is opaque too.
 - First screen: serif display headline on the open page (8 cols, 2.5–4.1 rem) beside the showcase canvas
   (13 cols, ≈775 px at 1440), the one object that carries depth (14 px radius, hairline ring, one soft
   shadow, corner marks). Under it a hairline **mode strip** (three labels, no indices, one sliding ink
@@ -175,7 +176,7 @@ effect (Windows reports "reduce" whenever OS animations are off; a frozen field 
 | desk-light | — | warm 11 % | still radial light at the top, dark only |
 | field-node / field-accent | 23,21,15 / 217,73,31 | 239,235,227 / 255,122,77 | point + cross mark colour |
 | field-node-a / line-a / mouse-a | .40 / .13 / .30 | .50 / .16 / .34 | alphas (dark a touch more present) |
-| header-bg | paper 97 % | graphite 96 % | sticky header once scrolled |
+| header-bg | paper 97 % | graphite 96 % | `glass` utility (phone action bar); the header itself uses the opaque page colour |
 | band-bg / band-fg | #17150F / #F4F2ED | #1B1916 / #EFEBE3 | tonal bands on the homepage |
 
 Site-wide additions in `globals.css`: `.reveal-stagger` (children rise one after another; `RevealObserver`
