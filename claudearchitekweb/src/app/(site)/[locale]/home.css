@@ -49,9 +49,11 @@
   }
 }
 
-/* the showcase needs a little more room than the editorial pages */
+/* One horizontal rhythm for the whole page: a wider, fluid stage than the editorial pages,
+   with outer margins that scale with the viewport (about 4 vw, 24–72 px). Every section uses it. */
 .home-x > .container-x {
-  max-width: 1320px;
+  max-width: 1560px;
+  padding-inline: clamp(20px, 4vw, 72px);
 }
 
 /* --- Type ------------------------------------------------------------------ */
@@ -65,16 +67,20 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+.home-x .hx-eyebrow > span:last-child {
+  max-width: 34rem;
+  text-wrap: balance; /* two even lines when the column is narrow, never an orphaned last word */
+}
 .home-x .hx-h1 {
   margin-top: 22px;
-  font-size: clamp(2.6rem, 4.9vw, 4.35rem);
+  font-size: clamp(2.6rem, 4.6vw, 4.6rem);
   line-height: 1.02;
   letter-spacing: -0.022em;
   font-variation-settings: "opsz" 72;
   color: var(--fg);
 }
 .home-x .hx-intro {
-  max-width: 30rem;
+  max-width: 32rem;
   font-size: 16.5px;
   line-height: 1.6;
   color: var(--fg-2);
@@ -127,7 +133,7 @@
 }
 @media (min-width: 1024px) {
   .home-x .hx-hero {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-columns: minmax(0, 9fr) minmax(0, 13fr);
     grid-template-rows: auto 1fr;
     column-gap: 56px;
     row-gap: 0;
@@ -138,7 +144,7 @@
   .home-x .hx-hero-canvas { grid-column: 2; grid-row: 1 / span 2; }
 }
 @media (min-width: 1280px) {
-  .home-x .hx-hero { column-gap: 72px; }
+  .home-x .hx-hero { column-gap: clamp(56px, 5vw, 88px); }
 }
 
 /* the canvas: the one object on the page that carries depth */
@@ -243,7 +249,7 @@
 .home-x .hx-now {
   display: flex;
   align-items: baseline;
-  gap: 14px;
+  gap: 16px;
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
@@ -284,9 +290,7 @@
 .home-x .hx-now-link:hover { color: var(--accent); }
 .home-x .hx-now-link:hover svg { transform: translateX(3px); }
 @media (max-width: 639px) {
-  .home-x .hx-now { flex-wrap: wrap; row-gap: 6px; }
-  .home-x .hx-now-title { flex-basis: 100%; order: 3; }
-  .home-x .hx-now-link { margin-left: auto; }
+  .home-x .hx-now { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 
 /* --- Entrance: the headline and copy rise once, staggered ------------------ */

@@ -204,7 +204,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* 05 — WHERE NEXT + CLOSING CALL */}
       <section className="container-x mt-20 sm:mt-28">
-        <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
+        <div className="grid gap-10 border-t border-line pt-6 sm:pt-8 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-5">
             <div className="hx-kicker">
               <Index n={5} />

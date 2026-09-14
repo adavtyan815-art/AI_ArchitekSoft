@@ -132,10 +132,14 @@ a generic 2024 template and as a different site from the editorial pages.
 **Direction.** The homepage is the strongest expression of the Atelier system, not an exception to it.
 Scoped to `.home-x` in `src/app/(site)/[locale]/home.css`:
 
-- First screen: serif display headline on the open page (5 cols) beside the showcase canvas (7 cols), the
-  one object that carries depth (14 px radius, hairline ring, one soft shadow, corner marks). Under it a
-  hairline **mode strip** with a single sliding ink indicator (measured, 420 ms) and one mono **caption
-  line** naming the selected mode with its link. Intro + CTAs + note sit under the headline on desktop and
+- One horizontal rhythm: the homepage container is 1560 px max with 4 vw outer margins (20–72 px), so at
+  1440 the content spans 1325 px and at 1920 it spans 1416 px; every section uses the same container and
+  the same 9/13 (hero) or 5/7 (bands) split.
+- First screen: serif display headline on the open page (9 cols, 2.6–4.6 rem) beside the showcase canvas
+  (13 cols, ≈740 px at 1440), the one object that carries depth (14 px radius, hairline ring, one soft
+  shadow, corner marks). Under it a hairline **mode strip** with a single sliding ink indicator (measured,
+  420 ms) and one **caption line** naming the selected mode with its link (no counter: the strip already
+  shows which of the three is selected). Intro + CTAs + note sit under the headline on desktop and
   under the canvas on phones. Entrance: headline lines rise once, the canvas fades in.
 - Then: ticks + a **spec strip** (`Stat`), the platform as a **tonal band** with a numbered rule list and
   the material board, two audiences as **framed images with caption bars** and text below, selected work
@@ -149,16 +153,18 @@ top of the viewport (`--desk-light`), and graphite panels with a hairline ring w
 
 **Ambient layer** (`src/components/site/ambient.tsx`, rendered once in the site layout, public pages only):
 the survey mesh. Points drift with depth, connect to neighbours within 136 px with hairlines and lean
-towards a fine pointer, which they also link to; every ninth point is an accent cross mark (a survey
-station). Time-based motion, paused when the tab is hidden, thinner on phones, a single still frame under
-`prefers-reduced-motion`. No glows. Tokens:
+towards a fine pointer, which they also link to in the same ink/paper colour; every ninth point is an
+accent cross mark (a survey station) — the accent is reserved for those. Time-based motion (8–22 px/s
+scaled by depth), paused when the tab is hidden, thinner on phones. Under `prefers-reduced-motion` the
+field keeps a very slow drift (35 % speed) without cursor pull: Windows reports "reduce" whenever OS
+animations are off, and a frozen field read as a rendering bug. No glows. Tokens:
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| grid-line / grid-dot | ink 6 % / — | — / paper 16 % | line grid (light) or dot grid (dark) |
+| grid-line / grid-dot | ink 4.2 % @ 120 px / — | — / paper 11 % @ 28 px | line grid (light) or dot grid (dark) |
 | desk-light | — | warm 11 % | still radial light at the top, dark only |
 | field-node / field-accent | 23,21,15 / 217,73,31 | 239,235,227 / 255,122,77 | point + cross mark colour |
-| field-node-a / line-a / mouse-a | .50 / .16 / .42 | .58 / .19 / .48 | alphas |
+| field-node-a / line-a / mouse-a | .46 / .15 / .40 | .54 / .17 / .44 | alphas |
 | band-bg / band-fg | #17150F / #F4F2ED | #1B1916 / #EFEBE3 | tonal bands on the homepage |
 
 Site-wide additions in `globals.css`: `.reveal-stagger` (children rise one after another; `RevealObserver`

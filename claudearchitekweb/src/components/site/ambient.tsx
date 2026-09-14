@@ -10,8 +10,10 @@ import { useEffect, useRef } from "react";
  * (fine lines on paper in light, a dot grid on graphite in dark) and, in dark only, one still warm light
  * from the top. Colours and alphas come from the `--field-*` tokens in globals.css.
  *
- * Motion is time-based (same speed at any refresh rate), paused when the tab is hidden, thinner on
- * phones, and a single still frame under `prefers-reduced-motion`.
+ * Motion is time-based (same speed at any refresh rate), paused when the tab is hidden and thinner on
+ * phones. Under `prefers-reduced-motion` the field keeps a very slow drift (about a third of the speed)
+ * with no cursor pull: the points are tiny and the motion is far below anything vestibular, and a frozen
+ * field reads as a rendering bug rather than a courtesy.
  */
 type Node = { x: number; y: number; vx: number; vy: number; z: number; r: number; mark: boolean };
 type Palette = { node: string; accent: string; nodeA: number; lineA: number; mouseA: number };
@@ -51,8 +53,9 @@ export function Ambient() {
     let mx = -9999;
     let my = -9999;
     let mouseOn = false;
-    const MAX_D = 136;
-    const MOUSE_D = 200;
+    const MAX_D = 140;
+    const MOUSE_D = 190;
+    const speedScale = () => (reduced.matches ? 0.35 : 1);
 
     const seed = () => {
       const area = w * h;
@@ -61,7 +64,7 @@ export function Ambient() {
       nodes = Array.from({ length: count }, (_, i) => {
         const z = 0.35 + Math.random() * 0.65;
         const a = Math.random() * Math.PI * 2;
-        const s = (0.1 + Math.random() * 0.2) * z;
+        const s = (0.14 + Math.random() * 0.22) * z;
         return { x: Math.random() * w, y: Math.random() * h, vx: Math.cos(a) * s, vy: Math.sin(a) * s, z, r: 0.8 + z * 1.3, mark: i % 9 === 4 };
       });
     };
@@ -81,20 +84,21 @@ export function Ambient() {
     const draw = (dt: number) => {
       ctx.clearRect(0, 0, w, h);
       const n = nodes.length;
+      const k = speedScale();
       for (let i = 0; i < n; i++) {
         const p = nodes[i];
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
+        p.x += p.vx * dt * k;
+        p.y += p.vy * dt * k;
         if (p.x < -24) p.x = w + 24;
         else if (p.x > w + 24) p.x = -24;
         if (p.y < -24) p.y = h + 24;
         else if (p.y > h + 24) p.y = -24;
-        if (mouseOn) {
+        if (mouseOn && k === 1) {
           const dx = mx - p.x;
           const dy = my - p.y;
           const d = Math.hypot(dx, dy);
           if (d < MOUSE_D && d > 1) {
-            const f = (1 - d / MOUSE_D) * 0.5 * p.z * dt;
+            const f = (1 - d / MOUSE_D) * 0.42 * p.z * dt;
             p.x += (dx / d) * f;
             p.y += (dy / d) * f;
           }
@@ -121,12 +125,13 @@ export function Ambient() {
           ctx.lineTo(q.x, q.y);
           ctx.stroke();
         }
-        if (mouseOn) {
+        if (mouseOn && k === 1) {
           const d = Math.hypot(p.x - mx, p.y - my);
           if (d < MOUSE_D) {
             const f = 1 - d / MOUSE_D;
-            ctx.strokeStyle = `rgba(${pal.accent},${(f * pal.mouseA * p.z).toFixed(3)})`;
-            ctx.lineWidth = 0.6 + f * 0.6;
+            // cursor links stay in the ink/paper colour: the accent is reserved for the survey marks
+            ctx.strokeStyle = `rgba(${pal.node},${(f * f * pal.mouseA * p.z).toFixed(3)})`;
+            ctx.lineWidth = 0.5 + f * 0.5;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(mx, my);
@@ -164,7 +169,7 @@ export function Ambient() {
       draw(dt);
     };
     const start = () => {
-      if (raf || reduced.matches) return;
+      if (raf) return;
       last = 0;
       raf = requestAnimationFrame(frame);
     };
@@ -173,14 +178,11 @@ export function Ambient() {
       raf = 0;
     };
     const still = () => {
-      if (reduced.matches) draw(0);
+      if (!raf) draw(0);
     };
     const onVisibility = () => (document.hidden ? stop() : start());
     const onMotion = () => {
-      if (reduced.matches) {
-        stop();
-        draw(0);
-      } else start();
+      if (reduced.matches) onLeave();
     };
     const onMove = (e: PointerEvent) => {
       mx = e.clientX;
@@ -208,8 +210,7 @@ export function Ambient() {
     };
 
     resize();
-    if (reduced.matches) draw(0);
-    else start();
+    start();
     window.addEventListener("resize", onResize, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
     reduced.addEventListener("change", onMotion);

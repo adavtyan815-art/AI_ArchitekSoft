@@ -214,9 +214,6 @@ export function Showcase({
   /** "Now showing": one caption line. */
   const now = (
     <div className="hx-now" key={cur?.key}>
-      <span className="hx-now-count">
-        <b>{idx(i)}</b> / {idx(n - 1)}
-      </span>
       <span className="hx-now-title">{cur?.title}</span>
       <Link href={p(cur?.href ?? "/")} className="hx-now-link">
         {cur?.cta}
