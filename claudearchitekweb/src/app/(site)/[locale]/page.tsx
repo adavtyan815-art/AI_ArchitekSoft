@@ -5,7 +5,7 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { getPortfolio } from "@/lib/public-data";
-import { ButtonLink, Index, Stat } from "@/components/ui";
+import { ButtonLink, Index } from "@/components/ui";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { PortfolioGrid } from "@/components/site/portfolio-grid";
 import { Showcase } from "@/components/site/showcase";
@@ -32,7 +32,7 @@ const MATERIALS: { label: string; fill: string }[] = [
 /**
  * Homepage v7 — "the drafting table" (scoped styles in home.css).
  * 01 first screen: serif headline on the open page beside the showcase canvas (mode strip + caption under it)
- * → ticks + spec strip → 02 the platform (tonal band: rule list + material board) → 03 who it is for
+ * → 02 the platform (tonal band: rule list + material board) → 03 who it is for
  * (framed images, caption bars, text below) → 04 selected work → 05 where next (rule list) + closing band.
  * Heavy content (3D model, video) loads only when its demonstration is opened.
  */
@@ -71,7 +71,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <div className="rise" style={delay(140)}>
               <p className="hx-intro">{c.intro}</p>
               <div className="hx-ctas">
-                <ButtonLink href={p("/start")}>
+                <ButtonLink href={p("/start")} className="hx-cta-primary">
                   {d.home.heroPrimary}
                   <ArrowUpRight size={16} />
                 </ButtonLink>
@@ -85,19 +85,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         />
       </section>
 
-      {/* Spec strip */}
-      <section className="container-x mt-16 sm:mt-24">
-        <ul className="hx-spec reveal-stagger">
-          {d.home.proof.map((it) => (
-            <li key={it.label}>
-              <Stat value={it.value} label={it.label} />
-            </li>
-          ))}
-        </ul>
-      </section>
 
       {/* 02 — THE PLATFORM */}
-      <section className="container-x mt-20 sm:mt-28">
+      <section className="container-x mt-16 sm:mt-24 lg:mt-28">
         <div className="hx-band reveal p-6 sm:p-10 lg:p-14">
           <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
             <div className="lg:col-span-5">

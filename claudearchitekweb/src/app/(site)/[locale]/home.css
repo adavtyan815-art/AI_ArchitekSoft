@@ -65,13 +65,17 @@
   text-wrap: balance; /* two even lines when the column is narrow, never an orphaned last word */
 }
 .home-x .hx-h1 {
-  margin-top: 22px;
-  font-size: clamp(2.5rem, 4.15vw, 4.1rem);
-  line-height: 1.04;
-  letter-spacing: -0.02em;
+  margin-top: 20px;
+  font-size: clamp(2.3rem, 3.6vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.018em;
   font-variation-settings: "opsz" 72;
+  text-wrap: balance;
   color: var(--fg);
 }
+/* Armenian: more leading, near-zero tracking (see the :lang(hy) rules in globals.css) */
+.home-x:lang(hy) .hx-h1 { line-height: 1.12; letter-spacing: -0.008em; }
+.home-x:lang(hy) .hx-h2 { line-height: 1.14; letter-spacing: -0.006em; }
 .home-x .hx-intro {
   max-width: 32rem;
   font-size: 16.5px;
@@ -119,6 +123,9 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 26px;
+}
+@media (max-width: 767px) {
+  .home-x .hx-ctas .hx-cta-primary { display: none; } /* the sticky bar carries the primary action */
 }
 .home-x .hx-note {
   margin-top: 16px;
@@ -227,7 +234,7 @@
 }
 .home-x .hx-fs:hover { color: var(--fg); }
 @media (max-width: 639px) {
-  .home-x .hx-seg { padding: 11px 6px; }
+  .home-x .hx-seg { min-height: 44px; padding: 12px 6px; } /* comfortable thumb target */
   .home-x .hx-seg-tag { font-size: 12.5px; }
 }
 
@@ -285,16 +292,6 @@
 @keyframes hx-rise {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
-}
-
-/* --- Spec strip (proof numbers) -------------------------------------------- */
-.home-x .hx-spec {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 28px 32px;
-}
-@media (min-width: 768px) {
-  .home-x .hx-spec { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* --- Tonal band: platform + closing call ----------------------------------- */
@@ -449,9 +446,39 @@
 .home-x .hx-next:hover svg { transform: translate(3px, -3px); color: var(--fg); }
 
 /* --- Phones ----------------------------------------------------------------- */
+/* --- Phones: an intentional composition, not stacked desktop --------------- */
 @media (max-width: 639px) {
-  .home-x { --hx-r: 12px; }
-  .home-x .hx-h1 { margin-top: 18px; font-size: clamp(2.15rem, 9.4vw, 2.7rem); }
+  .home-x { --hx-r: 0px; }
+  .home-x .hx-eyebrow { font-size: 10px; letter-spacing: 0.12em; }
+  .home-x .hx-h1 { margin-top: 14px; font-size: clamp(2rem, 8.6vw, 2.5rem); }
+  /* the stage bleeds to the screen edges and goes square: the product is the screen */
+  .home-x .hx-hero { gap: 14px; }
+  .home-x .hx-canvas { margin-inline: calc(-1 * clamp(20px, 4vw, 72px)); box-shadow: none; }
+  .home-x .hx-canvas .showcase-stage:not(:fullscreen) { border-radius: 0; aspect-ratio: 1 / 1; }
+  /* Web Viewer controls inside the phone stage: compact chips, smaller toolbar */
+  .home-x .showcase-stage .swatch { height: 30px; width: 30px; }
+  .home-x .showcase-stage button[aria-pressed] > span:last-child { font-size: 9px; }
+  .home-x .showcase-stage .frame > .stage + div { padding: 10px 14px; gap: 8px; }
+  .home-x .showcase-stage .frame > .stage + div > .caption { display: none; }
+  .home-x .showcase-stage .frame > .stage + div .flex-wrap { gap: 10px 12px; justify-content: flex-start; }
+  .home-x .showcase-stage .stage > .absolute.inset-x-3 { bottom: 10px; }
+  .home-x .showcase-stage .stage > .absolute.inset-x-3 > button { height: 36px; font-size: 10px; padding-inline: 10px; }
+  .home-x .hx-strip { margin-top: 12px; }
+  .home-x .hx-fs { display: none; }
+  .home-x .hx-now { margin-top: 12px; padding-inline: 0; }
+  .home-x .hx-hero-copy { margin-top: 10px; }
+  .home-x .hx-intro { font-size: 16px; }
+  .home-x .hx-ctas { margin-top: 20px; }
   .home-x .hx-ctas > * { flex: 1 1 100%; }
+  .home-x .hx-note { margin-top: 12px; }
   .home-x .hx-materials { gap: 14px 16px; }
+  .home-x .hx-h2 { font-size: clamp(1.7rem, 7.4vw, 2rem); }
+}
+/* short or landscape phones: get the stage on screen sooner */
+@media (max-height: 700px) and (max-width: 1023px) {
+  .home-x .hx-h1 { margin-top: 10px; }
+  .home-x .hx-hero { gap: 12px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .home-x .hx-h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); }
 }

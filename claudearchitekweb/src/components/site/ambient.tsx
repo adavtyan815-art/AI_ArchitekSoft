@@ -15,7 +15,8 @@ import { useEffect, useRef } from "react";
  * positions, so the mesh visibly reacts to the disturbance.
  *
  * Motion is time-based, paused when the tab is hidden and thinner on phones. Under
- * `prefers-reduced-motion` the drift runs at a third of the speed and the cursor has no effect.
+ * `prefers-reduced-motion` the autonomous drift runs at a third of the speed; the cursor response
+ * (user-initiated) stays, at half strength and without threads.
  * Colours and alphas come from the `--field-*` tokens in globals.css.
  */
 type Node = { bx: number; by: number; vx: number; vy: number; ox: number; oy: number; z: number; r: number; mark: boolean; x: number; y: number };
@@ -60,8 +61,8 @@ export function Ambient() {
     let my = -9999;
     let mouseOn = false;
     const MAX_D = 140; // neighbour link distance
-    const MOUSE_D = 170; // radius of the cursor's influence
-    const PULL = 22; // maximum displacement towards the cursor, px
+    const MOUSE_D = 230; // radius of the cursor's influence
+    const PULL = 38; // maximum displacement towards the cursor, px
 
     const seed = () => {
       const area = w * h;
@@ -94,14 +95,17 @@ export function Ambient() {
       const n = nodes.length;
       const slow = reduced.matches;
       const k = slow ? 0.35 : 1;
-      const cursor = mouseOn && !slow;
+      // the cursor response is user-initiated, so it stays on under reduced motion at half strength
+      // and without the threads; only the autonomous drift is slowed there
+      const cursor = mouseOn;
+      const strength = slow ? 0.5 : 1;
       // the eased pointer follows the real one (about 120 ms behind)
       if (cursor) {
         mx += (tx - mx) * Math.min(1, 0.14 * dt);
         my += (ty - my) * Math.min(1, 0.14 * dt);
       }
       // drift + spring displacement
-      const relax = Math.min(1, 0.055 * dt);
+      const relax = Math.min(1, 0.07 * dt); // about 0.4 s to settle after the cursor moves on
       for (let i = 0; i < n; i++) {
         const p = nodes[i];
         p.bx += p.vx * dt * k;
@@ -117,8 +121,9 @@ export function Ambient() {
           const dy = my - p.by;
           const d = Math.hypot(dx, dy);
           if (d < MOUSE_D && d > 1) {
-            const f = 1 - d / MOUSE_D;
-            const pull = PULL * f * f * (0.5 + 0.5 * p.z); // nearer, deeper points move most
+            const t = 1 - d / MOUSE_D;
+            const f = t * t * (3 - 2 * t); // smoothstep: soft edge, clear response near the cursor
+            const pull = PULL * f * (0.55 + 0.45 * p.z) * strength; // nearer, deeper points move most
             gx = (dx / d) * pull;
             gy = (dy / d) * pull;
           }
@@ -151,10 +156,10 @@ export function Ambient() {
           ctx.stroke();
         }
         // a faint thread from disturbed points to the cursor, in the same ink/paper colour
-        if (cursor) {
+        if (cursor && !slow) {
           const d = Math.hypot(p.x - mx, p.y - my);
-          if (d < MOUSE_D * 0.8) {
-            const f = 1 - d / (MOUSE_D * 0.8);
+          if (d < MOUSE_D * 0.7) {
+            const f = 1 - d / (MOUSE_D * 0.7);
             ctx.strokeStyle = `rgba(${pal.node},${(f * f * pal.mouseA * p.z).toFixed(3)})`;
             ctx.lineWidth = 0.5;
             ctx.beginPath();

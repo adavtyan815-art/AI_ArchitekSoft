@@ -141,19 +141,31 @@ Scoped to `.home-x` in `src/app/(site)/[locale]/home.css`:
   hairline and a faint shadow, so nothing passing underneath can show through the navigation. Translucent
   variants (92–97 % with blur) were tried and rejected: high-contrast content such as ink buttons still
   ghosted through. The phone sheet is opaque too.
-- First screen: serif display headline on the open page (8 cols, 2.5–4.1 rem) beside the showcase canvas
-  (13 cols, ≈775 px at 1440), the one object that carries depth (14 px radius, hairline ring, one soft
-  shadow, corner marks). Under it a hairline **mode strip** (three labels, no indices, one sliding ink
+- First screen: serif display headline on the open page (8 cols, 2.3–3.4 rem, balanced to three lines in
+  Armenian at 1440) beside the showcase canvas (13 cols, ≈775 px at 1440), the one object that carries
+  depth (14 px radius, hairline ring, one soft shadow, corner marks). Under it a hairline **mode strip** (three labels, no indices, one sliding ink
   indicator measured to the label, 420 ms; fullscreen behind a hairline at the end of the strip) and one
   **caption line** naming the selected mode with its link (no counter, no toolbar: the strip already shows
   the state). Intro + CTAs + note sit under the headline on desktop and under the canvas on phones.
   Entrance: the headline group and the copy group rise once, the canvas fades in.
-- Then: a **spec strip** (`Stat` hairlines carry the line; no ruler above it), the platform as a **tonal
+- Then (the proof-numbers strip was removed: vague values, generic device): the platform as a **tonal
   band** with a numbered rule list and the material board, two audiences as **framed images with caption
   bars** and text below (plain frames; corner marks stay on the showcase and the work tiles), selected
   work (shared grid), a **rule list** for "where next" and a closing band with the page's one accent button.
 - Motion is limited to what carries meaning: two entrances (headline group, copy group) plus the canvas
   fade, indicator slide, one scroll reveal (staggered for grids), image scale and arrow nudge on hover.
+
+**Armenian display type.** Noto Serif Armenian has long ascenders and descenders, so `:lang(hy)` rules in
+`globals.css` give every display and section heading more leading (1.12 / 1.14) and near-zero tracking
+(−0.008 em / −0.006 em); Latin and Cyrillic keep the tighter serif settings. Headlines are balanced so no
+line is orphaned.
+
+**Phones are their own composition** (`@media (max-width: 639px)` in home.css): eyebrow → three-line
+headline → the stage full-bleed and square (the product is the screen) → the mode strip with 44 px
+targets and no fullscreen button → one caption line → intro → a single outline CTA (the sticky bottom
+bar already carries "start a project") → note. No drafting grid on phones, 18–36 field points. Short
+(< 700 px) and landscape (< 520 px) rules tighten the top so the stage is reached sooner. Inside the phone
+stage the Web Viewer uses compact chips and a smaller toolbar so nothing overlaps.
 
 **Light vs dark are designed separately.** Light: ink on paper, fine 96 px line grid, ink bands
 (`--band-*` = ink/paper). Dark: paper on warm graphite (#131211), 24 px dot grid, one still warm light at the
@@ -167,8 +179,10 @@ spring, so points ease back when the cursor moves on or leaves, and links are co
 positions so the mesh visibly reacts. A faint thread in the same ink/paper colour joins disturbed points
 to the cursor. Every twelfth point is an accent cross mark (a survey station) — the accent is reserved
 for those. Time-based motion (7–20 px/s scaled by depth), paused when the tab is hidden, 18–36 points on
-phones vs 44–110 on desktop. Under `prefers-reduced-motion` the drift runs at 35 % and the cursor has no
-effect (Windows reports "reduce" whenever OS animations are off; a frozen field read as a bug). No glows.
+phones vs 44–110 on desktop. The cursor pulls points within 230 px by up to 38 px (smoothstep falloff), the
+displacement settles in about 0.4 s. Under `prefers-reduced-motion` the autonomous drift runs at 35 % and
+the user-initiated cursor response stays at half strength without threads (Windows reports "reduce"
+whenever OS animation effects are off, so a dead field there would read as a bug). No glows.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|

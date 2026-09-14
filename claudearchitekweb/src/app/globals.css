@@ -274,6 +274,14 @@ strong { font-weight: 600; }
     scroll-behavior: auto !important;
   }
 }
+/* Armenian display type: Noto Serif Armenian carries long ascenders and descenders, so display
+   headings need more leading and near-zero tracking than the Latin/Cyrillic serif. */
+:lang(hy) h1, :lang(hy) h2, :lang(hy) h3, :lang(hy) h4 {
+  letter-spacing: -0.006em;
+}
+:lang(hy) .h-display, :lang(hy) .hx-h1 { line-height: 1.12; letter-spacing: -0.008em; }
+:lang(hy) .h-section, :lang(hy) .hx-h2 { line-height: 1.14; letter-spacing: -0.006em; }
+:lang(hy) .h-sub, :lang(hy) .h-card { line-height: 1.22; letter-spacing: 0; }
 
 /* --------------------------------------------------------------------------
    Layout & typography utilities
@@ -695,6 +703,10 @@ html[data-js] .reveal.is-in {
   background-size: 120px 120px, 120px 120px, 32px 32px;
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 15%, transparent 100%);
   mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 15%, transparent 100%);
+}
+@media (max-width: 767px) {
+  /* a 120 px grid is three stray columns on a phone; the field alone carries the atmosphere */
+  .ambient-grid { display: none; }
 }
 .ambient-light {
   position: absolute;
