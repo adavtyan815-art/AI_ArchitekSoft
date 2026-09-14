@@ -82,7 +82,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
 
   return (
     <>
-      <header className={cn("sticky top-0 z-40 border-b transition-[background-color,border-color,box-shadow] duration-300", open ? "border-line bg-bg" : scrolled ? "glass border-line shadow-[0_12px_30px_-24px_rgba(0,0,0,0.35)]" : "border-transparent bg-transparent")}>
+      <header className={cn("sticky top-0 z-40 border-b transition-[background-color,border-color,box-shadow] duration-300", open ? "border-line bg-bg" : scrolled ? "glass border-line shadow-[0_1px_0_0_var(--line),0_10px_24px_-20px_rgba(0,0,0,0.3)]" : "border-transparent bg-transparent")}>
         <div className="container-x flex h-16 items-center justify-between gap-6 lg:h-[76px]">
           <Link href={p("/")} className="flex shrink-0 items-center" aria-label="ArchiTek Soft">
             <BrandLogo className="h-7" />

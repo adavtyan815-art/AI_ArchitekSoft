@@ -39,7 +39,7 @@
   --shadow-md: 0 1px 2px rgba(23, 21, 15, 0.04), 0 12px 32px -16px rgba(23, 21, 15, 0.18);
   --shadow-lg: 0 8px 24px -12px rgba(23, 21, 15, 0.18), 0 32px 64px -32px rgba(23, 21, 15, 0.28);
   --img-filter: none;
-  --header-bg: rgba(244, 242, 237, 0.7);
+  --header-bg: rgba(244, 242, 237, 0.97);
   /* v3.1 — ambient layer + glass surfaces (light) */
   --glass: rgba(255, 255, 255, 0.64);
   --glass-strong: rgba(252, 251, 248, 0.84);
@@ -47,14 +47,14 @@
   --glass-hi: rgba(255, 255, 255, 0.9);
   --glass-shadow: 0 1px 2px rgba(23, 21, 15, 0.04), 0 24px 48px -28px rgba(23, 21, 15, 0.3);
   --glass-shadow-lg: 0 2px 4px rgba(23, 21, 15, 0.04), 0 40px 90px -40px rgba(23, 21, 15, 0.45);
-  --grid-line: rgba(23, 21, 15, 0.042);
+  --grid-line: rgba(23, 21, 15, 0.034);
   --grid-dot: transparent;
   --desk-light: transparent;
   --field-node: 23, 21, 15;
   --field-accent: 217, 73, 31;
-  --field-node-a: 0.46;
-  --field-line-a: 0.15;
-  --field-mouse-a: 0.4;
+  --field-node-a: 0.4;
+  --field-line-a: 0.13;
+  --field-mouse-a: 0.3;
 }
 
 [data-theme="dark"] {
@@ -87,7 +87,7 @@
   --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 20px 48px -24px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 40px 80px -32px rgba(0, 0, 0, 0.8);
   --img-filter: brightness(0.94);
-  --header-bg: rgba(18, 17, 16, 0.7);
+  --header-bg: rgba(19, 18, 17, 0.96);
   /* v3.1 — ambient layer + glass surfaces (dark) */
   --glass: rgba(31, 30, 28, 0.62);
   --glass-strong: rgba(24, 23, 21, 0.86);
@@ -96,13 +96,13 @@
   --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 30px 60px -30px rgba(0, 0, 0, 0.85);
   --glass-shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 50px 110px -40px rgba(0, 0, 0, 0.95);
   --grid-line: transparent;
-  --grid-dot: rgba(239, 235, 227, 0.11);
+  --grid-dot: rgba(239, 235, 227, 0.085);
   --desk-light: rgba(255, 150, 105, 0.11);
   --field-node: 239, 235, 227;
   --field-accent: 255, 122, 77;
-  --field-node-a: 0.54;
-  --field-line-a: 0.17;
-  --field-mouse-a: 0.44;
+  --field-node-a: 0.5;
+  --field-line-a: 0.16;
+  --field-mouse-a: 0.34;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -136,7 +136,7 @@
     --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 20px 48px -24px rgba(0, 0, 0, 0.7);
     --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 40px 80px -32px rgba(0, 0, 0, 0.8);
     --img-filter: brightness(0.94);
-    --header-bg: rgba(18, 17, 16, 0.7);
+    --header-bg: rgba(19, 18, 17, 0.96);
   /* v3.1 — ambient layer + glass surfaces (dark) */
   --glass: rgba(31, 30, 28, 0.62);
   --glass-strong: rgba(24, 23, 21, 0.86);
@@ -145,13 +145,13 @@
   --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 30px 60px -30px rgba(0, 0, 0, 0.85);
   --glass-shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 50px 110px -40px rgba(0, 0, 0, 0.95);
   --grid-line: transparent;
-  --grid-dot: rgba(239, 235, 227, 0.11);
+  --grid-dot: rgba(239, 235, 227, 0.085);
   --desk-light: rgba(255, 150, 105, 0.11);
   --field-node: 239, 235, 227;
   --field-accent: 255, 122, 77;
-  --field-node-a: 0.54;
-  --field-line-a: 0.17;
-  --field-mouse-a: 0.44;
+  --field-node-a: 0.5;
+  --field-line-a: 0.16;
+  --field-mouse-a: 0.34;
   }
 }
 
@@ -416,8 +416,8 @@ strong { font-weight: 600; }
 }
 @utility glass {
   background: var(--header-bg);
-  backdrop-filter: saturate(1.4) blur(18px);
-  -webkit-backdrop-filter: saturate(1.4) blur(18px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 /* Glass card: translucent surface over the ambient layer, hairline + top highlight, soft depth. */
 @utility glass-card {
@@ -692,7 +692,7 @@ html[data-js] .reveal.is-in {
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
     radial-gradient(var(--grid-dot) 1px, transparent 1.2px);
-  background-size: 120px 120px, 120px 120px, 28px 28px;
+  background-size: 120px 120px, 120px 120px, 32px 32px;
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 15%, transparent 100%);
   mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 15%, transparent 100%);
 }
@@ -705,6 +705,11 @@ html[data-js] .reveal.is-in {
 .site-shell {
   position: relative;
   z-index: 1;
+}
+/* Homepage rhythm: one fluid container (1560 px max, 4 vw margins) for header, sections and footer. */
+.site-wide .container-x {
+  max-width: 1560px;
+  padding-inline: clamp(20px, 4vw, 72px);
 }
 /* Full-screen phone menu: opaque, so the page underneath never ghosts into the links. */
 .mobile-sheet {

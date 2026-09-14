@@ -132,20 +132,27 @@ a generic 2024 template and as a different site from the editorial pages.
 **Direction.** The homepage is the strongest expression of the Atelier system, not an exception to it.
 Scoped to `.home-x` in `src/app/(site)/[locale]/home.css`:
 
-- One horizontal rhythm: the homepage container is 1560 px max with 4 vw outer margins (20–72 px), so at
-  1440 the content spans 1325 px and at 1920 it spans 1416 px; every section uses the same container and
-  the same 9/13 (hero) or 5/7 (bands) split.
-- First screen: serif display headline on the open page (9 cols, 2.6–4.6 rem) beside the showcase canvas
-  (13 cols, ≈740 px at 1440), the one object that carries depth (14 px radius, hairline ring, one soft
-  shadow, corner marks). Under it a hairline **mode strip** with a single sliding ink indicator (measured,
-  420 ms) and one **caption line** naming the selected mode with its link (no counter: the strip already
-  shows which of the three is selected). Intro + CTAs + note sit under the headline on desktop and
-  under the canvas on phones. Entrance: headline lines rise once, the canvas fades in.
-- Then: ticks + a **spec strip** (`Stat`), the platform as a **tonal band** with a numbered rule list and
-  the material board, two audiences as **framed images with caption bars** and text below, selected work
-  (shared grid), a **rule list** for "where next" and a closing band with the page's one accent button.
-- Motion is limited to what carries meaning: indicator slide, canvas fade, one scroll reveal (staggered
-  for grids), image scale and arrow nudge on hover.
+- One horizontal rhythm: on the homepage the shell gets `.site-wide` (the layout reads `x-pathname`, set by
+  the middleware), which widens `container-x` to 1560 px max with 4 vw outer margins (20–72 px) for the
+  header, every section, the phone menu and the footer alike — the logo sits on the eyebrow's left edge and
+  the header CTA on the canvas's right edge. At 1440 the content spans 1325 px, at 1920 1416 px. The hero
+  splits 8/13, bands 5/7.
+- Header: transparent at the top of the page; once scrolled it takes the page colour at 97 % (dark 96 %)
+  with a light 8 px blur and a hairline, so even an ink button passing underneath cannot show through the
+  navigation. The phone sheet is opaque.
+- First screen: serif display headline on the open page (8 cols, 2.5–4.1 rem) beside the showcase canvas
+  (13 cols, ≈775 px at 1440), the one object that carries depth (14 px radius, hairline ring, one soft
+  shadow, corner marks). Under it a hairline **mode strip** (three labels, no indices, one sliding ink
+  indicator measured to the label, 420 ms; fullscreen behind a hairline at the end of the strip) and one
+  **caption line** naming the selected mode with its link (no counter, no toolbar: the strip already shows
+  the state). Intro + CTAs + note sit under the headline on desktop and under the canvas on phones.
+  Entrance: the headline group and the copy group rise once, the canvas fades in.
+- Then: a **spec strip** (`Stat` hairlines carry the line; no ruler above it), the platform as a **tonal
+  band** with a numbered rule list and the material board, two audiences as **framed images with caption
+  bars** and text below (plain frames; corner marks stay on the showcase and the work tiles), selected
+  work (shared grid), a **rule list** for "where next" and a closing band with the page's one accent button.
+- Motion is limited to what carries meaning: two entrances (headline group, copy group) plus the canvas
+  fade, indicator slide, one scroll reveal (staggered for grids), image scale and arrow nudge on hover.
 
 **Light vs dark are designed separately.** Light: ink on paper, fine 96 px line grid, ink bands
 (`--band-*` = ink/paper). Dark: paper on warm graphite (#131211), 24 px dot grid, one still warm light at the
@@ -153,18 +160,22 @@ top of the viewport (`--desk-light`), and graphite panels with a hairline ring w
 
 **Ambient layer** (`src/components/site/ambient.tsx`, rendered once in the site layout, public pages only):
 the survey mesh. Points drift with depth, connect to neighbours within 136 px with hairlines and lean
-towards a fine pointer, which they also link to in the same ink/paper colour; every ninth point is an
-accent cross mark (a survey station) — the accent is reserved for those. Time-based motion (8–22 px/s
-scaled by depth), paused when the tab is hidden, thinner on phones. Under `prefers-reduced-motion` the
-field keeps a very slow drift (35 % speed) without cursor pull: Windows reports "reduce" whenever OS
-animations are off, and a frozen field read as a rendering bug. No glows. Tokens:
+towards a fine pointer. Each point has a drift position and a displacement: within 170 px the cursor
+pulls a point up to 22 px towards itself (nearer and deeper points more), the displacement is a damped
+spring, so points ease back when the cursor moves on or leaves, and links are computed on the displaced
+positions so the mesh visibly reacts. A faint thread in the same ink/paper colour joins disturbed points
+to the cursor. Every twelfth point is an accent cross mark (a survey station) — the accent is reserved
+for those. Time-based motion (7–20 px/s scaled by depth), paused when the tab is hidden, 18–36 points on
+phones vs 44–110 on desktop. Under `prefers-reduced-motion` the drift runs at 35 % and the cursor has no
+effect (Windows reports "reduce" whenever OS animations are off; a frozen field read as a bug). No glows.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| grid-line / grid-dot | ink 4.2 % @ 120 px / — | — / paper 11 % @ 28 px | line grid (light) or dot grid (dark) |
+| grid-line / grid-dot | ink 3.4 % @ 120 px / — | — / paper 8.5 % @ 32 px | line grid (light) or dot grid (dark) |
 | desk-light | — | warm 11 % | still radial light at the top, dark only |
 | field-node / field-accent | 23,21,15 / 217,73,31 | 239,235,227 / 255,122,77 | point + cross mark colour |
-| field-node-a / line-a / mouse-a | .46 / .15 / .40 | .54 / .17 / .44 | alphas |
+| field-node-a / line-a / mouse-a | .40 / .13 / .30 | .50 / .16 / .34 | alphas (dark a touch more present) |
+| header-bg | paper 97 % | graphite 96 % | sticky header once scrolled |
 | band-bg / band-fg | #17150F / #F4F2ED | #1B1916 / #EFEBE3 | tonal bands on the homepage |
 
 Site-wide additions in `globals.css`: `.reveal-stagger` (children rise one after another; `RevealObserver`

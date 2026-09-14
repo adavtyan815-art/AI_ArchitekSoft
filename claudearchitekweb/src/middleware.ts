@@ -29,12 +29,14 @@ export function middleware(req: NextRequest) {
     }
     const headers = new Headers(req.headers);
     headers.set("x-locale", first);
+    headers.set("x-pathname", pathname);
     return NextResponse.next({ request: { headers } });
   }
   const url = req.nextUrl.clone();
   url.pathname = `/hy${pathname === "/" ? "" : pathname}`;
   const headers = new Headers(req.headers);
   headers.set("x-locale", "hy");
+  headers.set("x-pathname", pathname);
   return NextResponse.rewrite(url, { request: { headers } });
 }
 

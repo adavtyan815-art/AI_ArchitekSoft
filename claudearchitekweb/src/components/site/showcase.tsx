@@ -129,7 +129,6 @@ export function Showcase({
   };
 
   const cur = s.items[i];
-  const idx = (k: number) => String(k + 1).padStart(2, "0");
 
   const stage = (
     <div
@@ -195,7 +194,6 @@ export function Showcase({
             onKeyDown={onKey}
             className={cn("hx-seg", active && "is-active")}
           >
-            <span className="hx-seg-idx">{idx(k)}</span>
             <span className="min-w-0">
               <span className="hx-seg-tag">{it.tag}</span>
               <span className="hx-seg-title">{it.title}</span>

@@ -5,7 +5,7 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { getPortfolio } from "@/lib/public-data";
-import { ButtonLink, Index, Stat, Ticks } from "@/components/ui";
+import { ButtonLink, Index, Stat } from "@/components/ui";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { PortfolioGrid } from "@/components/site/portfolio-grid";
 import { Showcase } from "@/components/site/showcase";
@@ -58,21 +58,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           media={{ before: "/demo/sketch.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/wardrobe.webp" }}
           headline={
             <>
-              <div className="hx-eyebrow rise" style={delay(40)}>
-                <Index n={1} />
-                <span>{d.home.heroBadge}</span>
+              <div className="rise">
+                <div className="hx-eyebrow">
+                  <Index n={1} />
+                  <span>{d.home.heroBadge}</span>
+                </div>
+                <h1 className="hx-h1">{d.home.heroTitle}</h1>
               </div>
-              <h1 className="hx-h1 rise" style={delay(110)}>
-                {d.home.heroTitle}
-              </h1>
             </>
           }
           copy={
-            <>
-              <p className="hx-intro rise" style={delay(200)}>
-                {c.intro}
-              </p>
-              <div className="hx-ctas rise" style={delay(260)}>
+            <div className="rise" style={delay(140)}>
+              <p className="hx-intro">{c.intro}</p>
+              <div className="hx-ctas">
                 <ButtonLink href={p("/start")}>
                   {d.home.heroPrimary}
                   <ArrowUpRight size={16} />
@@ -81,17 +79,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   {d.home.heroSecondary}
                 </ButtonLink>
               </div>
-              <p className="caption hx-note rise" style={delay(320)}>
-                {d.home.heroNote}
-              </p>
-            </>
+              <p className="caption hx-note">{d.home.heroNote}</p>
+            </div>
           }
         />
       </section>
 
       {/* Spec strip */}
-      <section className="container-x mt-14 sm:mt-20">
-        <Ticks />
+      <section className="container-x mt-16 sm:mt-24">
         <ul className="hx-spec reveal-stagger">
           {d.home.proof.map((it) => (
             <li key={it.label}>
@@ -156,7 +151,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             { card: d.home.b2cCard, href: p("/for-home"), img: "/demo/render-2.webp", code: "B2C" },
           ].map(({ card, href, img, code }) => (
             <Link key={href} href={href} className="hx-door group">
-              <div className="frame frame-marks on-image img-zoom">
+              <div className="frame img-zoom">
                 <div className="relative aspect-[4/3] bg-surface-2">
                   <Image src={img} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
                 </div>

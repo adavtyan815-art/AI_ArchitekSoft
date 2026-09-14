@@ -5,17 +5,20 @@ import { useEffect, useRef } from "react";
 /**
  * Ambient layer behind the public site: the survey mesh.
  * A field of measurement points drifts slowly across the viewport and connects to its neighbours with
- * hairlines; a few points are drawn as small accent cross marks (survey stations). On a fine pointer the
- * nearby points lean towards the cursor and link to it. Under the canvas the CSS adds a drafting grid
- * (fine lines on paper in light, a dot grid on graphite in dark) and, in dark only, one still warm light
- * from the top. Colours and alphas come from the `--field-*` tokens in globals.css.
+ * hairlines that form and dissolve as distances change; a few points are drawn as small accent cross
+ * marks (survey stations). Under the canvas the CSS adds a drafting grid (fine lines on paper in light,
+ * a dot grid on graphite in dark) and, in dark only, one still warm light from the top.
  *
- * Motion is time-based (same speed at any refresh rate), paused when the tab is hidden and thinner on
- * phones. Under `prefers-reduced-motion` the field keeps a very slow drift (about a third of the speed)
- * with no cursor pull: the points are tiny and the motion is far below anything vestibular, and a frozen
- * field reads as a rendering bug rather than a courtesy.
+ * Cursor: each point has a base position (the drift) and a displacement. A fine pointer pulls nearby
+ * points a little towards it; the displacement is a damped spring, so when the cursor moves on or leaves
+ * the points ease back to their drift instead of snapping. Connections are computed on the displaced
+ * positions, so the mesh visibly reacts to the disturbance.
+ *
+ * Motion is time-based, paused when the tab is hidden and thinner on phones. Under
+ * `prefers-reduced-motion` the drift runs at a third of the speed and the cursor has no effect.
+ * Colours and alphas come from the `--field-*` tokens in globals.css.
  */
-type Node = { x: number; y: number; vx: number; vy: number; z: number; r: number; mark: boolean };
+type Node = { bx: number; by: number; vx: number; vy: number; ox: number; oy: number; z: number; r: number; mark: boolean; x: number; y: number };
 type Palette = { node: string; accent: string; nodeA: number; lineA: number; mouseA: number };
 
 function readPalette(): Palette {
@@ -30,7 +33,7 @@ function readPalette(): Palette {
     accent: v("--field-accent", "217,73,31"),
     nodeA: n("--field-node-a", 0.5),
     lineA: n("--field-line-a", 0.16),
-    mouseA: n("--field-mouse-a", 0.35),
+    mouseA: n("--field-mouse-a", 0.3),
   };
 }
 
@@ -50,22 +53,27 @@ export function Ambient() {
     let nodes: Node[] = [];
     let raf = 0;
     let last = 0;
+    // pointer: target and eased position (the eased one drives the field, so quick moves stay smooth)
+    let tx = -9999;
+    let ty = -9999;
     let mx = -9999;
     let my = -9999;
     let mouseOn = false;
-    const MAX_D = 140;
-    const MOUSE_D = 190;
-    const speedScale = () => (reduced.matches ? 0.35 : 1);
+    const MAX_D = 140; // neighbour link distance
+    const MOUSE_D = 170; // radius of the cursor's influence
+    const PULL = 22; // maximum displacement towards the cursor, px
 
     const seed = () => {
       const area = w * h;
       const phone = w < 700;
-      const count = phone ? Math.round(Math.min(44, Math.max(22, area / 14500))) : Math.round(Math.min(116, Math.max(48, area / 18000)));
+      const count = phone ? Math.round(Math.min(36, Math.max(18, area / 17000))) : Math.round(Math.min(110, Math.max(44, area / 19000)));
       nodes = Array.from({ length: count }, (_, i) => {
         const z = 0.35 + Math.random() * 0.65;
         const a = Math.random() * Math.PI * 2;
-        const s = (0.14 + Math.random() * 0.22) * z;
-        return { x: Math.random() * w, y: Math.random() * h, vx: Math.cos(a) * s, vy: Math.sin(a) * s, z, r: 0.8 + z * 1.3, mark: i % 9 === 4 };
+        const s = (0.12 + Math.random() * 0.2) * z;
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        return { bx: x, by: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, ox: 0, oy: 0, z, r: 0.8 + z * 1.3, mark: i % 12 === 5, x, y };
       });
     };
 
@@ -84,27 +92,44 @@ export function Ambient() {
     const draw = (dt: number) => {
       ctx.clearRect(0, 0, w, h);
       const n = nodes.length;
-      const k = speedScale();
+      const slow = reduced.matches;
+      const k = slow ? 0.35 : 1;
+      const cursor = mouseOn && !slow;
+      // the eased pointer follows the real one (about 120 ms behind)
+      if (cursor) {
+        mx += (tx - mx) * Math.min(1, 0.14 * dt);
+        my += (ty - my) * Math.min(1, 0.14 * dt);
+      }
+      // drift + spring displacement
+      const relax = Math.min(1, 0.055 * dt);
       for (let i = 0; i < n; i++) {
         const p = nodes[i];
-        p.x += p.vx * dt * k;
-        p.y += p.vy * dt * k;
-        if (p.x < -24) p.x = w + 24;
-        else if (p.x > w + 24) p.x = -24;
-        if (p.y < -24) p.y = h + 24;
-        else if (p.y > h + 24) p.y = -24;
-        if (mouseOn && k === 1) {
-          const dx = mx - p.x;
-          const dy = my - p.y;
+        p.bx += p.vx * dt * k;
+        p.by += p.vy * dt * k;
+        if (p.bx < -24) p.bx = w + 24;
+        else if (p.bx > w + 24) p.bx = -24;
+        if (p.by < -24) p.by = h + 24;
+        else if (p.by > h + 24) p.by = -24;
+        let gx = 0;
+        let gy = 0;
+        if (cursor) {
+          const dx = mx - p.bx;
+          const dy = my - p.by;
           const d = Math.hypot(dx, dy);
           if (d < MOUSE_D && d > 1) {
-            const f = (1 - d / MOUSE_D) * 0.42 * p.z * dt;
-            p.x += (dx / d) * f;
-            p.y += (dy / d) * f;
+            const f = 1 - d / MOUSE_D;
+            const pull = PULL * f * f * (0.5 + 0.5 * p.z); // nearer, deeper points move most
+            gx = (dx / d) * pull;
+            gy = (dy / d) * pull;
           }
         }
+        // ease the displacement towards its goal (0 when the cursor is away)
+        p.ox += (gx - p.ox) * relax;
+        p.oy += (gy - p.oy) * relax;
+        p.x = p.bx + p.ox;
+        p.y = p.by + p.oy;
       }
-      // hairlines between neighbours, and to the cursor
+      // hairlines between neighbours (on displaced positions, so links react to the disturbance)
       ctx.lineCap = "round";
       for (let i = 0; i < n; i++) {
         const p = nodes[i];
@@ -125,13 +150,13 @@ export function Ambient() {
           ctx.lineTo(q.x, q.y);
           ctx.stroke();
         }
-        if (mouseOn && k === 1) {
+        // a faint thread from disturbed points to the cursor, in the same ink/paper colour
+        if (cursor) {
           const d = Math.hypot(p.x - mx, p.y - my);
-          if (d < MOUSE_D) {
-            const f = 1 - d / MOUSE_D;
-            // cursor links stay in the ink/paper colour: the accent is reserved for the survey marks
+          if (d < MOUSE_D * 0.8) {
+            const f = 1 - d / (MOUSE_D * 0.8);
             ctx.strokeStyle = `rgba(${pal.node},${(f * f * pal.mouseA * p.z).toFixed(3)})`;
-            ctx.lineWidth = 0.5 + f * 0.5;
+            ctx.lineWidth = 0.5;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(mx, my);
@@ -144,8 +169,8 @@ export function Ambient() {
         const p = nodes[i];
         const a = pal.nodeA * (0.45 + 0.55 * p.z);
         if (p.mark) {
-          const s = 2.6 + p.z * 1.6;
-          ctx.strokeStyle = `rgba(${pal.accent},${Math.min(1, a * 1.1).toFixed(3)})`;
+          const s = 2.4 + p.z * 1.4;
+          ctx.strokeStyle = `rgba(${pal.accent},${Math.min(1, a * 0.95).toFixed(3)})`;
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(p.x - s, p.y);
@@ -177,25 +202,21 @@ export function Ambient() {
       cancelAnimationFrame(raf);
       raf = 0;
     };
-    const still = () => {
-      if (!raf) draw(0);
-    };
     const onVisibility = () => (document.hidden ? stop() : start());
-    const onMotion = () => {
-      if (reduced.matches) onLeave();
-    };
     const onMove = (e: PointerEvent) => {
-      mx = e.clientX;
-      my = e.clientY;
-      mouseOn = true;
+      tx = e.clientX;
+      ty = e.clientY;
+      if (!mouseOn) {
+        mx = tx;
+        my = ty;
+        mouseOn = true;
+      }
     };
     const onLeave = () => {
-      mouseOn = false;
-      mx = my = -9999;
+      mouseOn = false; // displacements relax back on their own
     };
     const onTheme = () => {
       pal = readPalette();
-      still();
     };
     const themeObs = new MutationObserver(onTheme);
     themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -203,17 +224,13 @@ export function Ambient() {
     let rs = 0;
     const onResize = () => {
       clearTimeout(rs);
-      rs = window.setTimeout(() => {
-        resize();
-        still();
-      }, 120);
+      rs = window.setTimeout(resize, 120);
     };
 
     resize();
     start();
     window.addEventListener("resize", onResize, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
-    reduced.addEventListener("change", onMotion);
     scheme.addEventListener("change", onTheme);
     if (fine) {
       window.addEventListener("pointermove", onMove, { passive: true });
@@ -226,7 +243,6 @@ export function Ambient() {
       themeObs.disconnect();
       window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
-      reduced.removeEventListener("change", onMotion);
       scheme.removeEventListener("change", onTheme);
       window.removeEventListener("pointermove", onMove);
       document.documentElement.removeEventListener("pointerleave", onLeave);
