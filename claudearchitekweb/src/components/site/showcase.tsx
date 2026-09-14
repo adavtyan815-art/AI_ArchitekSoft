@@ -10,15 +10,14 @@ import { ViewerDemo } from "./viewer-demo";
 
 /**
  * Interactive showcase — the first screen of the homepage.
- * A large floating canvas (the stage, with drafting corner marks) and a glass control dock under it;
- * two glass cards beside it carry the headline and a "now showing" block that describes the selected
- * demonstration.
+ * The stage (a framed canvas with corner marks) is the one dominant object; under it a hairline mode
+ * strip with a single sliding ink indicator, then one mono caption line naming the selected mode.
+ * The headline sits beside it on the open page, the intro + CTAs below the headline (on phones: after
+ * the canvas, so the product is on the first screen).
  *   01 sketch → finished picture (comparison slider)
  *   02 Web Viewer (rotate, change colour; library + model load only when opened, tap-to-load on phones)
  *   03 Live 3D walkthrough (short muted clip, loaded only when opened)
- * Selection is manual only (dock segments, ← → keys). No automatic switching. Fullscreen on the stage
- * where the API exists (hidden on iOS Safari). On phones the intro paragraph moves under the canvas
- * so the product itself is on the first screen.
+ * Selection is manual only (strip, ← → keys). Fullscreen on the stage where the API exists.
  */
 export type ShowcaseStrings = {
   tag: string;
@@ -41,8 +40,7 @@ export function Showcase({
   compareLabels,
   media,
   headline,
-  intro,
-  ctas,
+  copy,
 }: {
   locale: Locale;
   s: ShowcaseStrings;
@@ -51,17 +49,17 @@ export function Showcase({
   media: { before: string; after: string; video: string; videoPoster: string; viewerPoster?: string };
   /** Eyebrow + H1 (page-owned). */
   headline: ReactNode;
-  /** Intro paragraph: under the headline on desktop, under the canvas on phones. */
-  intro?: ReactNode;
-  /** Primary / secondary buttons (page-owned). */
-  ctas: ReactNode;
+  /** Intro, CTAs and note (page-owned): under the headline on desktop, under the canvas on phones. */
+  copy: ReactNode;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  const segs = useRef<(HTMLButtonElement | null)[]>([]);
   const [i, setI] = useState(0);
   const [fs, setFs] = useState(false);
   const [fsSupported, setFsSupported] = useState(false);
   const [desktop, setDesktop] = useState(false);
+  const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
   const [opened, setOpened] = useState<boolean[]>(() => s.items.map((_, k) => k === 0));
   const n = s.items.length;
   const p = (path: string) => localePath(locale, path);
@@ -74,6 +72,21 @@ export function Showcase({
     document.addEventListener("fullscreenchange", onFs);
     return () => document.removeEventListener("fullscreenchange", onFs);
   }, []);
+
+  // The indicator follows the selected segment (measured, so it is exact for any label length).
+  useEffect(() => {
+    const measure = () => {
+      const el = segs.current[i];
+      if (el) setInd({ x: el.offsetLeft, w: el.offsetWidth });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    const t = setTimeout(measure, 350); // after web fonts settle
+    return () => {
+      window.removeEventListener("resize", measure);
+      clearTimeout(t);
+    };
+  }, [i]);
 
   const select = useCallback(
     (k: number) => {
@@ -105,9 +118,11 @@ export function Showcase({
     if (e.key === "ArrowRight") {
       e.preventDefault();
       select(i + 1);
+      segs.current[(i + 1) % n]?.focus();
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       select(i - 1);
+      segs.current[(i - 1 + n) % n]?.focus();
     } else if (e.key === "Escape" && document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
@@ -119,7 +134,7 @@ export function Showcase({
   const stage = (
     <div
       ref={stageRef}
-      className="showcase-stage stage cad-host relative aspect-[4/3] w-full outline-none sm:aspect-[16/10]"
+      className="showcase-stage stage frame-marks on-image relative aspect-[4/3] w-full outline-none sm:aspect-[16/10]"
       tabIndex={0}
       onKeyDown={onKey}
       role="group"
@@ -144,21 +159,15 @@ export function Showcase({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={media.videoPoster} alt="" className="h-full w-full object-cover" />
         )}
-        <span className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-full border border-[#f4f2ed]/15 bg-[#17150f]/70 px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur">
-          <span className="dot bg-accent animate-pulse" />
+        <span className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-sm bg-[#17150f]/70 px-2.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur">
+          <span className="dot bg-accent" />
           Live 3D
         </span>
       </div>
 
-      {/* drafting corner marks */}
-      <span className="cad cad-tl" aria-hidden />
-      <span className="cad cad-tr" aria-hidden />
-      <span className="cad cad-bl" aria-hidden />
-      <span className="cad cad-br" aria-hidden />
-
       {/* Fullscreen-only caption */}
       {fs ? (
-        <div className="pointer-events-none absolute right-5 bottom-5 max-w-md rounded-xl border border-[#f4f2ed]/12 bg-[#17150f]/65 px-4 py-3 text-right text-[#f4f2ed] backdrop-blur">
+        <div className="pointer-events-none absolute right-6 bottom-6 max-w-md rounded-md bg-[#17150f]/65 px-4 py-3 text-right text-[#f4f2ed] backdrop-blur">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] opacity-70">{cur?.tag}</div>
           <div className="mt-1 text-[1.2rem] font-semibold leading-tight tracking-[-0.02em]">{cur?.title}</div>
         </div>
@@ -166,13 +175,26 @@ export function Showcase({
     </div>
   );
 
-  /** Control dock: three segments + fullscreen. Roving tabindex: only the selected segment is in the tab order. */
-  const dock = (
-    <div className="hx-dock glass-strong" role="tablist" aria-label={s.choose}>
+  /** Mode strip: three segments, one sliding indicator, fullscreen. Roving tabindex. */
+  const strip = (
+    <div className="hx-strip" role="tablist" aria-label={s.choose}>
+      <span className="hx-strip-ind" aria-hidden style={ind ? { transform: `translateX(${ind.x}px)`, width: ind.w } : { opacity: 0 }} />
       {s.items.map((it, k) => {
         const active = k === i;
         return (
-          <button key={it.key} type="button" role="tab" aria-selected={active} tabIndex={active ? 0 : -1} onClick={() => select(k)} onKeyDown={onKey} className={cn("hx-seg", active && "is-active")}>
+          <button
+            key={it.key}
+            ref={(el) => {
+              segs.current[k] = el;
+            }}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            tabIndex={active ? 0 : -1}
+            onClick={() => select(k)}
+            onKeyDown={onKey}
+            className={cn("hx-seg", active && "is-active")}
+          >
             <span className="hx-seg-idx">{idx(k)}</span>
             <span className="min-w-0">
               <span className="hx-seg-tag">{it.tag}</span>
@@ -189,40 +211,29 @@ export function Showcase({
     </div>
   );
 
-  /** "Now showing": the selected demonstration, described in the text column. */
-  const live = (
-    <div className="hx-live" key={cur?.key}>
-      <div className="hx-live-meta">
-        <span className="hx-live-dot" />
-        <span>{s.choose}</span>
-        <span className="hx-live-count">
-          <span className="text-accent">{idx(i)}</span> / {idx(n - 1)}
-        </span>
-      </div>
-      <h2 className="hx-live-title">{cur?.title}</h2>
-      <p className="hx-live-text">{cur?.text}</p>
-      <Link href={p(cur?.href ?? "/")} className="hx-live-link">
+  /** "Now showing": one caption line. */
+  const now = (
+    <div className="hx-now" key={cur?.key}>
+      <span className="hx-now-count">
+        <b>{idx(i)}</b> / {idx(n - 1)}
+      </span>
+      <span className="hx-now-title">{cur?.title}</span>
+      <Link href={p(cur?.href ?? "/")} className="hx-now-link">
         {cur?.cta}
-        <ArrowRight size={15} />
+        <ArrowRight size={14} />
       </Link>
     </div>
   );
 
   return (
     <div className="hx-hero">
-      <div className="hx-hero-text glass-card">
-        {headline}
-        {intro ? <div className="hx-intro-desktop">{intro}</div> : null}
-      </div>
+      <div className="hx-hero-text">{headline}</div>
       <div className="hx-hero-canvas">
         <div className="hx-canvas">{stage}</div>
-        {dock}
+        {strip}
+        {now}
       </div>
-      <div className="hx-hero-live glass-card">
-        {live}
-        {intro ? <div className="hx-intro-mobile">{intro}</div> : null}
-        <div className="hx-ctas">{ctas}</div>
-      </div>
+      <div className="hx-hero-copy">{copy}</div>
     </div>
   );
 }

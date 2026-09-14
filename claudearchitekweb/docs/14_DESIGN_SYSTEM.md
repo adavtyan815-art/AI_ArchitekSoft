@@ -122,33 +122,47 @@ caption bar under the stage names the active demonstration and links to its page
 (tap-to-load on phones), the clip (≈450 KB, 720p, muted) only when 03 is opened. Media lives in
 `public/demo/showcase-*`; the sample model is a placeholder and should be replaced with a real export.
 
-## 13. Homepage v6 and the ambient layer (v3.1)
+## 13. Homepage v7 "the drafting table" and the ambient layer (v3.2)
 
-The homepage carries the contemporary interpretation of the identity, scoped to `.home-x` in
-`src/app/(site)/[locale]/home.css`: sans display type (the serif stays as an accent), a split first screen
-with a large floating canvas + glass control dock, two glass cards beside it (headline; "now showing" +
-CTAs; on phones the intro paragraph moves under the canvas so the product is on the first screen), drafting
-corner marks on the stage, glass stat tiles, a dark glass platform canvas, image-card doors, glass work tiles,
-link cards with a spotlight border and a gradient CTA. Restore point before this direction: commit `fba965e`.
+**Why v6 was replaced.** The v5/v6 homepage boxed everything (glass headline card, live card, dock, tiles),
+dropped the brand serif for a heavy sans, repeated the "01" index device on every element, stacked effects
+(glass, halos, drifting glows, spotlight borders, gradient CTA) and treated dark as inverted light. It read as
+a generic 2024 template and as a different site from the editorial pages.
+
+**Direction.** The homepage is the strongest expression of the Atelier system, not an exception to it.
+Scoped to `.home-x` in `src/app/(site)/[locale]/home.css`:
+
+- First screen: serif display headline on the open page (5 cols) beside the showcase canvas (7 cols), the
+  one object that carries depth (14 px radius, hairline ring, one soft shadow, corner marks). Under it a
+  hairline **mode strip** with a single sliding ink indicator (measured, 420 ms) and one mono **caption
+  line** naming the selected mode with its link. Intro + CTAs + note sit under the headline on desktop and
+  under the canvas on phones. Entrance: headline lines rise once, the canvas fades in.
+- Then: ticks + a **spec strip** (`Stat`), the platform as a **tonal band** with a numbered rule list and
+  the material board, two audiences as **framed images with caption bars** and text below, selected work
+  (shared grid), a **rule list** for "where next" and a closing band with the page's one accent button.
+- Motion is limited to what carries meaning: indicator slide, canvas fade, one scroll reveal (staggered
+  for grids), image scale and arrow nudge on hover.
+
+**Light vs dark are designed separately.** Light: ink on paper, fine 96 px line grid, ink bands
+(`--band-*` = ink/paper). Dark: paper on warm graphite (#131211), 24 px dot grid, one still warm light at the
+top of the viewport (`--desk-light`), and graphite panels with a hairline ring where light uses ink bands.
 
 **Ambient layer** (`src/components/site/ambient.tsx`, rendered once in the site layout, public pages only):
-a living field of connected points on a canvas, two slow atmospheric glows (oxide + slate) and a faint
-drafting grid. Points drift with depth, connect to neighbours within 132 px and lean towards a fine pointer;
-motion is time-based, paused when the tab is hidden, thinner on phones, and a single still frame under
-`prefers-reduced-motion`. Colours come from tokens so light and dark are tuned separately:
+the survey mesh. Points drift with depth, connect to neighbours within 136 px with hairlines and lean
+towards a fine pointer, which they also link to; every ninth point is an accent cross mark (a survey
+station). Time-based motion, paused when the tab is hidden, thinner on phones, a single still frame under
+`prefers-reduced-motion`. No glows. Tokens:
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| glass / glass-strong | white 64 % / 84 % | #1f1e1c 62 % / 86 % | translucent surfaces (`glass-card`, `glass-strong`) |
-| glass-line / glass-hi | ink 9 % / white 90 % | white 10 % / white 7 % | hairline + top highlight |
-| glow-1 / glow-2 | oxide 13 % / slate 15 % | oxide 17 % / slate 13 % | the two drifting glows |
-| grid-line | ink 5.5 % | white 4.5 % | drafting grid |
-| field-node / field-accent | 23,21,15 / 217,73,31 | 239,235,227 / 255,122,77 | point + accent point colour |
-| field-node-a / line-a / mouse-a | .55 / .17 / .40 | .62 / .20 / .46 | alphas |
+| grid-line / grid-dot | ink 6 % / — | — / paper 16 % | line grid (light) or dot grid (dark) |
+| desk-light | — | warm 11 % | still radial light at the top, dark only |
+| field-node / field-accent | 23,21,15 / 217,73,31 | 239,235,227 / 255,122,77 | point + cross mark colour |
+| field-node-a / line-a / mouse-a | .50 / .16 / .42 | .58 / .19 / .48 | alphas |
+| band-bg / band-fg | #17150F / #F4F2ED | #1B1916 / #EFEBE3 | tonal bands on the homepage |
 
-Site-wide additions in `globals.css`: `.glass-card`, `.glass-strong`, `.spot` (pointer-following accent
-halo on the hairline, fed by the same pointer listener), `.cad` corner marks, `.reveal-stagger` (children rise
-one after another; `RevealObserver` watches both classes), `.mobile-sheet` (near-opaque phone menu),
-`html.theme-transition` (450 ms cross-fade set by the theme toggle) and `.site-shell .btn-*` (ink gradient +
-lift for primary, glass for secondary — admin buttons stay flat). The header is transparent at the top of the
-page and turns to glass once scrolled; the Solutions panel is glass-strong.
+Site-wide additions in `globals.css`: `.reveal-stagger` (children rise one after another; `RevealObserver`
+watches both classes), `.mobile-sheet` (opaque phone menu), `html.theme-transition` (450 ms cross-fade set
+by the theme toggle) and `.site-shell .btn-*` (hairline of light + 1 px lift on the public site; admin
+buttons stay flat). The header is transparent at the top of the page and turns to glass once scrolled. The
+`glass-card` / `glass-strong` utilities remain available but the homepage no longer uses them.

@@ -98,7 +98,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
                 <ChevronDown size={13} className={cn("transition-transform", menu && "rotate-180")} />
               </button>
               <div className={cn("absolute top-full left-0 pt-1 transition-[opacity,transform] duration-150", menu ? "opacity-100" : "pointer-events-none -translate-y-1 opacity-0")} role="menu">
-                <div className="glass-strong w-[560px] rounded-xl p-2">
+                <div className="w-[560px] rounded-lg border border-line bg-surface p-2 shadow-lift">
                   <div className="grid grid-cols-2 gap-1">
                     {nav.solutionsMenu.map((m, i) => (
                       <Link key={m.href} href={p(m.href)} role="menuitem" className={cn("group flex gap-3 rounded-md px-3 py-3 transition-colors hover:bg-surface-2", isActive(p(m.href)) && "bg-surface-2")}>
