@@ -9,6 +9,7 @@ import { Track } from "@/components/site/track";
 import { MobileCta } from "@/components/site/mobile-cta";
 import { telegramUrl } from "@/components/site/contact-channels";
 import { RevealObserver } from "@/components/reveal";
+import { Ambient } from "@/components/site/ambient";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,8 @@ export default async function SiteLayout({ children, params }: { children: React
   const brand = getSetting("brand");
   const nav = { kitchenpro: dict.nav.kitchenpro, howItWorks: dict.nav.howItWorks, portfolio: dict.nav.portfolio, contact: dict.nav.contact, start: dict.nav.start, menu: dict.nav.menu, theme: dict.nav.theme, solutions: dict.siteNav.solutions, about: dict.siteNav.about, faq: dict.siteNav.faq, solutionsMenu: dict.siteNav.solutionsMenu };
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="site-shell flex min-h-screen flex-col">
+      <Ambient />
       <SiteHeader locale={locale} nav={nav} />
       <main className="flex-1">{children}</main>
       <SiteFooter locale={locale} dict={dict} brand={brand} />

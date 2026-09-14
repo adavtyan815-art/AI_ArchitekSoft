@@ -82,7 +82,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
 
   return (
     <>
-      <header className={cn("sticky top-0 z-40 border-b transition-[background-color,border-color] duration-200", scrolled ? "glass border-line" : "border-transparent bg-bg")}>
+      <header className={cn("sticky top-0 z-40 border-b transition-[background-color,border-color,box-shadow] duration-300", open ? "border-line bg-bg" : scrolled ? "glass border-line shadow-[0_12px_30px_-24px_rgba(0,0,0,0.35)]" : "border-transparent bg-transparent")}>
         <div className="container-x flex h-16 items-center justify-between gap-6 lg:h-[76px]">
           <Link href={p("/")} className="flex shrink-0 items-center" aria-label="ArchiTek Soft">
             <BrandLogo className="h-7" />
@@ -98,7 +98,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
                 <ChevronDown size={13} className={cn("transition-transform", menu && "rotate-180")} />
               </button>
               <div className={cn("absolute top-full left-0 pt-1 transition-[opacity,transform] duration-150", menu ? "opacity-100" : "pointer-events-none -translate-y-1 opacity-0")} role="menu">
-                <div className="w-[560px] rounded-lg border border-line bg-surface p-2 shadow-lift">
+                <div className="glass-strong w-[560px] rounded-xl p-2">
                   <div className="grid grid-cols-2 gap-1">
                     {nav.solutionsMenu.map((m, i) => (
                       <Link key={m.href} href={p(m.href)} role="menuitem" className={cn("group flex gap-3 rounded-md px-3 py-3 transition-colors hover:bg-surface-2", isActive(p(m.href)) && "bg-surface-2")}>
@@ -151,7 +151,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
       </header>
 
       {/* Mobile sheet */}
-      <div id="mobile-menu" className={cn("fixed inset-0 top-16 z-[35] flex flex-col bg-bg transition-opacity duration-200 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open}>
+      <div id="mobile-menu" className={cn("mobile-sheet fixed inset-0 top-16 z-[35] flex flex-col transition-opacity duration-200 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open}>
         <nav className="container-x flex flex-1 flex-col overflow-y-auto pt-2 pb-6" aria-label="Mobile">
           <Link href={p("/platform")} className="flex items-center justify-between border-b border-line py-4 font-display text-[1.75rem] text-fg">
             {nav.kitchenpro}

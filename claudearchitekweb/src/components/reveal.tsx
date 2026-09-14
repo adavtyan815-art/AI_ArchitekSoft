@@ -8,7 +8,7 @@ import { useEffect } from "react";
  */
 export function RevealObserver() {
   useEffect(() => {
-    const els = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
+    const els = Array.from(document.querySelectorAll<HTMLElement>(".reveal, .reveal-stagger"));
     if (!els.length) return;
     if (!("IntersectionObserver" in window)) {
       els.forEach((el) => el.classList.add("is-in"));

@@ -10,13 +10,15 @@ import { ViewerDemo } from "./viewer-demo";
 
 /**
  * Interactive showcase — the first screen of the homepage.
- * A large floating canvas (the stage) with a control dock under it; the text column beside it carries
- * the headline and a "now showing" block that describes the selected demonstration.
+ * A large floating canvas (the stage, with drafting corner marks) and a glass control dock under it;
+ * two glass cards beside it carry the headline and a "now showing" block that describes the selected
+ * demonstration.
  *   01 sketch → finished picture (comparison slider)
  *   02 Web Viewer (rotate, change colour; library + model load only when opened, tap-to-load on phones)
  *   03 Live 3D walkthrough (short muted clip, loaded only when opened)
  * Selection is manual only (dock segments, ← → keys). No automatic switching. Fullscreen on the stage
- * where the API exists (hidden on iOS Safari).
+ * where the API exists (hidden on iOS Safari). On phones the intro paragraph moves under the canvas
+ * so the product itself is on the first screen.
  */
 export type ShowcaseStrings = {
   tag: string;
@@ -39,6 +41,7 @@ export function Showcase({
   compareLabels,
   media,
   headline,
+  intro,
   ctas,
 }: {
   locale: Locale;
@@ -46,8 +49,10 @@ export function Showcase({
   viewerLabels: { hint: string; swatches: string; ar: string; reset?: string; load?: string };
   compareLabels: [string, string];
   media: { before: string; after: string; video: string; videoPoster: string; viewerPoster?: string };
-  /** Eyebrow + H1 + intro (page-owned). */
+  /** Eyebrow + H1 (page-owned). */
   headline: ReactNode;
+  /** Intro paragraph: under the headline on desktop, under the canvas on phones. */
+  intro?: ReactNode;
   /** Primary / secondary buttons (page-owned). */
   ctas: ReactNode;
 }) {
@@ -114,7 +119,7 @@ export function Showcase({
   const stage = (
     <div
       ref={stageRef}
-      className="showcase-stage stage relative aspect-[4/3] w-full outline-none sm:aspect-[16/10]"
+      className="showcase-stage stage cad-host relative aspect-[4/3] w-full outline-none sm:aspect-[16/10]"
       tabIndex={0}
       onKeyDown={onKey}
       role="group"
@@ -139,15 +144,21 @@ export function Showcase({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={media.videoPoster} alt="" className="h-full w-full object-cover" />
         )}
-        <span className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-full bg-[#17150f]/70 px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur">
+        <span className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-full border border-[#f4f2ed]/15 bg-[#17150f]/70 px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur">
           <span className="dot bg-accent animate-pulse" />
           Live 3D
         </span>
       </div>
 
+      {/* drafting corner marks */}
+      <span className="cad cad-tl" aria-hidden />
+      <span className="cad cad-tr" aria-hidden />
+      <span className="cad cad-bl" aria-hidden />
+      <span className="cad cad-br" aria-hidden />
+
       {/* Fullscreen-only caption */}
       {fs ? (
-        <div className="pointer-events-none absolute right-5 bottom-5 max-w-md rounded-xl bg-[#17150f]/60 px-4 py-3 text-right text-[#f4f2ed] backdrop-blur">
+        <div className="pointer-events-none absolute right-5 bottom-5 max-w-md rounded-xl border border-[#f4f2ed]/12 bg-[#17150f]/65 px-4 py-3 text-right text-[#f4f2ed] backdrop-blur">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] opacity-70">{cur?.tag}</div>
           <div className="mt-1 text-[1.2rem] font-semibold leading-tight tracking-[-0.02em]">{cur?.title}</div>
         </div>
@@ -155,13 +166,13 @@ export function Showcase({
     </div>
   );
 
-  /** Control dock: three segments + fullscreen. */
+  /** Control dock: three segments + fullscreen. Roving tabindex: only the selected segment is in the tab order. */
   const dock = (
-    <div className="hx-dock" role="tablist" aria-label={s.choose}>
+    <div className="hx-dock glass-strong" role="tablist" aria-label={s.choose}>
       {s.items.map((it, k) => {
         const active = k === i;
         return (
-          <button key={it.key} type="button" role="tab" aria-selected={active} onClick={() => select(k)} className={cn("hx-seg", active && "is-active")}>
+          <button key={it.key} type="button" role="tab" aria-selected={active} tabIndex={active ? 0 : -1} onClick={() => select(k)} onKeyDown={onKey} className={cn("hx-seg", active && "is-active")}>
             <span className="hx-seg-idx">{idx(k)}</span>
             <span className="min-w-0">
               <span className="hx-seg-tag">{it.tag}</span>
@@ -199,13 +210,17 @@ export function Showcase({
 
   return (
     <div className="hx-hero">
-      <div className="hx-hero-text">{headline}</div>
+      <div className="hx-hero-text glass-card">
+        {headline}
+        {intro ? <div className="hx-intro-desktop">{intro}</div> : null}
+      </div>
       <div className="hx-hero-canvas">
         <div className="hx-canvas">{stage}</div>
         {dock}
       </div>
-      <div className="hx-hero-live">
+      <div className="hx-hero-live glass-card">
         {live}
+        {intro ? <div className="hx-intro-mobile">{intro}</div> : null}
         <div className="hx-ctas">{ctas}</div>
       </div>
     </div>

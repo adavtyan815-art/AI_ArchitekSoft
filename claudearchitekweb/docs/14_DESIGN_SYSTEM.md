@@ -122,11 +122,33 @@ caption bar under the stage names the active demonstration and links to its page
 (tap-to-load on phones), the clip (≈450 KB, 720p, muted) only when 03 is opened. Media lives in
 `public/demo/showcase-*`; the sample model is a placeholder and should be replaced with a real export.
 
-## 13. Homepage experiment (v5, under review)
+## 13. Homepage v6 and the ambient layer (v3.1)
 
-The homepage alone carries a more contemporary interpretation of the identity, scoped to `.home-x` in
-`src/app/(site)/[locale]/home.css` (no other page is affected): sans display type (the serif stays as an
-accent), a split first screen with a large floating canvas + control dock and a "now showing" block next to
-the headline, tonal floating cards instead of hairline boxes, a dark platform canvas, image-card doors, link
-cards and a gradient CTA. Restore point before the experiment: commit `fba965e`. If the direction is adopted,
-the same treatment should be propagated deliberately page by page; if not, revert the three homepage files.
+The homepage carries the contemporary interpretation of the identity, scoped to `.home-x` in
+`src/app/(site)/[locale]/home.css`: sans display type (the serif stays as an accent), a split first screen
+with a large floating canvas + glass control dock, two glass cards beside it (headline; "now showing" +
+CTAs; on phones the intro paragraph moves under the canvas so the product is on the first screen), drafting
+corner marks on the stage, glass stat tiles, a dark glass platform canvas, image-card doors, glass work tiles,
+link cards with a spotlight border and a gradient CTA. Restore point before this direction: commit `fba965e`.
+
+**Ambient layer** (`src/components/site/ambient.tsx`, rendered once in the site layout, public pages only):
+a living field of connected points on a canvas, two slow atmospheric glows (oxide + slate) and a faint
+drafting grid. Points drift with depth, connect to neighbours within 132 px and lean towards a fine pointer;
+motion is time-based, paused when the tab is hidden, thinner on phones, and a single still frame under
+`prefers-reduced-motion`. Colours come from tokens so light and dark are tuned separately:
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| glass / glass-strong | white 64 % / 84 % | #1f1e1c 62 % / 86 % | translucent surfaces (`glass-card`, `glass-strong`) |
+| glass-line / glass-hi | ink 9 % / white 90 % | white 10 % / white 7 % | hairline + top highlight |
+| glow-1 / glow-2 | oxide 13 % / slate 15 % | oxide 17 % / slate 13 % | the two drifting glows |
+| grid-line | ink 5.5 % | white 4.5 % | drafting grid |
+| field-node / field-accent | 23,21,15 / 217,73,31 | 239,235,227 / 255,122,77 | point + accent point colour |
+| field-node-a / line-a / mouse-a | .55 / .17 / .40 | .62 / .20 / .46 | alphas |
+
+Site-wide additions in `globals.css`: `.glass-card`, `.glass-strong`, `.spot` (pointer-following accent
+halo on the hairline, fed by the same pointer listener), `.cad` corner marks, `.reveal-stagger` (children rise
+one after another; `RevealObserver` watches both classes), `.mobile-sheet` (near-opaque phone menu),
+`html.theme-transition` (450 ms cross-fade set by the theme toggle) and `.site-shell .btn-*` (ink gradient +
+lift for primary, glass for secondary — admin buttons stay flat). The header is transparent at the top of the
+page and turns to glass once scrolled; the Solutions panel is glass-strong.

@@ -63,10 +63,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <h1 className="hx-h1 rise" style={{ "--d": "120ms" } as React.CSSProperties}>
                 {d.home.heroTitle}
               </h1>
-              <p className="hx-intro rise" style={{ "--d": "200ms" } as React.CSSProperties}>
-                {c.intro}
-              </p>
             </>
+          }
+          intro={
+            <p className="hx-intro rise" style={{ "--d": "200ms" } as React.CSSProperties}>
+              {c.intro}
+            </p>
           }
           ctas={
             <>
@@ -80,14 +82,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </>
           }
         />
-        <p className="caption mt-5">{d.home.heroNote}</p>
+        <p className="caption hx-note">{d.home.heroNote}</p>
       </section>
 
       {/* Stats ribbon */}
       <section className="container-x mt-12 sm:mt-16">
-        <ul className="hx-stats">
+        <ul className="hx-stats reveal-stagger">
           {d.home.proof.map((it) => (
-            <li key={it.label} className="hx-stat">
+            <li key={it.label} className="hx-stat glass-card spot">
               <div className="hx-stat-v">{it.value}</div>
               <div className="hx-stat-l">{it.label}</div>
             </li>
@@ -97,7 +99,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* 02 — THE PLATFORM */}
       <section className="container-x mt-16 sm:mt-24">
-        <div className="hx-platform p-6 sm:p-10 lg:p-14">
+        <div className="hx-platform reveal p-6 sm:p-10 lg:p-14">
           <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-5">
               <div className="hx-kicker">
@@ -112,9 +114,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </ButtonLink>
             </div>
             <div className="lg:col-span-7">
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-3 reveal-stagger">
                 {d.home.pillars.map((pl, i) => (
-                  <div key={pl.title} className="hx-pillar">
+                  <div key={pl.title} className="hx-pillar spot">
                     <div className="hx-pillar-idx">{String(i + 1).padStart(2, "0")}</div>
                     <div className="hx-pillar-t">{pl.title}</div>
                     <p className="hx-pillar-x">{pl.text}</p>
@@ -144,12 +146,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <h2 className="hx-h2">{d.home.splitTitle}</h2>
           <p className="hx-lead">{d.home.splitSubtitle}</p>
         </div>
-        <div className="grid gap-5 md:grid-cols-2 md:gap-6">
+        <div className="grid gap-5 md:grid-cols-2 md:gap-6 reveal-stagger">
           {[
             { card: d.home.b2bCard, href: p("/for-business"), img: "/demo/kitchen-walnut.webp", code: "B2B" },
             { card: d.home.b2cCard, href: p("/for-home"), img: "/demo/render-2.webp", code: "B2C" },
           ].map(({ card, href, img, code }) => (
-            <Link key={href} href={href} className="hx-door reveal">
+            <Link key={href} href={href} className="hx-door">
               <Image src={img} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
               <div className="hx-door-body">
                 <span className="hx-door-tag">
@@ -198,9 +200,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Index n={5} />
               {c.linksTitle}
             </div>
-            <div className="mt-5 grid gap-3">
+            <div className="mt-5 grid gap-3 reveal-stagger">
               {c.links.map((l) => (
-                <Link key={l.href} href={p(l.href)} className="hx-next">
+                <Link key={l.href} href={p(l.href)} className="hx-next glass-card spot">
                   <span className="min-w-0">
                     <span className="hx-next-t block">{l.title}</span>
                     <span className="hx-next-x block">{l.text}</span>
@@ -211,10 +213,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </div>
           </div>
           <div className="lg:col-span-7">
-            <div className="hx-cta p-7 sm:p-10 lg:p-12">
+            <div className="hx-cta reveal p-7 sm:p-10 lg:p-12">
               <h2 className="text-[1.9rem] leading-[1.06] sm:text-[2.4rem]">{d.home.finalTitle}</h2>
               <p className="mt-3 max-w-md text-[15px] opacity-85">{d.home.finalText}</p>
-              <ButtonLink href={p("/start")} size="lg" className="mt-7 bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620]">
+              <ButtonLink href={p("/start")} size="lg" className="mt-7">
                 {d.common.startProject}
                 <ArrowUpRight size={18} />
               </ButtonLink>

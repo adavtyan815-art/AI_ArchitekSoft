@@ -12,8 +12,15 @@ function currentTheme(): Theme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+let transitionTimer = 0;
+
 export function applyTheme(theme: Theme) {
-  document.documentElement.setAttribute("data-theme", theme);
+  const root = document.documentElement;
+  // cross-fade surfaces for the switch, then drop the class so normal transitions apply again
+  root.classList.add("theme-transition");
+  window.clearTimeout(transitionTimer);
+  transitionTimer = window.setTimeout(() => root.classList.remove("theme-transition"), 500);
+  root.setAttribute("data-theme", theme);
   try {
     localStorage.setItem("theme", theme);
     document.cookie = `theme=${theme}; path=/; max-age=31536000; samesite=lax`;
