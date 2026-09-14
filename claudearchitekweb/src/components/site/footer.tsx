@@ -109,16 +109,14 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
         </div>
 
         {/* Meta row */}
-        <div className="flex flex-col items-start justify-between gap-2 border-t border-line py-5 font-mono text-[11px] tracking-[0.04em] text-muted sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-line py-5 font-mono text-[11px] leading-relaxed tracking-[0.04em] text-muted sm:flex-row sm:items-center sm:gap-2">
           <div>
-            © {new Date().getFullYear()} {brand.name} · {dict.footer.rights}
+            <span className="block sm:inline">
+              © {new Date().getFullYear()} {brand.name}
+            </span>{" "}
+            <span className="block sm:inline">· {dict.footer.rights}</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="hidden sm:inline">Yerevan · 3D · AR · Web Viewer</span>
-            <Link href="/admin" className="transition-colors hover:text-fg">
-              {dict.footer.admin}
-            </Link>
-          </div>
+          <span className="hidden sm:inline">Yerevan · 3D · AR · Web Viewer</span>
         </div>
       </div>
     </footer>

@@ -25,23 +25,29 @@ export default async function StartPage({ params, searchParams }: { params: Prom
   }
 
   return (
-    <section className="container-x pt-10 pb-4 sm:pt-14 md:pb-24">
-      <div className="mx-auto mb-12 max-w-2xl sm:mb-14">
-        <div className="mb-6 flex items-baseline gap-3">
-          <Index n={1} />
-          <span className="eyebrow">{d.start.tag}</span>
+    <section className="container-x pt-10 pb-4 sm:pt-14 md:pb-24 lg:pt-20">
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+        {/* left — the ask; stays in view beside the steps on desktop */}
+        <div className="lg:col-span-4 lg:self-start lg:sticky lg:top-28">
+          <div className="mb-6 flex items-baseline gap-3">
+            <Index n={1} />
+            <span className="eyebrow">{d.start.tag}</span>
+          </div>
+          <h1 className="h-display max-sm:break-words">{d.start.title}</h1>
+          <p className="lead mt-6 max-w-[30rem]">{d.start.subtitle}</p>
         </div>
-        <h1 className="h-display max-sm:break-words">{d.start.title}</h1>
-        <p className="lead mt-6">{d.start.subtitle}</p>
+        {/* right — the form, on its own ground: a strong rule on phones, a vertical rule on desktop */}
+        <div className="border-t border-line-strong pt-8 lg:col-span-8 lg:border-t-0 lg:border-l lg:border-line lg:pt-0 lg:pl-12">
+          <StartWizard
+            locale={locale}
+            strings={d.start}
+            common={{ back: d.common.back, next: d.common.next, sending: d.common.sending }}
+            messageLabel={d.contact.message}
+            initialSegment={segment}
+            utm={utm}
+          />
+        </div>
       </div>
-      <StartWizard
-        locale={locale}
-        strings={d.start}
-        common={{ back: d.common.back, next: d.common.next, sending: d.common.sending }}
-        messageLabel={d.contact.message}
-        initialSegment={segment}
-        utm={utm}
-      />
     </section>
   );
 }

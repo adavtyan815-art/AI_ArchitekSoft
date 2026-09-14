@@ -12,15 +12,16 @@
   --hx-r: 14px;
   --hx-canvas-ring: rgba(23, 21, 15, 0.12);
   --hx-canvas-shadow: 0 1px 2px rgba(23, 21, 15, 0.06), 0 36px 70px -44px rgba(23, 21, 15, 0.5);
-  /* tonal band (platform, closing call): ink in light, graphite panel in dark */
-  --band-bg: #17150f;
-  --band-fg: #f4f2ed;
-  --band-line: rgba(244, 242, 237, 0.16);
-  --band-line-strong: rgba(244, 242, 237, 0.34);
-  --band-muted: rgba(244, 242, 237, 0.66);
-  --band-faint: rgba(244, 242, 237, 0.42);
-  --band-surface: rgba(244, 242, 237, 0.07);
-  --band-shadow: 0 40px 80px -50px rgba(23, 21, 15, 0.6);
+  /* tonal band (platform, closing call): a deeper paper panel with a hairline in light, a graphite
+     panel in dark — separated and important without becoming a black block on a light page */
+  --band-bg: #ebe7df;
+  --band-fg: #17150f;
+  --band-line: rgba(23, 21, 15, 0.12);
+  --band-line-strong: rgba(23, 21, 15, 0.3);
+  --band-muted: #6b675e;
+  --band-faint: #9a958a;
+  --band-surface: rgba(23, 21, 15, 0.05);
+  --band-shadow: 0 0 0 1px rgba(23, 21, 15, 0.08), 0 30px 60px -48px rgba(23, 21, 15, 0.35);
 }
 :where([data-theme="dark"]) .home-x {
   --hx-canvas-ring: rgba(239, 235, 227, 0.14);
@@ -320,6 +321,10 @@
   box-shadow: none;
 }
 .home-x .hx-band .btn-primary:hover { background: color-mix(in srgb, var(--band-fg) 90%, var(--band-bg)); }
+/* materials board on the light panel: chips get an ink hairline instead of a paper one */
+.home-x .hx-material span:first-child {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--band-fg) 16%, transparent);
+}
 
 /* numbered rule list inside the band */
 .home-x .hx-list {
@@ -519,6 +524,9 @@
   .home-x .hx-hero { gap: 14px; }
   .home-x .hx-canvas { margin-inline: calc(-1 * clamp(20px, 4vw, 72px)); box-shadow: none; }
   .home-x .hx-canvas .showcase-stage:not(:fullscreen) { border-radius: 0; aspect-ratio: 1 / 1; }
+  /* Live 3D in the square stage: the 16:9 clip fits by height, so the TV screen at the top of the scene
+     filled the upper third as a black rectangle — frame the clip on the furniture instead */
+  .home-x .showcase-stage video { object-position: 50% 100%; transform: scale(1.32); transform-origin: 50% 100%; }
   /* Web Viewer controls inside the phone stage: compact chips, smaller toolbar */
   .home-x .showcase-stage .swatch { height: 30px; width: 30px; }
   .home-x .showcase-stage button[aria-pressed] > span:last-child { font-size: 9px; }

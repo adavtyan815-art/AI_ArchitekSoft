@@ -245,7 +245,7 @@ export function StartWizard({
     );
 
   return (
-    <div className="mx-auto max-w-2xl pb-24 md:pb-0" onFocusCapture={onFormStart}>
+    <div className="max-w-2xl pb-24 md:pb-0 lg:max-w-none" onFocusCapture={onFormStart}>
       {/* ── progress: mono counter on a ruler ── */}
       <div className="mb-8">
         <div className="mb-3 flex items-baseline justify-between gap-4">

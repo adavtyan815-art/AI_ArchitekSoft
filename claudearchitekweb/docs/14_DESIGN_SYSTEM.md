@@ -67,7 +67,7 @@ Scale: display `clamp(2.6rem, 5.6vw, 4.6rem)`; section `clamp(1.9rem, 3.2vw, 2.7
 
 ## 6. Components (src/components/ui.tsx)
 
-Logo: `<BrandLogo />` (src/components/brand-logo.tsx) renders the monochrome wordmark (ink on paper / paper on graphite). The two-tone blue PNG is kept for print and social only.
+Logo: `<BrandLogo />` (src/components/brand-logo.tsx) renders the brand wordmark (`/brand/logo.png`, its own blue) in both themes — the logo is the brand mark, not a UI element that flips with the page. The monochrome ink/paper PNGs remain in /public/brand for special cases.
 
 Button (primary=ink, secondary=outline, accent, ghost, danger; sizes sm/md/lg; square 6 px), ButtonLink, Card (hairline, radius 10), Frame, Rule/Ticks, Index, SectionHeading (index, title, text, action), Stat (mono value), Badge/Pill (square chips), Field/Input/Select/Textarea (44 px, 6 px radius, accent focus ring), CheckList (en-dash markers, not check circles), Spec, Swatch, Empty, Skeleton.
 
@@ -181,6 +181,16 @@ call to action) is scrolled past, retires while the footer is in view, hidden on
 social as one row — not the desktop columns stacked. **Phone menu**: full-height rows, no indices, a
 segmented language switch, the start button at the bottom. **Start flow**: the choice cards stay
 (they are the control); the outer panel is gone — the form sits on the open page under a hairline.
+
+**Light band**: on the light page the platform and closing bands are a deeper paper panel (#EBE7DF) with a
+hairline and ink type — separated and important without a black block; dark keeps the graphite panel.
+**Audiences** are named symmetrically: Բիզնեսին / Անհատներին, Бизнесу / Частным клиентам, For business /
+For individuals. **Start** sits in the page grid: the ask on the left (sticky), the form on the right behind
+a vertical rule (a strong rule above it on phones). **Comparison slider**: fractional position, a 44 px
+grip on the divider with `touch-action: none` (drag never scrolls; the rest of the image keeps `pan-y`),
+← → 1 unit, Shift ×10. **Live 3D on phones**: the 16:9 clip is framed on the furniture in the square stage
+(bottom-anchored, 1.32×) so the scene's TV screen no longer fills the top as a black rectangle.
+**No public admin link** in the footer.
 
 **Background hierarchy**: from 1024 px the ambient layer is masked horizontally — full presence in the outer
 margins, about half behind the content band — so long copy and photographs read effortlessly while the

@@ -8,7 +8,7 @@ export const en = {
   nav: {
     kitchenpro: "Platform",
     business: "For business",
-    home: "For customers",
+    home: "For individuals",
     viewer: "Web Viewer",
     solutions: "Other industries",
     portfolio: "Work",
@@ -89,7 +89,7 @@ export const en = {
       cta: "The business offer",
     },
     b2cCard: {
-      tag: "For customers",
+      tag: "For individuals",
       title: "I am ordering furniture",
       text: "Send your measurements, get your kitchen in 3D, choose colours and form, see it in your room and go to any maker with a ready decision.",
       bullets: ["You see exactly what you will get", "You compare 2–3 options", "A decision sheet for the maker you choose"],
@@ -263,7 +263,7 @@ export const en = {
     cta: "Order a pilot project",
   },
   homeSegment: {
-    tag: "For customers",
+    tag: "For individuals",
     title: "Your furniture in 3D, before you order",
     subtitle: "Send measurements, get your kitchen or wardrobe in 3D, choose colours and materials, see it in your room and go to any maker with a clear, ready decision.",
     notSellerTitle: "Good to know",
@@ -470,7 +470,7 @@ export const en = {
     live: "Live 3D",
     solutionsMenu: [
       { href: "/for-business", title: "For business", text: "Makers, showrooms, studios" },
-      { href: "/for-home", title: "For customers", text: "I am ordering a kitchen or furniture" },
+      { href: "/for-home", title: "For individuals", text: "I am ordering a kitchen or furniture" },
       { href: "/viewer", title: "Web Viewer", text: "A 3D link for every client" },
       { href: "/live-3d", title: "Live 3D", text: "Premium presentation for showrooms" },
       { href: "/solutions", title: "Other industries", text: "Real estate, AR/VR, software" },
