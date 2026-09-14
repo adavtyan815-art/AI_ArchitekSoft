@@ -17,7 +17,7 @@ import { ViewerDemo } from "./viewer-demo";
  *   01 sketch → finished picture (comparison slider)
  *   02 Web Viewer (rotate, change colour; library + model load only when opened, tap-to-load on phones)
  *   03 Live 3D walkthrough (short muted clip, loaded only when opened)
- * Selection is manual only (strip, ← → keys).
+ * Selection is manual only (strip, ← → keys); Web Viewer is the default mode, no autoplay.
  *
  * Fullscreen: on fine pointers the strip's last button requests native fullscreen on the stage. On touch
  * devices (no element fullscreen on iOS Safari) a control on the stage opens an overlay viewer instead:
@@ -60,20 +60,17 @@ export function Showcase({
   const stageRef = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const segs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [i, setI] = useState(0);
+  const [i, setI] = useState(1); // Web Viewer opens first
   const [fs, setFs] = useState(false);
   const [overlay, setOverlay] = useState(false);
   const [fsSupported, setFsSupported] = useState(false);
   const [coarse, setCoarse] = useState(false);
-  const [desktop, setDesktop] = useState(false);
   const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
-  const [opened, setOpened] = useState<boolean[]>(() => s.items.map((_, k) => k === 0));
+  const [opened, setOpened] = useState<boolean[]>(() => s.items.map((_, k) => k === 1));
   const n = s.items.length;
   const p = (path: string) => localePath(locale, path);
 
   useEffect(() => {
-    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    setDesktop(window.matchMedia("(pointer: fine)").matches && !nav.connection?.saveData);
     setCoarse(window.matchMedia("(pointer: coarse)").matches);
     setFsSupported(!!document.fullscreenEnabled);
     const onFs = () => setFs(!!document.fullscreenElement);
@@ -183,7 +180,7 @@ export function Showcase({
 
       {/* 02 — Web Viewer (mounted on first open; phones get tap-to-load) */}
       <div className={cn("absolute inset-0 transition-opacity duration-500", i === 1 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 1}>
-        {opened[1] ? <ViewerDemo labels={viewerLabels} poster={media.viewerPoster} className="flex h-full flex-col rounded-none border-0" height="min-h-0 flex-1" autoload={desktop && i === 1} /> : null}
+        {opened[1] ? <ViewerDemo labels={viewerLabels} poster={media.viewerPoster} className="flex h-full flex-col rounded-none border-0" height="min-h-0 flex-1" /> : null}
       </div>
 
       {/* 03 — Live 3D walkthrough (clip loaded on first open) */}

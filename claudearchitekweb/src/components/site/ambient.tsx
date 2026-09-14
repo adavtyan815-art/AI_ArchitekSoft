@@ -209,6 +209,7 @@ export function Ambient() {
     };
     const onVisibility = () => (document.hidden ? stop() : start());
     const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return; // touch and pen never act as a cursor
       tx = e.clientX;
       ty = e.clientY;
       if (!mouseOn) {

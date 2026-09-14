@@ -82,7 +82,7 @@ Button (primary=ink, secondary=outline, accent, ghost, danger; sizes sm/md/lg; s
 
 ## 8. Motion
 
-- `reveal` (IntersectionObserver, `data-reveal`): 0 → 1 opacity, 10 px rise, 500 ms, once. Never hides content when JS is missing.
+- `reveal` / `reveal-stagger`: content is visible by default. `RevealObserver` (site layout, re-run on every route change) arms only elements below the viewport (`.reveal-armed`) in the same tick it observes them and marks `.is-in` on entry; it un-arms on route change. If JS never runs, hydrates late, or an observer never fires, the page is complete. Earlier the CSS hid every `.reveal` as soon as the inline script set `data-js` and the observer ran only once per layout mount — sections stayed missing after client-side navigation and until hydration on slow loads.
 - Hover: image scale 1.02 (600 ms), link underline slides in, button arrow nudges 2 px, cards get `line-strong`.
 - No bouncing, no parallax, no auto-playing carousels. Reduced motion respected.
 
@@ -186,12 +186,13 @@ segmented language switch, the start button at the bottom. **Start flow**: the c
 hairline and ink type — separated and important without a black block; dark keeps the graphite panel.
 **Audiences** are named symmetrically: Բիզնեսին / Անհատներին, Бизнесу / Частным клиентам, For business /
 For individuals. **Start** sits in the page grid: the ask on the left (sticky), the form on the right behind
-a vertical rule (a strong rule above it on phones). **Comparison slider**: pointer moves never go through React
+a vertical rule (a strong rule above it on phones). **Showcase default**: Web Viewer opens first (the model still loads lazily: near-viewport on desktop, tap on phones); no autoplay. The sketch source photo was rotated 90° clockwise and has been re-saved upright (1200 × 900), so it aligns with the render in the comparison. **Field on touch devices**: no pointer listeners without a fine pointer, and non-mouse pointer types are ignored, so scrolling never drags the mesh.
+**Comparison slider**: pointer moves never go through React
 state — every move (coalesced events included) writes a ref and one requestAnimationFrame paints a
 `clip-path` on the "before" layer and the handle position, so nothing re-lays out the images and the divider
 tracks the pointer 1:1 at any speed; a 44 px grip on the divider has `touch-action: none` (drag never
 scrolls; the rest of the image keeps `pan-y`); ← → 1 unit, Shift ×10; aria values update on release.
-**Header logo**: 36 px in the 76 px desktop header, 32 px in the 64 px phone header; the phone footer has no
+**Header logo**: 40 px in the 76 px desktop header, 34 px in the 64 px phone header, preloaded and fetched at high priority so the brand mark is in the first frame; the phone footer has no
 logo (the description opens the brand block). **Start, step 1**: an instruction line under the question and
 radio rings on the cards, so "choose one" is read before anything is picked; nothing is preselected. **Live 3D on phones**: the 16:9 clip is framed on the furniture in the square stage
 (bottom-anchored, 1.32×) so the scene's TV screen no longer fills the top as a black rectangle.

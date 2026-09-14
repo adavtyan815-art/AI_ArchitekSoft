@@ -85,7 +85,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
       <header className={cn("sticky top-0 z-40 border-b transition-[background-color,border-color,box-shadow] duration-300", open ? "border-line bg-bg" : scrolled ? "border-line bg-bg shadow-[0_10px_24px_-20px_rgba(0,0,0,0.3)]" : "border-transparent bg-transparent")}>
         <div className="container-x flex h-16 items-center justify-between gap-6 xl:h-[76px]">
           <Link href={p("/")} className="flex shrink-0 items-center" aria-label="ArchiTek Soft">
-            <BrandLogo className="h-8 xl:h-9" />
+            <BrandLogo className="h-[34px] xl:h-10" />
           </Link>
 
           <nav className="hidden h-full items-center xl:flex" aria-label="Primary">

@@ -42,6 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={lang} data-theme={dataTheme} className={`${inter.variable} ${serif.variable} ${serifArmenian.variable} ${armenian.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="preload" as="image" href="/brand/logo.png" />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>{children}</body>
