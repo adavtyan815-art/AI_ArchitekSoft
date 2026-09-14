@@ -32,6 +32,9 @@ if (!fs.existsSync(GENERATED_DIR)) {
 
 // Static Assets
 app.use("/assets", express.static(path.join(LANDING_DIR, "assets")));
+app.use("/brand", express.static(path.join(LANDING_DIR, "assets", "brand")));
+app.use("/demo", express.static(path.join(LANDING_DIR, "assets", "demo")));
+app.use("/media", express.static(path.join(LANDING_DIR, "assets", "media")));
 app.use("/local-assets", express.static(ASSETS_DIR));
 app.use("/generated", express.static(GENERATED_DIR));
 

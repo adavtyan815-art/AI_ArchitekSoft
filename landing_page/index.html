@@ -1,501 +1,881 @@
 <!DOCTYPE html>
-<html lang="hy">
+<html lang="hy" data-theme="light" class="inter-var serif-var mono-var">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ArchiTek Soft — Կահույքի և Ինտերիերի Թվային Ցուցասրահ</title>
-  
-  <!-- SEO & Meta -->
-  <meta name="description" content="Architeksoft — Կահույքի և ինտերիերի 3D թվայնացում, 4K ինտերակտիվ ցուցասրահներ, բջջային AR և գործարանային CNC ռասկրոյ:" />
-  <meta property="og:title" content="ArchiTek Soft — Կահույքի Թվային Ցուցասրահ" />
-  <meta property="og:description" content="Էսքիզից մինչև 4K ինտերակտիվ ցուցասրահ և գործարանային CNC ռասկրոյ:" />
-  <meta property="og:image" content="assets/images/share.jpg" />
-  <meta property="og:type" content="website" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ArchiTek Soft — Կահույքի ընտրությունը 3D-ով՝ մինչև պատրաստելը</title>
+  <meta name="description" content="ArchiTek Soft-ը օգնում է կահույք արտադրողներին, սրահներին և նրանց հաճախորդներին ընտրել գույները, նյութերն ու ձևը վստահ՝ ինտերակտիվ 3D-ով, մինչև կահույքը պատրաստվի։" />
 
-  <!-- Favicons -->
-  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
-  <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png" />
+  <!-- Preload Assets -->
+  <link rel="preload" as="image" href="/brand/logo-ink.png" />
+  <link rel="preload" as="image" href="/brand/logo-paper.png" />
+  <link rel="preload" as="image" href="/demo/render-1.webp" />
+  <link rel="preload" as="image" href="/demo/sketch.webp" />
+  <link rel="preload" as="image" href="/demo/showcase-live-poster.jpg" />
 
-  <!-- Fonts & Styles -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=50.0" />
+  <!-- Design System & Home Styles -->
+  <link rel="stylesheet" href="/assets/css/claudeweb_root.css" />
+  <link rel="stylesheet" href="/assets/css/claudeweb_home.css" />
 
-  <!-- Three.js 3D WebGL Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Favicon -->
+  <link rel="icon" href="/brand/favicon.png" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+
+  <!-- Google Model Viewer -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+
+  <link rel="stylesheet" href="/assets/css/landing.css" />
+
+  <!-- Early Theme Init Script -->
+  <script>
+    (function(){
+      try {
+        document.documentElement.setAttribute("data-js","1");
+        var c = document.cookie.match(/(?:^|; )theme=(light|dark)/);
+        var t = c ? c[1] : localStorage.getItem("theme");
+        if(t === "light" || t === "dark"){
+          document.documentElement.setAttribute("data-theme", t);
+        } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      } catch(e){}
+
+    })();
+  </script>
 </head>
-<body class="flagship-home">
+<body class="min-h-screen flex flex-col bg-bg text-fg">
 
-  <!-- Ambient Luxury Glows & Cyber Orbits -->
-  <div class="ambient-bg">
-    <div class="ambient-cyber-orbit">
-      <svg viewBox="0 0 1440 800" fill="none" preserveAspectRatio="none">
-        <path d="M-100,520 C300,220 850,120 1540,320" stroke="url(#orbit-grad-1)" stroke-width="1.8" />
-        <path d="M-100,570 C400,270 950,170 1540,400" stroke="url(#orbit-grad-2)" stroke-width="1.2" stroke-dasharray="8 6" />
-        <defs>
-          <linearGradient id="orbit-grad-1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="rgba(0,240,255,0)" />
-            <stop offset="30%" stop-color="rgba(0,240,255,0.45)" />
-            <stop offset="70%" stop-color="rgba(0,132,255,0.55)" />
-            <stop offset="100%" stop-color="rgba(0,240,255,0)" />
-          </linearGradient>
-          <linearGradient id="orbit-grad-2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="rgba(0,240,255,0)" />
-            <stop offset="50%" stop-color="rgba(0,240,255,0.35)" />
-            <stop offset="100%" stop-color="rgba(0,240,255,0)" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-    <div class="ambient-room-glow"></div>
-    <div class="ambient-grid"></div>
-    <div class="ambient-glow-1"></div>
-    <div class="ambient-glow-2"></div>
+  <!-- ==========================================================================
+       AMBIENT ARCHITECTURAL & TECHNOLOGICAL BACKGROUND
+       ========================================================================== -->
+  <div class="tech-bg-canvas" aria-hidden="true">
+    <canvas id="tech-interactive-canvas"></canvas>
+    <div class="tech-bg-grid"></div>
+    <div class="tech-glow-1"></div>
+    <div class="tech-glow-2"></div>
+    <div class="tech-glow-3"></div>
   </div>
 
   <!-- ==========================================================================
        HEADER & NAVIGATION
        ========================================================================== -->
-  <header class="site-nav" id="main-nav">
-    <div class="nav-container">
-      <a href="index.html" class="brand-logo" aria-label="ArchiTek Soft Home">
-        <img src="assets/images/image01.png" alt="ArchiTek Soft" class="brand-img" onerror="this.src='assets/images/image08.png'" />
+  <header id="site-header">
+    <div class="container-x flex h-16 items-center justify-between gap-6 lg:h-[76px]">
+      
+      <!-- Brand Logo -->
+      <a class="flex shrink-0 items-center" aria-label="ArchiTek Soft" href="/">
+        <span class="inline-flex h-7" aria-label="ArchiTek Soft">
+          <img src="/brand/logo-ink.png" alt="ArchiTek Soft" width="300" height="132" class="h-full w-auto dark:hidden" />
+          <img src="/brand/logo-paper.png" alt="ArchiTek Soft" aria-hidden="true" width="300" height="132" class="hidden h-full w-auto dark:block" />
+        </span>
       </a>
 
-      <!-- Navigation Links -->
-            <!-- Navigation Links -->
-      <ul class="nav-menu" id="nav-menu">
-        <li><a href="/" class="nav-link active" data-i18n="nav_home">Գլխավոր</a></li>
+      <!-- Desktop Navigation -->
+      <nav class="hidden h-full items-center lg:flex" aria-label="Primary">
+        <a class="relative px-3 py-2 text-[13.5px] font-medium whitespace-nowrap transition-colors after:absolute after:inset-x-3 after:-bottom-[1px] after:h-px after:origin-left after:scale-x-0 after:bg-fg after:transition-transform after:duration-200 text-fg-2 hover:text-fg hover:after:scale-x-100" href="/capabilities">Հարթակ</a>
         
-        <!-- Capabilities Dropdown -->
-        <li class="nav-item-dropdown">
-          <a href="/capabilities" class="nav-link dropdown-toggle " data-i18n="nav_capabilities">
-            <span data-i18n="nav_capabilities">Հնարավորություններ</span>
-            <svg class="nav-arrow-svg" viewBox="0 0 24 24" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
-          </a>
-          <div class="nav-dropdown-menu">
-            <a href="/configurator" class="dropdown-item">
-              <div class="dropdown-icon">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2"/></svg>
-              </div>
-              <div class="dropdown-info">
-                <div class="dropdown-title" data-i18n="nav_drop_showroom_title">Ինտերակտիվ 4K Ցուցասրահ</div>
-                <div class="dropdown-desc" data-i18n="nav_drop_showroom_desc">Ռեալ-թայմ քայլել սենյակում, լույսի և նյութերի փոփոխություն</div>
-              </div>
-            </a>
-            <a href="/capabilities#ar" class="dropdown-item">
-              <div class="dropdown-icon">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-              </div>
-              <div class="dropdown-info">
-                <div class="dropdown-title" data-i18n="nav_drop_ar_title">Web 3D & Բջջային AR</div>
-                <div class="dropdown-desc" data-i18n="nav_drop_ar_desc">360° ինտերակտիվություն և 1:1 AR պրոյեկցիա սմարթֆոնով</div>
-              </div>
-            </a>
-            <a href="/capabilities#blueprints" class="dropdown-item">
-              <div class="dropdown-icon">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0l12.6 12.6z"/><path d="m14.5 5.5 4 4"/><path d="m11.5 8.5 2 2"/><path d="m8.5 11.5 2 2"/><path d="m5.5 14.5 2 2"/></svg>
-              </div>
-              <div class="dropdown-info">
-                <div class="dropdown-title" data-i18n="nav_drop_factory_title">Գործարանային Փաստաթղթավորում</div>
-                <div class="dropdown-desc" data-i18n="nav_drop_factory_desc">CNC ռասկրոյ, Blum ֆուրնիտուրա և զրո խոտան</div>
-              </div>
-            </a>
-          </div>
-        </li>
-
-        <li><a href="/process" class="nav-link " data-i18n="nav_pipeline">Ինչպես է Աշխատում</a></li>
-        <li><a href="/portfolio" class="nav-link " data-i18n="nav_portfolio">Պորտֆոլիո</a></li>
-        <li><a href="/b2b" class="nav-link " data-i18n="nav_b2b">Արտադրողներին</a></li>
-        <li><a href="/contact" class="nav-link " data-i18n="nav_contact">Կապ</a></li>
-        <li class="mobile-only-cta">
-          <a href="/configurator" class="btn btn-primary">
-            <span data-i18n="nav_demo_btn">3D Ցուցասրահ</span>
-            <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </a>
-        </li>
-      </ul>
-
-      <!-- Actions (Theme, Lang & CTA) -->
-      <div class="nav-actions">
-
-        <div class="lang-selector">
-          <button class="lang-btn" id="lang-btn" aria-label="Select Language" title="Select Language">
-            <span class="flag-icon" id="current-flag-icon">
-              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#d90012" d="M0 0h640v160H0z"/><path fill="#0033a0" d="M0 160h640v160H0z"/><path fill="#f2a800" d="M0 320h640v160H0z"/></svg>
-            </span>
-            <svg class="chevron-svg" viewBox="0 0 24 24" width="12" height="12"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        <!-- Solutions Dropdown Menu -->
+        <div class="relative flex h-full items-center group" id="solutions-dropdown">
+          <button type="button" id="solutions-btn" class="relative px-3 py-2 text-[13.5px] font-medium whitespace-nowrap transition-colors after:absolute after:inset-x-3 after:-bottom-[1px] after:h-px after:origin-left after:scale-x-0 after:bg-fg after:transition-transform after:duration-200 text-fg-2 hover:text-fg hover:after:scale-x-100 inline-flex items-center gap-1 cursor-pointer" aria-haspopup="menu" aria-expanded="false">
+            Լուծումներ
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down transition-transform group-hover:rotate-180" aria-hidden="true">
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
           </button>
-          <div class="lang-dropdown">
-            <div class="lang-item active" data-lang="hy">
-              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#d90012" d="M0 0h640v160H0z"/><path fill="#0033a0" d="M0 160h640v160H0z"/><path fill="#f2a800" d="M0 320h640v160H0z"/></svg>
-              <span>Հայերեն</span>
-              <span class="lang-badge">ՀԱՅ</span>
-            </div>
-            <div class="lang-item" data-lang="ru">
-              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#fff" d="M0 0h640v160H0z"/><path fill="#0039a6" d="M0 160h640v160H0z"/><path fill="#d52b1e" d="M0 320h640v160H0z"/></svg>
-              <span>Русский</span>
-              <span class="lang-badge">РУС</span>
-            </div>
-            <div class="lang-item" data-lang="en">
-              <svg class="svg-flag" viewBox="0 0 640 480"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#fff" d="m75 0 245 180L565 0h75v60L435 240l205 180v60h-75L320 300 75 480H0v-60l205-180L0 60V0z"/><path fill="#C8102E" d="m424 281 216 159v40l-244-180zm141-281-245 180h50L640 40V0zM0 40l190 140h-50L0 76zm0 400 245-180h-50L0 440z"/><path fill="#fff" d="M240 0h160v480H240zM0 160h640v160H0z"/><path fill="#C8102E" d="M267 0h107v480H267zM0 187h640v107H0z"/></svg>
-              <span>English</span>
-              <span class="lang-badge">ENG</span>
+          <div id="solutions-menu" class="absolute top-full left-0 pt-1 transition-[opacity,transform] duration-150 pointer-events-none -translate-y-1 opacity-0 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 focus-within:pointer-events-auto focus-within:translate-y-0 focus-within:opacity-100" role="menu">
+            <div class="w-[560px] rounded-lg border border-line bg-surface p-2 shadow-lift">
+              <div class="grid grid-cols-2 gap-1">
+                <a role="menuitem" class="group/item flex gap-3 rounded-md px-3 py-3 transition-colors hover:bg-surface-2" href="/b2b">
+                  <span class="index mt-1 w-6 flex-none font-mono text-[11px] text-accent">01</span>
+                  <span class="min-w-0">
+                    <span class="flex items-center gap-1.5 text-[14px] font-semibold text-fg">
+                      Բիզնեսին
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint opacity-0 transition-opacity group-hover/item:opacity-100" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </span>
+                    <span class="mt-0.5 block text-[12.5px] leading-snug text-muted">Արտադրողներ, սրահներ, ստուդիաներ</span>
+                  </span>
+                </a>
+                <a role="menuitem" class="group/item flex gap-3 rounded-md px-3 py-3 transition-colors hover:bg-surface-2" href="/capabilities">
+                  <span class="index mt-1 w-6 flex-none font-mono text-[11px] text-accent">02</span>
+                  <span class="min-w-0">
+                    <span class="flex items-center gap-1.5 text-[14px] font-semibold text-fg">
+                      Պատվիրատուներին
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint opacity-0 transition-opacity group-hover/item:opacity-100" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </span>
+                    <span class="mt-0.5 block text-[12.5px] leading-snug text-muted">Խոհանոց կամ կահույք եմ պատվիրում</span>
+                  </span>
+                </a>
+                <a role="menuitem" class="group/item flex gap-3 rounded-md px-3 py-3 transition-colors hover:bg-surface-2" href="/configurator">
+                  <span class="index mt-1 w-6 flex-none font-mono text-[11px] text-accent">03</span>
+                  <span class="min-w-0">
+                    <span class="flex items-center gap-1.5 text-[14px] font-semibold text-fg">
+                      Web Viewer
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint opacity-0 transition-opacity group-hover/item:opacity-100" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </span>
+                    <span class="mt-0.5 block text-[12.5px] leading-snug text-muted">3D հղում յուրաքանչյուր հաճախորդի համար</span>
+                  </span>
+                </a>
+                <a role="menuitem" class="group/item flex gap-3 rounded-md px-3 py-3 transition-colors hover:bg-surface-2" href="/capabilities">
+                  <span class="index mt-1 w-6 flex-none font-mono text-[11px] text-accent">04</span>
+                  <span class="min-w-0">
+                    <span class="flex items-center gap-1.5 text-[14px] font-semibold text-fg">
+                      Live 3D
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint opacity-0 transition-opacity group-hover/item:opacity-100" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </span>
+                    <span class="mt-0.5 block text-[12.5px] leading-snug text-muted">Պրեմիում ներկայացում սրահների համար</span>
+                  </span>
+                </a>
+                <a role="menuitem" class="group/item flex gap-3 rounded-md px-3 py-3 transition-colors hover:bg-surface-2 col-span-2" href="/capabilities">
+                  <span class="index mt-1 w-6 flex-none font-mono text-[11px] text-accent">05</span>
+                  <span class="min-w-0">
+                    <span class="flex items-center gap-1.5 text-[14px] font-semibold text-fg">
+                      Այլ ոլորտներ
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint opacity-0 transition-opacity group-hover/item:opacity-100" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+                    </span>
+                    <span class="mt-0.5 block text-[12.5px] leading-snug text-muted">Անշարժ գույք, AR/VR, ծրագրեր</span>
+                  </span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
-        <a href="/configurator" class="btn btn-primary btn-sm btn-nav-cta">
-          <span data-i18n="nav_demo_btn">3D Ցուցասրահ</span>
-          <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <a class="relative px-3 py-2 text-[13.5px] font-medium whitespace-nowrap transition-colors after:absolute after:inset-x-3 after:-bottom-[1px] after:h-px after:origin-left after:scale-x-0 after:bg-fg after:transition-transform after:duration-200 text-fg-2 hover:text-fg hover:after:scale-x-100" href="/process">Ինչպես է աշխատում</a>
+        <a class="relative px-3 py-2 text-[13.5px] font-medium whitespace-nowrap transition-colors after:absolute after:inset-x-3 after:-bottom-[1px] after:h-px after:origin-left after:scale-x-0 after:bg-fg after:transition-transform after:duration-200 text-fg-2 hover:text-fg hover:after:scale-x-100" href="/portfolio">Աշխատանքներ</a>
+        <a class="relative px-3 py-2 text-[13.5px] font-medium whitespace-nowrap transition-colors after:absolute after:inset-x-3 after:-bottom-[1px] after:h-px after:origin-left after:scale-x-0 after:bg-fg after:transition-transform after:duration-200 text-fg-2 hover:text-fg hover:after:scale-x-100" href="/capabilities">Մեր մասին</a>
+        <a class="relative px-3 py-2 text-[13.5px] font-medium whitespace-nowrap transition-colors after:absolute after:inset-x-3 after:-bottom-[1px] after:h-px after:origin-left after:scale-x-0 after:bg-fg after:transition-transform after:duration-200 text-fg-2 hover:text-fg hover:after:scale-x-100" href="/contact">Կապ</a>
+      </nav>
+
+      <!-- Right Header Elements -->
+      <div class="flex items-center gap-2">
+        <!-- Language Switcher -->
+        <div class="hidden items-center font-mono text-[11px] font-medium tracking-[0.08em] md:flex" aria-label="Language">
+          <span class="flex items-center"><a class="transition-colors text-fg font-bold" aria-label="Հայերեն" aria-current="true" href="/">ՀԱՅ</a></span>
+          <span class="flex items-center"><span class="mx-1.5 text-faint">/</span><a class="transition-colors text-faint hover:text-fg" aria-label="Русский" href="/ru">РУС</a></span>
+          <span class="flex items-center"><span class="mx-1.5 text-faint">/</span><a class="transition-colors text-faint hover:text-fg" aria-label="English" href="/en">ENG</a></span>
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button type="button" id="theme-toggle" aria-label="Գունային ռեժիմ" title="Փոխել ռեժիմը (Լուսավոր / Մուգ)" class="btn-ghost btn-icon cursor-pointer p-2 rounded-lg hover:bg-surface-2 transition-colors">
+          <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon dark:hidden" aria-hidden="true">
+            <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path>
+          </svg>
+          <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun hidden dark:block text-yellow-400" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+        </button>
+
+        <!-- CTA Start Project -->
+        <a class="btn-primary btn-sm hidden md:inline-flex items-center gap-1.5" href="/contact">
+          Սկսել նախագիծ
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
         </a>
 
-        <button class="mobile-toggle" id="mobile-toggle" aria-label="Open Navigation">
-          <span></span><span></span><span></span>
+        <!-- Mobile Menu Toggle Button -->
+        <button id="mobile-menu-btn" class="btn-ghost btn-icon lg:hidden p-2 rounded-lg" aria-label="Մենյու" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="relative block h-3.5 w-5">
+            <span class="absolute inset-x-0 top-0 h-px bg-fg transition-transform duration-200" id="burger-line-1"></span>
+            <span class="absolute inset-x-0 top-1/2 h-px bg-fg transition-opacity duration-200" id="burger-line-2"></span>
+            <span class="absolute inset-x-0 bottom-0 h-px bg-fg transition-transform duration-200" id="burger-line-3"></span>
+          </span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- Mobile Menu Drawer -->
+  <div id="mobile-menu" class="flex flex-col transition-opacity duration-200" aria-hidden="true">
+    <nav class="container-x flex flex-1 flex-col overflow-y-auto pt-2 pb-6" aria-label="Mobile">
+      <a class="flex items-center justify-between border-b border-line py-4 font-display text-[1.75rem] text-fg" href="/capabilities">
+        Հարթակ
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+      </a>
+      <div class="mt-5 kicker font-mono text-[11px] uppercase tracking-wider text-muted">Լուծումներ</div>
+      <ul class="mt-2 divide-y divide-line border-y border-line">
+        <li>
+          <a class="flex items-center gap-4 py-3" href="/b2b">
+            <span class="index w-6 flex-none font-mono text-[11px] text-accent">01</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[16px] font-medium text-fg">Բիզնեսին</span>
+              <span class="block text-[12.5px] text-muted">Արտադրողներ, սրահներ, ստուդիաներ</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="flex items-center gap-4 py-3" href="/capabilities">
+            <span class="index w-6 flex-none font-mono text-[11px] text-accent">02</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[16px] font-medium text-fg">Պատվիրատուներին</span>
+              <span class="block text-[12.5px] text-muted">Խոհանոց կամ կահույք եմ պատվիրում</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="flex items-center gap-4 py-3" href="/configurator">
+            <span class="index w-6 flex-none font-mono text-[11px] text-accent">03</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[16px] font-medium text-fg">Web Viewer</span>
+              <span class="block text-[12.5px] text-muted">3D հղում յուրաքանչյուր հաճախորդի համար</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="flex items-center gap-4 py-3" href="/capabilities">
+            <span class="index w-6 flex-none font-mono text-[11px] text-accent">04</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[16px] font-medium text-fg">Live 3D</span>
+              <span class="block text-[12.5px] text-muted">Պրեմիում ներկայացում սրահների համար</span>
+            </span>
+          </a>
+        </li>
+      </ul>
+
+      <ul class="mt-5 divide-y divide-line border-y border-line">
+        <li><a class="flex items-center justify-between py-3 text-[16px] font-medium text-fg" href="/process">Ինչպես է աշխատում<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+        <li><a class="flex items-center justify-between py-3 text-[16px] font-medium text-fg" href="/portfolio">Աշխատանքներ<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+        <li><a class="flex items-center justify-between py-3 text-[16px] font-medium text-fg" href="/capabilities">Մեր մասին<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+        <li><a class="flex items-center justify-between py-3 text-[16px] font-medium text-fg" href="/contact">Կապ<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-faint" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a></li>
+      </ul>
+
+      <div class="mt-6 flex items-center gap-4 font-mono text-[12px] tracking-[0.08em]">
+        <a class="border-b pb-0.5 border-fg text-fg" href="/">ՀԱՅ</a>
+        <a class="border-b pb-0.5 border-transparent text-muted" href="/ru">РУС</a>
+        <a class="border-b pb-0.5 border-transparent text-muted" href="/en">ENG</a>
+      </div>
+    </nav>
+    <div class="container-x pb-6 pt-3">
+      <a class="btn-primary btn-lg w-full justify-center flex items-center gap-2 py-3 rounded-xl bg-fg text-bg font-semibold" href="/contact">
+        Սկսել նախագիծ
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+      </a>
+    </div>
+  </div>
+
   <!-- ==========================================================================
-       SECTION 1: HERO (THE CLEAN LUXURY HOOK)
+       MAIN CONTENT CONTAINER (.home-x)
        ========================================================================== -->
-    <section class="hero-section" id="home">
-    <div class="container">
-      <div class="hero-grid">
-        
-        <!-- Left Hero Pitch -->
-        <div class="hero-content">
-          <!-- Standalone Luxury Badge Pill -->
-          <div class="hero-badge-pill">
-            <span class="pulse-led"></span>
-            <span data-i18n="hero_badge">ԹՎԱՅԻՆ ՑՈՒՑԱՍՐԱՀ ԵՎ ԳՈՐԾԱՐԱՆԱՅԻՆ ՃՇԳՐՏՈՒԹՅՈՒՆ</span>
+  <main class="flex-1">
+    <div class="home-x">
+      
+      <!-- 01 — FIRST SCREEN: HERO & SHOWCASE -->
+      <section class="container-x pt-6 sm:pt-8 lg:pt-10">
+        <div class="hx-hero">
+          
+          <!-- Headline Text Column -->
+          <div class="hx-hero-text">
+            <span class="hx-eyebrow rise" style="--d:60ms">
+              <span class="index">01</span>
+              3D ընտրություն և ներկայացում կահույքի համար
+            </span>
+            <h1 class="hx-h1 rise" style="--d:120ms">
+              Տեսեք կահույքը՝ մինչև այն կպատրաստվի
+            </h1>
+            <p class="hx-intro hx-intro-desktop rise" style="--d:200ms">
+              ArchiTek Soft-ը տեխնոլոգիական ընկերություն է, որն օգնում է կահույք արտադրողներին, սրահներին և նրանց պատվիրատուներին ընտրել գույնը, նյութն ու ձևը վստահ՝ ինտերակտիվ 3D-ով, մինչև կահույքը պատրաստվի։
+            </p>
           </div>
 
-          <h1 class="hero-title">
-            Կահույքի և Ինտերիերի<br />
-            <span class="gradient-text">Թվային Ցուցասրահ</span>
-          </h1>
-
-          <div class="hero-sub-title" data-i18n="hero_sub_title">Էսքիզից մինչև 4K Ինտերակտիվ 3D ցուցասրահ և Կտրման Քարտեզներ (Раскрой)</div>
-
-          <p class="hero-description" data-i18n="hero_desc">
-            Մենք թվայնացնում ենք Ձեր նախագծերը՝ ստեղծելով ֆոտոռեալիստիկ 3D ցուցասրահ Ձեր հաճախորդների համար և պատրաստի գործարանային գծագրեր՝ արտադրության համար։
-          </p>
-
-          <!-- Action Buttons -->
-          <div class="hero-actions">
-            <a href="/configurator" class="btn btn-primary btn-lg">
-              <span data-i18n="hero_btn_live">Փորձել 3D Ցուցասրահը</span>
-              <svg class="btn-arrow-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-            <button onclick="openARModal()" class="btn btn-secondary btn-lg btn-ar-trigger">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              <span>1:1 AR Բջջային</span>
-            </button>
-            <a href="/contact" class="btn btn-secondary btn-lg">
-              <svg class="btn-icon-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              <span data-i18n="hero_btn_contact">Կապ</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- Right Visual (Living 4K Unreal Engine 5 & 3D Interactive Console) -->
-        <div class="hero-visual hero-device-stage" id="hero-device-container">
-          <div class="hero-console-frame">
-            <!-- Console Header with Real-time Status & Modes -->
-            <div class="hero-console-header">
-              <div class="hero-console-status">
-                <span class="pulse-led"></span>
-                <span id="hero-mode-label">4K Շրջայց // 60 FPS • LUMEN</span>
-              </div>
-              <div class="hero-console-modes">
-                <button class="console-mode-btn active" id="btn-mode-video" onclick="switchConsoleMode('video')">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-                  <span>4K Վիդեո</span>
-                </button>
-                <button class="console-mode-btn" id="btn-mode-3d" onclick="switchConsoleMode('3d')">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg>
-                  <span>360° 3D</span>
-                </button>
-                <button class="console-mode-btn" id="btn-mode-ba" onclick="switchConsoleMode('ba')">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
-                  <span>Էսքիզ ➔ 4K</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Console Screen Body -->
-            <div class="hero-console-body">
-              <!-- Mode 1: 4K Video Walkthrough (Autoplaying Muted Loop in First 2 Seconds) -->
-              <div class="console-pane active" id="console-pane-video">
-                <video id="hero-showcase-video" autoplay muted loop playsinline poster="assets/videos/video01_poster.jpg">
-                  <source src="/local-assets/ArchiTek_Kitchen Preview .mp4" type="video/mp4" />
-                  <source src="assets/videos/video01.mp4" type="video/mp4" />
-                </video>
+          <!-- Hero Canvas Showcase Column -->
+          <div class="hx-hero-canvas">
+            <div class="hx-canvas">
+              <div class="showcase-stage stage relative aspect-[4/3] w-full outline-none sm:aspect-[16/10] overflow-hidden" id="showcase-stage" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Տեսեք, թե ինչ կարող ենք անել">
                 
-                <!-- Holographic Hotspots -->
-                <div class="console-hotspot" style="top: 40%; left: 34%;" title="Blum Tip-On & Legrabox CAD">
-                  <span class="hotspot-pulse"></span>
-                  <span class="hotspot-label">Blum CAD</span>
-                </div>
-                <div class="console-hotspot" style="top: 64%; left: 60%;" title="Unreal Engine 5 Lumen 4K Raytracing">
-                  <span class="hotspot-pulse"></span>
-                  <span class="hotspot-label">Lumen 4K</span>
-                </div>
+                <!-- CAD Engineering Corner Markers -->
+                <div class="cad-corner cad-tl" aria-hidden="true"></div>
+                <div class="cad-corner cad-tr" aria-hidden="true"></div>
+                <div class="cad-corner cad-bl" aria-hidden="true"></div>
+                <div class="cad-corner cad-br" aria-hidden="true"></div>
 
-                <!-- Overlay Quick Controls -->
-                <div class="console-overlay-controls">
-                  <button class="overlay-ctrl-btn" onclick="toggleHeroVideoSound()" id="hero-sound-btn" title="Toggle Sound">
-                    <svg id="hero-sound-icon-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                    <svg id="hero-sound-icon-on" style="display:none;" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-                  </button>
-                  <button class="overlay-ctrl-btn" onclick="openVideoModal('/local-assets/ArchiTek_Kitchen Preview .mp4', 'ArchiTek 4K Kitchen Walkthrough (60 FPS)')" title="Fullscreen Cinema">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-                  </button>
-                </div>
-              </div>
+                
+                <!-- TAB 0: Before/After Interactive Comparison Slider -->
+                <div id="stage-panel-0" class="absolute inset-0 transition-opacity duration-500 opacity-100" aria-hidden="false">
+                  <div class="relative w-full cursor-ew-resize touch-pan-y select-none overflow-hidden bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent h-full w-full" id="ba-slider" role="slider" aria-label="Էսքիզ / 3D" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100" tabindex="0">
+                    <!-- 3D Render Image (Base) -->
+                    <img src="/demo/render-1.webp" alt="3D" class="absolute inset-0 h-full w-full object-cover" draggable="false" />
+                    
+                    <!-- Sketch Image (Clipped Left Layer) -->
+                    <div class="absolute inset-0 overflow-hidden" id="ba-clip" style="width:55%">
+                      <img src="/demo/sketch.webp" alt="Էսքիզ" id="ba-img" class="absolute inset-0 h-full w-full object-cover" style="width:181.8181818181818%; max-width:none" draggable="false" />
+                    </div>
 
-              <!-- Mode 2: Real-time 3D WebGL (Three.js 360° Orbit) -->
-              <div class="console-pane" id="console-pane-3d">
-                <div id="three-canvas-container" style="width: 100%; height: 100%;"></div>
-                <div class="three-hint-badge">⟲ Պտտեք մկնիկով (360° Orbit)</div>
-              </div>
+                    <!-- Draggable Handle -->
+                    <div class="ba-handle" id="ba-handle" style="left:55%; position:absolute; top:0; bottom:0; width:0; z-index:10;">
+                      <div class="absolute top-0 bottom-0 -left-[1px] w-[2px] bg-white/70"></div>
+                      <div class="absolute top-1/2 left-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#f4f2ed]/60 bg-[#17150f]/80 text-[#f4f2ed] backdrop-blur shadow-lg">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m9 6-6 6 6 6M15 6l6 6-6 6"></path>
+                        </svg>
+                      </div>
+                    </div>
 
-              <!-- Mode 3: Interactive Before/After Transformation Slider -->
-              <div class="console-pane" id="console-pane-ba">
-                <div class="ba-slider-container ba-slider" id="ba-slider" style="width: 100%; height: 100%; aspect-ratio: auto; border: none; border-radius: 0;">
-                  <img src="assets/images/render_aren_4k.jpg" alt="After 4K Ray-Tracing" class="ba-image-after" />
-                  <img src="assets/images/sketch_aren.jpg" alt="Before Hand Sketch" class="ba-image-before" />
-                  <div class="ba-badge ba-badge-before">Էսքիզ</div>
-                  <div class="ba-badge ba-badge-after">4K Ռենդեր</div>
-                  <div class="ba-handle">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
+                    <!-- Labels -->
+                    <span class="absolute top-3 left-3 rounded-sm bg-[#17150f]/70 px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur z-20">Էսքիզ</span>
+                    <span class="absolute top-3 right-3 rounded-sm bg-[#17150f]/70 px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur z-20">3D</span>
                   </div>
                 </div>
+
+                <!-- TAB 1: 3D Web Viewer with Material Swatches -->
+                <div id="stage-panel-1" class="absolute inset-0 transition-opacity duration-500 pointer-events-none opacity-0 flex flex-col bg-[#141311]" aria-hidden="true">
+                  <div class="relative flex-1 w-full h-full min-h-0">
+                    <model-viewer
+                      id="main-model-viewer"
+                      data-src="/demo/closet_wardrobe.glb"
+                      poster="/demo/wardrobe.webp"
+                      alt="3D Պահարան"
+                      camera-controls
+                      camera-orbit="-28deg 82deg auto"
+                      touch-action="pan-y"
+                      auto-rotate
+                      auto-rotate-delay="1500"
+                      rotation-per-second="12deg"
+                      shadow-intensity="0.7"
+                      exposure="1.05"
+                      ar
+                      ar-modes="webxr scene-viewer quick-look"
+                      ar-scale="fixed"
+                      ar-placement="floor"
+                      loading="eager"
+                      reveal="auto"
+                    ></model-viewer>
+
+                    <!-- Viewer Floating Controls -->
+                    <div class="mv-toolbar absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-2 sm:inset-x-4 sm:bottom-4 z-20">
+                      <span class="hidden items-center rounded-md border border-[#f4f2ed]/20 bg-[#17150f]/70 px-3 py-1.5 font-mono text-[10.5px] tracking-[0.06em] text-[#f4f2ed]/90 backdrop-blur sm:inline-flex">
+                        Քաշեք՝ պտտելու համար
+                      </span>
+                      <button type="button" id="mv-reset-btn" class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#f4f2ed]/25 bg-[#17150f]/70 px-3 font-mono text-[10.5px] uppercase tracking-[0.1em] text-[#f4f2ed] backdrop-blur hover:bg-[#17150f]/90 transition-colors cursor-pointer" title="Վերականգնել դիրքը">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        <span>Դիրք</span>
+                      </button>
+                      <button type="button" id="mv-ar-btn" class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#f4f2ed]/25 bg-[#17150f]/70 px-3 font-mono text-[10.5px] uppercase tracking-[0.1em] text-[#f4f2ed] backdrop-blur hover:bg-[#17150f]/90 transition-colors cursor-pointer" title="Դիտել սենյակում (AR)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                        <span>AR</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Material swatches -->
+                  <div class="swatch-bar">
+                    <span class="swatch-bar-label">Ֆասադի գույն</span>
+                    <div class="swatch-row" id="swatches-container" role="group" aria-label="Ֆասադի գույն">
+                      <button type="button" class="swatch-btn is-active" data-color="wood" aria-pressed="true" title="Wood">
+                        <span class="swatch-color" style="background:linear-gradient(135deg,#b58a5b,#7a5a3a)"></span>
+                        <span class="swatch-name">Wood</span>
+                      </button>
+                      <button type="button" class="swatch-btn" data-color="#f2f0ea" aria-pressed="false" title="Matt white">
+                        <span class="swatch-color" style="background:#f2f0ea"></span>
+                        <span class="swatch-name">Matt white</span>
+                      </button>
+                      <button type="button" class="swatch-btn" data-color="#cbb999" aria-pressed="false" title="Sand">
+                        <span class="swatch-color" style="background:#cbb999"></span>
+                        <span class="swatch-name">Sand</span>
+                      </button>
+                      <button type="button" class="swatch-btn" data-color="#8b9a86" aria-pressed="false" title="Sage">
+                        <span class="swatch-color" style="background:#8b9a86"></span>
+                        <span class="swatch-name">Sage</span>
+                      </button>
+                      <button type="button" class="swatch-btn" data-color="#2c3a55" aria-pressed="false" title="Navy">
+                        <span class="swatch-color" style="background:#2c3a55"></span>
+                        <span class="swatch-name">Navy</span>
+                      </button>
+                      <button type="button" class="swatch-btn" data-color="#3a3c3f" aria-pressed="false" title="Graphite">
+                        <span class="swatch-color" style="background:#3a3c3f"></span>
+                        <span class="swatch-name">Graphite</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB 2: Live 3D Video Walkthrough -->
+                <div id="stage-panel-2" class="absolute inset-0 transition-opacity duration-500 pointer-events-none opacity-0 bg-black" aria-hidden="true">
+                  <video id="stage-video" src="/demo/showcase-live.mp4" poster="/demo/showcase-live-poster.jpg" muted loop playsinline preload="metadata" class="h-full w-full object-cover"></video>
+                  <span class="live-chip absolute top-4 left-4 inline-flex items-center gap-2 rounded-full bg-[#17150f]/80 px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#f4f2ed] backdrop-blur z-20">
+                    <span class="dot inline-block w-2 h-2 rounded-full"></span>
+                    Live 3D
+                  </span>
+                </div>
+
               </div>
             </div>
 
-            <!-- Console Footer: Live Material Finishes & AR Button -->
-            <div class="hero-console-footer">
-              <div class="console-mat-palette">
-                <span class="mat-label">Ֆասադ՝</span>
-                <button class="mat-pill-btn active" onclick="changeConsoleMaterial('walnut');">
-                  <span class="mat-circle" style="background: #5c4033;"></span>
-                  <span>Ընկուզենի</span>
-                </button>
-                <button class="mat-pill-btn" onclick="changeConsoleMaterial('marble');">
-                  <span class="mat-circle" style="background: #e2e8f0;"></span>
-                  <span>Մարմար</span>
-                </button>
-                <button class="mat-pill-btn" onclick="changeConsoleMaterial('graphite');">
-                  <span class="mat-circle" style="background: #1e293b;"></span>
-                  <span>Գրաֆիտ</span>
-                </button>
-                <button class="mat-pill-btn" onclick="changeConsoleMaterial('gold');">
-                  <span class="mat-circle" style="background: #d4af37;"></span>
-                  <span>Ոսկի</span>
-                </button>
-              </div>
-              <button class="console-ar-btn" onclick="openARModal()">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                <span>1:1 AR</span>
+            <!-- Control Dock Under Canvas -->
+            <div class="hx-dock" role="tablist" aria-label="Ընտրեք ցուցադրությունը">
+              <button type="button" role="tab" id="dock-btn-0" aria-selected="true" class="hx-seg is-active cursor-pointer">
+                <span class="hx-seg-idx">01</span>
+                <span class="min-w-0">
+                  <span class="hx-seg-tag">Էսքիզ → 3D</span>
+                  <span class="hx-seg-title">Էսքիզը դառնում է պատրաստի պատկեր</span>
+                </span>
+              </button>
+              <button type="button" role="tab" id="dock-btn-1" aria-selected="false" tabindex="-1" class="hx-seg cursor-pointer">
+                <span class="hx-seg-idx">02</span>
+                <span class="min-w-0">
+                  <span class="hx-seg-tag">Web Viewer</span>
+                  <span class="hx-seg-title">Պտտեք և փոխեք գույնը</span>
+                </span>
+              </button>
+              <button type="button" role="tab" id="dock-btn-2" aria-selected="false" tabindex="-1" class="hx-seg cursor-pointer">
+                <span class="hx-seg-idx">03</span>
+                <span class="min-w-0">
+                  <span class="hx-seg-tag">Live 3D</span>
+                  <span class="hx-seg-title">Քայլեք սենյակում իրական ժամանակում</span>
+                </span>
+              </button>
+              
+              <!-- Fullscreen Toggle Button -->
+              <button type="button" class="hx-fs cursor-pointer" id="fs-toggle-btn" aria-label="Լիաէկրան" title="Լիաէկրան">
+                <svg id="fs-enter-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                <svg id="fs-exit-svg" class="hidden" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>
               </button>
             </div>
           </div>
+
+          <!-- Hero "Now Showing" Live Block & CTAs -->
+          <div class="hx-hero-live">
+            <div class="hx-live" id="live-desc-card">
+              <div class="hx-live-meta">
+                <span class="hx-live-dot"></span>
+                <span id="live-desc-choose">Ընտրեք ցուցադրությունը</span>
+                <span class="hx-live-count"><span class="text-accent" id="live-cur-idx">01</span> / 03</span>
+              </div>
+              <h2 class="hx-live-title" id="live-title">Էսքիզը դառնում է պատրաստի պատկեր</h2>
+              <p class="hx-live-text" id="live-text">
+                Քաշեք բաժանարարը՝ տեսնելու ձեռքի էսքիզի և պատրաստի 3D պատկերի տարբերությունը՝ նույն չափերով։
+              </p>
+              <a class="hx-live-link inline-flex items-center gap-1.5" id="live-link" href="/process">
+                <span>Ինչպես է աշխատում</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
+            </div>
+
+            <p class="hx-intro hx-intro-mobile">
+              ArchiTek Soft-ը տեխնոլոգիական ընկերություն է, որն օգնում է կահույք արտադրողներին, սրահներին և նրանց պատվիրատուներին ընտրել գույնը, նյութն ու ձևը վստահ՝ ինտերակտիվ 3D-ով, մինչև կահույքը պատրաստվի։
+            </p>
+
+            <!-- Action CTAs -->
+            <div class="hx-ctas">
+              <a class="btn-primary" href="/contact">
+                Սկսել նախագիծ
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+              </a>
+              <a class="btn-secondary" href="/configurator">
+                Փորձել Web Viewer-ը
+              </a>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Unified Bottom Feature Strip Across Full Width on One Horizontal Line -->
-        <div class="hero-bottom-strip">
-          <div class="strip-card">
-            <div class="strip-icon">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polygon points="10 8 16 12 10 16 10 8"/>
-              </svg>
+        <p class="caption mt-5 text-[13px] text-muted">
+          Աշխատում է ցանկացած հեռախոսում և համակարգչում՝ սովորական հղումով։
+        </p>
+      </section>
+
+      <!-- STATS RIBBON -->
+      <section class="container-x mt-12 sm:mt-16">
+        <ul class="hx-stats reveal-stagger">
+          <li class="hx-stat">
+            <div class="hx-stat-v">3D</div>
+            <div class="hx-stat-l">Ինտերակտիվ դիտում ցանկացած սարքում</div>
+          </li>
+          <li class="hx-stat">
+            <div class="hx-stat-v">∞</div>
+            <div class="hx-stat-l">Գույների և նյութերի տարբերակներ՝ ակնթարթորեն</div>
+          </li>
+          <li class="hx-stat">
+            <div class="hx-stat-v">1:1</div>
+            <div class="hx-stat-l">Կահույքը Ձեր սենյակում՝ AR-ով</div>
+          </li>
+          <li class="hx-stat">
+            <div class="hx-stat-v">24–48ժ</div>
+            <div class="hx-stat-l">Առաջին 3D հղումը</div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- 02 — THE PLATFORM (DARK LUXURY CANVAS) -->
+      <section class="container-x mt-16 sm:mt-24">
+        <div class="hx-platform reveal p-6 sm:p-10 lg:p-14">
+          <div class="grid gap-10 lg:grid-cols-12 lg:gap-12">
+            
+            <div class="lg:col-span-5">
+              <div class="hx-kicker">
+                <span class="index">02</span>
+                Մեր հարթակը
+              </div>
+              <h2 class="hx-h2">Մեկ 3D մոդել՝ ընտրության, ներկայացման և արտադրության համար</h2>
+              <p class="hx-lead">
+                Մեր հարթակը ստեղծված է կահույք արտադրողների համար։ Նախագիծը ստեղծվում է մեկ անգամ՝ իրական նյութերով և ֆուրնիտուրայով։ Նույն մոդելից պատվիրատուն ստանում է ինտերակտիվ դիտում և ընտրություն, արտադրողը՝ ճշգրիտ փաստաթղթեր, երբ պատրաստ է արտադրել։
+              </p>
+              <a class="btn-primary mt-7 inline-flex items-center gap-2" href="/capabilities">
+                Ծանոթանալ հարթակին
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
             </div>
-            <div class="strip-info">
-              <div class="strip-val" data-i18n="hero_feat_1_val">4K Շրջայց</div>
-              <div class="strip-lbl" data-i18n="hero_feat_1_lbl">Ազատ Շարժում Սենյակում</div>
+
+            <div class="lg:col-span-7">
+              <div class="grid gap-3 sm:grid-cols-3 reveal-stagger">
+                <div class="hx-pillar">
+                  <div class="hx-pillar-idx">01</div>
+                  <div class="hx-pillar-t">Տեսնել</div>
+                  <p class="hx-pillar-x">Ինտերակտիվ 3D՝ իրական չափերով, լուսավորությամբ և բացվող դռներով։ Հեռախոսում, համակարգչում, AR-ով։</p>
+                </div>
+                <div class="hx-pillar">
+                  <div class="hx-pillar-idx">02</div>
+                  <div class="hx-pillar-t">Ընտրել</div>
+                  <p class="hx-pillar-x">Ֆասադներ, մակերեսներ, բռնակներ, ֆուրնիտուրա իրական արտադրողներից՝ EGGER, Blum, Hettich։</p>
+                </div>
+                <div class="hx-pillar">
+                  <div class="hx-pillar-idx">03</div>
+                  <div class="hx-pillar-t">Հանձնել արտադրողին</div>
+                  <p class="hx-pillar-x">Հաստատված տարբերակից՝ գծագրեր, կտրման ցանկ, ֆուրնիտուրայի ցանկ։ Արտադրողը պատրաստում է հենց այն, ինչ հաստատվել է։</p>
+                </div>
+              </div>
+
+              <!-- Real Decor Material Chips -->
+              <div class="mt-6 flex flex-wrap items-end gap-x-5 gap-y-4" aria-hidden="true">
+                <div class="hx-material">
+                  <span style="background:linear-gradient(135deg,#b58a5a,#8d6238)"></span>
+                  <span>EGGER H1180</span>
+                </div>
+                <div class="hx-material">
+                  <span style="background:#c9c3b8"></span>
+                  <span>EGGER U708</span>
+                </div>
+                <div class="hx-material">
+                  <span style="background:#f1efe9"></span>
+                  <span>EGGER W1000</span>
+                </div>
+                <div class="hx-material">
+                  <span style="background:#2b2a28"></span>
+                  <span>Fenix 0720</span>
+                </div>
+                <div class="hx-material">
+                  <span style="background:linear-gradient(135deg,#a8865e,#7a5a3a)"></span>
+                  <span>EGGER H3131</span>
+                </div>
+                <div class="hx-material">
+                  <span style="background:#6c7a5c"></span>
+                  <span>EGGER U626</span>
+                </div>
+              </div>
+
             </div>
-          </div>
-          <div class="strip-card">
-            <div class="strip-icon">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                <line x1="12" y1="22.08" x2="12" y2="12"/>
-              </svg>
-            </div>
-            <div class="strip-info">
-              <div class="strip-val" data-i18n="hero_feat_2_val">1:1 Իրական Չափս</div>
-              <div class="strip-lbl" data-i18n="hero_feat_2_lbl">Կահույքը Ձեր Սենյակում (AR)</div>
-            </div>
-          </div>
-          <div class="strip-card">
-            <div class="strip-icon">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 15 6 6m-6-6v4.5m0-4.5h4.5M9 9 3 3m6 6V4.5M9 9H4.5M15 9l6-6m-6 6V4.5m0 4.5h4.5M9 15l-6 6m6-6v4.5m0-4.5H4.5"/>
-              </svg>
-            </div>
-            <div class="strip-info">
-              <div class="strip-val" data-i18n="hero_feat_3_val">0.1 մմ Ճշգրտություն</div>
-              <div class="strip-lbl" data-i18n="hero_feat_3_lbl">Կտրման Քարտեզներ (Раскрой)</div>
-            </div>
-          </div>
-          <div class="strip-card">
-            <div class="strip-icon">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                <line x1="8" y1="21" x2="16" y2="21"/>
-                <line x1="12" y1="17" x2="12" y2="21"/>
-              </svg>
-            </div>
-            <div class="strip-info">
-              <div class="strip-val" data-i18n="hero_feat_4_val">Բոլոր Սարքերում</div>
-              <div class="strip-lbl" data-i18n="hero_feat_4_lbl">Համակարգիչ, Սմարթֆոն, VR</div>
-            </div>
+
           </div>
         </div>
+      </section>
 
-      </div>
-  </section>
+      <!-- 03 — WHO IT IS FOR (IMAGE CARDS) -->
+      <section class="container-x mt-16 sm:mt-24">
+        <div class="mb-8 max-w-2xl sm:mb-10">
+          <div class="hx-kicker">
+            <span class="index">03</span>
+            Ո՞ւմ համար է
+          </div>
+          <h2 class="hx-h2">Ո՞ւմ համար է</h2>
+          <p class="hx-lead">Երկու ուղի, երկու հստակ առաջարկ։</p>
+        </div>
+
+        <div class="grid gap-5 md:grid-cols-2 md:gap-6 reveal-stagger">
+          
+          <!-- B2B Card -->
+          <a class="hx-door group" href="/b2b">
+            <img src="/demo/kitchen-walnut.webp" alt="B2B" class="object-cover absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105" />
+            <div class="hx-door-body">
+              <span class="hx-door-tag"><b>B2B</b> Բիզնեսին</span>
+              <h3 class="hx-door-title">Կահույք եմ արտադրում կամ վաճառում</h3>
+              <p class="hx-door-text">Ձեր հաճախորդը ընտրում և հաստատում է 3D-ով՝ առաջին հանդիպմանը։ Դուք արտադրում եք այն, ինչ հաստատվել է՝ առանց վերաձևումների։</p>
+              <span class="hx-door-link">
+                Առաջարկը բիզնեսին
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </span>
+            </div>
+          </a>
+
+          <!-- B2C Card -->
+          <a class="hx-door group" href="/capabilities">
+            <img src="/demo/render-2.webp" alt="B2C" class="object-cover absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105" />
+            <div class="hx-door-body">
+              <span class="hx-door-tag"><b>B2C</b> Պատվիրատուներին</span>
+              <h3 class="hx-door-title">Կահույք եմ պատվիրում</h3>
+              <p class="hx-door-text">Ուղարկեք չափերը, ստացեք Ձեր խոհանոցը 3D-ով, ընտրեք գույներն ու ձևը, տեսեք Ձեր սենյակում և գնացեք ցանկացած արտադրողի մոտ պատրաստի որոշմամբ։</p>
+              <span class="hx-door-link">
+                Ինչ է պետք սկսելու համար
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </span>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+      <!-- 04 — SELECTED WORK -->
+      <section class="container-x mt-16 sm:mt-24">
+        <div class="mb-8 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
+          <div class="max-w-2xl">
+            <div class="hx-kicker">
+              <span class="index">04</span>
+              Աշխատանքներ
+            </div>
+            <h2 class="hx-h2">Ընտրված աշխատանքներ</h2>
+          </div>
+          <a class="hx-live-link" href="/portfolio">
+            Բոլոր աշխատանքները
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </a>
+        </div>
+
+        <div class="hx-work">
+          <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 reveal-stagger">
+            
+            <!-- Item 1: Walnut Kitchen -->
+            <a class="group block" href="/portfolio">
+              <div class="frame frame-marks on-image img-zoom rounded-2xl overflow-hidden shadow-card">
+                <div class="relative bg-surface-2 aspect-[4/3] overflow-hidden">
+                  <img src="/media/2026/09/ast_myrT91KR95PuKA.jpg" alt="Ընկուզենու խոհանոց" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                </div>
+                <div class="frame-bar flex items-center justify-between gap-3 border-t border-line px-3.5 py-2 bg-surface">
+                  <span class="caption min-w-0 truncate font-mono text-[12px]"><span class="text-accent">01</span><span class="mx-2 text-faint">/</span>Խոհանոց</span>
+                </div>
+              </div>
+              <div class="mt-4 flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="font-display leading-tight text-fg text-[1.25rem] group-hover:text-accent transition-colors">Ընկուզենու խոհանոց</div>
+                  <p class="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-muted">Ինտերակտիվ խոհանոց՝ բացվող դարակներով և նյութերի փոփոխությամբ։</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right mt-1 flex-none text-faint transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fg"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+              </div>
+            </a>
+
+            <!-- Item 2: Aren TV Wall -->
+            <a class="group block" href="/p/aren-kitchen">
+              <div class="frame frame-marks on-image img-zoom rounded-2xl overflow-hidden shadow-card">
+                <div class="relative bg-surface-2 aspect-[4/3] overflow-hidden">
+                  <img src="/media/2026/09/ast_ud-HVPqhJ_g5Aw.jpg" alt="Արեն — TV գոտի և պահարան" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                  <span class="absolute right-4 bottom-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/40 bg-black/50 text-white backdrop-blur shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play ml-0.5"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>
+                  </span>
+                </div>
+                <div class="frame-bar flex items-center justify-between gap-3 border-t border-line px-3.5 py-2 bg-surface">
+                  <span class="caption min-w-0 truncate font-mono text-[12px]"><span class="text-accent">02</span><span class="mx-2 text-faint">/</span>Հյուրասենյակ</span>
+                </div>
+              </div>
+              <div class="mt-4 flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="font-display leading-tight text-fg text-[1.25rem] group-hover:text-accent transition-colors">Արեն — TV գոտի և պահարան</div>
+                  <p class="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-muted">Ձեռքի էսքիզից մինչև 3D և արտադրական ռասկրոյ։</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right mt-1 flex-none text-faint transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fg"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+              </div>
+            </a>
+
+            <!-- Item 3: Cottage Village -->
+            <a class="group block" href="/portfolio">
+              <div class="frame frame-marks on-image img-zoom rounded-2xl overflow-hidden shadow-card">
+                <div class="relative bg-surface-2 aspect-[4/3] overflow-hidden">
+                  <img src="/media/2026/09/ast_4gt9FDJoSJ-dnw.jpg" alt="Քոթեջային ավան" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                </div>
+                <div class="frame-bar flex items-center justify-between gap-3 border-t border-line px-3.5 py-2 bg-surface">
+                  <span class="caption min-w-0 truncate font-mono text-[12px]"><span class="text-accent">03</span><span class="mx-2 text-faint">/</span>Անշարժ գույք</span>
+                </div>
+              </div>
+              <div class="mt-4 flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="font-display leading-tight text-fg text-[1.25rem] group-hover:text-accent transition-colors">Քոթեջային ավան</div>
+                  <p class="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-muted">Արտաքին և ներքին շրջայց, օր/գիշեր, կահավորում։</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right mt-1 flex-none text-faint transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fg"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+              </div>
+            </a>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 — WHERE NEXT + BIG CTA CARD -->
+      <section class="container-x mt-16 sm:mt-24 mb-16">
+        <div class="grid gap-8 lg:grid-cols-12 lg:gap-10">
+          
+          <!-- Left: Links -->
+          <div class="lg:col-span-5">
+            <div class="hx-kicker">
+              <span class="index">05</span>
+              Ուր գնալ հաջորդը
+            </div>
+            <div class="mt-5 grid gap-3 reveal-stagger">
+              <a class="hx-next group" href="/process">
+                <span class="min-w-0">
+                  <span class="hx-next-t block group-hover:text-accent transition-colors">Ինչպես է աշխատում</span>
+                  <span class="hx-next-x block">4 փուլ, ժամկետներ, ինչ է պետք սկսելու համար</span>
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
+              <a class="hx-next group" href="/capabilities">
+                <span class="min-w-0">
+                  <span class="hx-next-t block group-hover:text-accent transition-colors">Մեր մասին</span>
+                  <span class="hx-next-x block">Ով ենք մենք և ինչպես ենք աշխատում</span>
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
+              <a class="hx-next group" href="/contact">
+                <span class="min-w-0">
+                  <span class="hx-next-t block group-hover:text-accent transition-colors">Հարցեր & Կապ</span>
+                  <span class="hx-next-x block">Գին, ժամկետ, ֆայլեր, Live 3D պատվեր</span>
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Right: Vibrant Terracotta CTA Card -->
+          <div class="lg:col-span-7">
+            <div class="hx-cta reveal p-7 sm:p-10 lg:p-12">
+              <h2 class="text-[1.9rem] leading-[1.06] sm:text-[2.4rem] font-bold text-white">
+                Պատրա՞ստ եք տեսնել Ձեր կահույքը
+              </h2>
+              <p class="mt-3 max-w-md text-[15px] opacity-90 text-white">
+                Ուղարկեք չափերը այսօր, վաղը բացեք 3D հղումը։
+              </p>
+              
+              <a class="btn-primary btn-lg mt-7 bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-transform hover:-translate-y-0.5 shadow-lg" href="/contact">
+                Սկսել նախագիծ
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+              </a>
+
+              <!-- Fast Contacts In Card -->
+              <div class="mt-8 border-t border-white/20 pt-5 text-white">
+                <ul class="space-y-2 text-[14px]">
+                  <li class="flex items-baseline gap-3">
+                    <span class="font-mono text-[12px] opacity-75 w-20 flex-none">Telegram</span>
+                    <a href="https://t.me/ArchiTek_Soft" class="font-medium underline-offset-4 hover:underline" target="_blank" rel="noopener noreferrer">@ArchiTek_Soft</a>
+                  </li>
+                  <li class="flex items-baseline gap-3">
+                    <span class="font-mono text-[12px] opacity-75 w-20 flex-none">WhatsApp</span>
+                    <a href="https://wa.me/37498484909" class="font-medium underline-offset-4 hover:underline" target="_blank" rel="noopener noreferrer">+37498484909</a>
+                  </li>
+                  <li class="flex items-baseline gap-3">
+                    <span class="font-mono text-[12px] opacity-75 w-20 flex-none">Զանգել</span>
+                    <a href="tel:+37441184909" class="font-medium underline-offset-4 hover:underline">+374 41 184909</a>
+                  </li>
+                  <li class="flex items-baseline gap-3">
+                    <span class="font-mono text-[12px] opacity-75 w-20 flex-none">Էլ. փոստ</span>
+                    <a href="mailto:architeksoft@gmail.com" class="font-medium underline-offset-4 hover:underline">architeksoft@gmail.com</a>
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
 
   <!-- ==========================================================================
        FOOTER
        ========================================================================== -->
-  <footer class="site-footer flagship-footer">
-    <div class="container footer-container">
-      <div class="footer-left">
-        <span class="footer-copy">© 2026 ArchiTek Soft</span>
-        <span class="footer-dot">•</span>
-        <span class="footer-tagline" data-i18n="footer_tagline">3D Ինտերակտիվ Ցուցասրահներ և CNC Ռասկրոյ</span>
+  <footer class="mt-24 border-t border-line-strong pb-20 md:pb-0 bg-surface">
+    <div class="container-x">
+      
+      <!-- Upper Footer -->
+      <div class="grid gap-8 py-14 lg:grid-cols-12 lg:py-20">
+        <div class="lg:col-span-7">
+          <p class="font-display text-[1.7rem] leading-[1.15] text-fg sm:text-[2.2rem]">
+            Կահույքի ընտրությունը 3D-ով՝ մինչև պատրաստելը։ Web Viewer յուրաքանչյուր պատվիրատուի, Live 3D՝ սրահների համար։ Մենք կահույք չենք արտադրում։
+          </p>
+          <a class="link-arrow mt-6 inline-flex items-center gap-1.5 text-[15px] font-semibold text-accent hover:underline" href="/contact">
+            Սկսել նախագիծ
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+          </a>
+        </div>
+
+        <div class="lg:col-span-5 lg:pl-8">
+          <div class="kicker font-mono text-[11px] uppercase tracking-wider text-muted">Կապ</div>
+          <ul class="mt-3 divide-y divide-line border-y border-line">
+            <li class="flex items-baseline justify-between gap-4 py-2.5 text-[14px]">
+              <span class="caption text-muted">Telegram</span>
+              <a href="https://t.me/ArchiTek_Soft" class="min-w-0 truncate text-fg transition-colors hover:text-accent" target="_blank" rel="noopener noreferrer">@ArchiTek_Soft</a>
+            </li>
+            <li class="flex items-baseline justify-between gap-4 py-2.5 text-[14px]">
+              <span class="caption text-muted">WhatsApp</span>
+              <a href="https://wa.me/37498484909" class="min-w-0 truncate text-fg transition-colors hover:text-accent" target="_blank" rel="noopener noreferrer">+37498484909</a>
+            </li>
+            <li class="flex items-baseline justify-between gap-4 py-2.5 text-[14px]">
+              <span class="caption text-muted">Զանգել</span>
+              <a href="tel:+37441184909" class="min-w-0 truncate text-fg transition-colors hover:text-accent">+374 41 184909</a>
+            </li>
+            <li class="flex items-baseline justify-between gap-4 py-2.5 text-[14px]">
+              <span class="caption text-muted">Էլ. փոստ</span>
+              <a href="mailto:architeksoft@gmail.com" class="min-w-0 truncate text-fg transition-colors hover:text-accent">architeksoft@gmail.com</a>
+            </li>
+          </ul>
+          <div class="mt-4 text-[13px] text-muted">
+            <div>Yerevan, Armenia</div>
+            <div>Mon–Sat 10:00–19:00</div>
+          </div>
+        </div>
       </div>
-      <div class="footer-social-links">
-        <a href="https://facebook.com/architeksoft" target="_blank" class="footer-social-btn" title="Facebook" aria-label="Facebook">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-        </a>
-        <a href="https://instagram.com/architeksoft" target="_blank" class="footer-social-btn" title="Instagram" aria-label="Instagram">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-        </a>
-        <a href="https://linkedin.com/company/architeksoft" target="_blank" class="footer-social-btn" title="LinkedIn" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-        </a>
-        <a href="https://youtube.com/@architeksoft" target="_blank" class="footer-social-btn" title="YouTube" aria-label="YouTube">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
-        </a>
-        <a href="https://t.me/architeksoft" target="_blank" class="footer-social-btn" title="Telegram" aria-label="Telegram">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-16.5 7.5a2.25 2.25 0 0 0 .126 4.135l4.383 1.348 2.055 6.166a1.5 1.5 0 0 0 2.502.505l2.97-2.97 4.792 3.594a2.25 2.25 0 0 0 3.528-1.408l3-16.5a2.25 2.25 0 0 0-2.334-2.58z"/></svg>
-        </a>
-        <a href="tel:+37494228833" class="footer-social-btn" title="Phone: +374 94 22 88 33" aria-label="Phone">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        </a>
-        <a href="mailto:info@architeksoft.com" class="footer-social-btn" title="Email: info@architeksoft.com" aria-label="Email">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        </a>
+
+      <!-- Lower Footer Columns -->
+      <div class="grid gap-10 border-t border-line py-10 sm:grid-cols-2 lg:grid-cols-12">
+        <div class="lg:col-span-4">
+          <span class="inline-flex h-7" aria-label="ArchiTek Soft">
+            <img src="/brand/logo-ink.png" alt="ArchiTek Soft" width="300" height="132" class="h-full w-auto dark:hidden" />
+            <img src="/brand/logo-paper.png" alt="ArchiTek Soft" aria-hidden="true" width="300" height="132" class="hidden h-full w-auto dark:block" />
+          </span>
+          <p class="mt-4 max-w-xs text-[13.5px] leading-relaxed text-muted">
+            ArchiTek Soft-ը օգնում է կահույք արտադրողներին, սրահներին և նրանց հաճախորդներին ընտրել գույները, նյութերն ու ձևը վստահ՝ ինտերակտիվ 3D-ով, մինչև կահույքը պատրաստվի։
+          </p>
+        </div>
+
+        <div class="lg:col-span-3">
+          <div class="kicker font-mono text-[11px] uppercase tracking-wider text-muted">Լուծումներ</div>
+          <ul class="mt-3 space-y-2 text-[14px]">
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/capabilities">Հարթակ</a></li>
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/b2b">Բիզնեսին</a></li>
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/capabilities">Պատվիրատուներին</a></li>
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/configurator">Web Viewer</a></li>
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/capabilities">Live 3D</a></li>
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/capabilities">Այլ ոլորտներ</a></li>
+          </ul>
+        </div>
+
+        <div class="lg:col-span-3">
+          <div class="kicker font-mono text-[11px] uppercase tracking-wider text-muted">Ընկերություն</div>
+          <ul class="mt-3 space-y-2 text-[14px]">
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/process">Ինչպես է աշխատում</a></li>
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/portfolio">Աշխատանքներ</a></li>
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/capabilities">Մեր մասին</a></li>
+            <li><a class="text-fg-2 transition-colors hover:text-fg" href="/contact">Կապ</a></li>
+          </ul>
+        </div>
+
+        <div class="lg:col-span-2">
+          <div class="kicker font-mono text-[11px] uppercase tracking-wider text-muted">Social</div>
+          <ul class="mt-3 space-y-2 text-[14px]">
+            <li><a href="https://www.instagram.com/architek_soft" target="_blank" rel="noopener noreferrer" class="text-fg-2 transition-colors hover:text-fg">Instagram</a></li>
+            <li><a href="https://facebook.com/ArchiTekSoft" target="_blank" rel="noopener noreferrer" class="text-fg-2 transition-colors hover:text-fg">Facebook</a></li>
+            <li><a href="https://linkedin.com/company/architek-soft" target="_blank" rel="noopener noreferrer" class="text-fg-2 transition-colors hover:text-fg">LinkedIn</a></li>
+            <li><a href="https://youtube.com/@ArchiTekSoft" target="_blank" rel="noopener noreferrer" class="text-fg-2 transition-colors hover:text-fg">YouTube</a></li>
+          </ul>
+        </div>
       </div>
+
+      <!-- Bottom Bar -->
+      <div class="flex flex-col items-start justify-between gap-2 border-t border-line py-5 font-mono text-[11px] tracking-[0.04em] text-muted sm:flex-row sm:items-center">
+        <div>© <span id="year">2026</span> ArchiTek Soft · Բոլոր իրավունքները պաշտպանված են։</div>
+        <div class="flex items-center gap-4">
+          <span>Yerevan · 3D · AR · Web Viewer</span>
+          <a class="transition-colors hover:text-accent font-semibold" href="/admin">Կառավարում</a>
+        </div>
+      </div>
+
     </div>
   </footer>
 
-  <!-- ==========================================================================
-       MODALS (VIDEO & AR)
-       ========================================================================== -->
-  <!-- Video Modal -->
-  <div class="modal-backdrop" id="video-modal">
-    <div class="modal-content" style="max-width: 960px;">
-      <button class="modal-close-btn" onclick="closeVideoModal()">✕</button>
-      <div style="padding: 16px 24px; background: #080c14; border-bottom: 1px solid var(--border-subtle); font-weight: 700; color: #fff;" id="modal-video-title">
-        Architeksoft 4K Preview
-      </div>
-      <div style="aspect-ratio: 16/9; background: #000;">
-        <video id="modal-video-player" controls playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
-      </div>
-    </div>
-  </div>
-
-  <!-- Holographic AR Modal -->
-  <div class="modal-backdrop" id="ar-modal">
-    <div class="modal-content" style="max-width: 480px; padding: 36px 28px; text-align: center;">
-      <button class="modal-close-btn" onclick="closeARModal()">✕</button>
-      
-      <div class="ar-qr-frame">
-        <!-- SVG Vector QR Code Simulation for High-Tech Precision -->
-        <svg viewBox="0 0 100 100" fill="#040711">
-          <rect x="5" y="5" width="28" height="28" rx="4" fill="#040711"/>
-          <rect x="9" y="9" width="20" height="20" rx="2" fill="#ffffff"/>
-          <rect x="13" y="13" width="12" height="12" rx="2" fill="#040711"/>
-          
-          <rect x="67" y="5" width="28" height="28" rx="4" fill="#040711"/>
-          <rect x="71" y="9" width="20" height="20" rx="2" fill="#ffffff"/>
-          <rect x="75" y="13" width="12" height="12" rx="2" fill="#040711"/>
-          
-          <rect x="5" y="67" width="28" height="28" rx="4" fill="#040711"/>
-          <rect x="9" y="71" width="20" height="20" rx="2" fill="#ffffff"/>
-          <rect x="13" y="75" width="12" height="12" rx="2" fill="#040711"/>
-          
-          <!-- Circuit alignment bits -->
-          <rect x="38" y="10" width="8" height="8" rx="1"/>
-          <rect x="50" y="10" width="8" height="8" rx="1"/>
-          <rect x="38" y="24" width="8" height="8" rx="1"/>
-          <rect x="10" y="40" width="8" height="8" rx="1"/>
-          <rect x="24" y="40" width="8" height="8" rx="1"/>
-          <rect x="40" y="40" width="20" height="20" rx="2" fill="#00f0ff"/>
-          <rect x="67" y="40" width="8" height="8" rx="1"/>
-          <rect x="80" y="40" width="8" height="8" rx="1"/>
-          <rect x="38" y="67" width="8" height="8" rx="1"/>
-          <rect x="50" y="67" width="8" height="8" rx="1"/>
-          <rect x="67" y="67" width="8" height="8" rx="1"/>
-          <rect x="80" y="80" width="8" height="8" rx="1"/>
-        </svg>
-      </div>
-
-      <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 8px; color: var(--text-pure);" data-i18n="ar_modal_title">
-        1:1 Բջջային AR Պրոյեկցիա
-      </h3>
-      <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 18px;" data-i18n="ar_modal_desc">
-        Սկանավորեք QR կոդը Ձեր սմարթֆոնով՝ կահույքն անմիջապես Ձեր սենյակում 1:1 մասշտաբով տեսնելու համար։
-      </p>
-
-      <div class="ar-badges-row">
-        <div class="ar-badge">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg>
-          <span data-i18n="ar_badge_ios">iOS QuickLook</span>
-        </div>
-        <div class="ar-badge">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-          <span data-i18n="ar_badge_android">Android SceneViewer</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Scripts -->
-  <script src="assets/js/app.js?v=42.0"></script>
-  <!-- Floating Quick Controls Dock (Theme & Sound in Right-Middle of Screen) -->
-  <aside class="floating-quick-dock" id="floating-quick-dock" aria-label="Quick Controls">
-    <button class="quick-dock-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" title="Dark / Light Mode">
-      <svg class="theme-icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="4"></circle>
-        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
-      </svg>
-      <svg class="theme-icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-      </svg>
-    </button>
-    <div class="quick-dock-divider"></div>
-    <button class="quick-dock-btn sound-toggle-btn" id="sound-toggle-btn" aria-label="Toggle Sound FX" title="Sound FX On/Off">
-      <svg class="sound-icon-on" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-      </svg>
-      <svg class="sound-icon-off" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-        <line x1="23" y1="9" x2="17" y2="15"></line>
-        <line x1="17" y1="9" x2="23" y2="15"></line>
-      </svg>
-    </button>
-  </aside>
+  <script src="/assets/js/landing.js" defer></script>
 </body>
 </html>
