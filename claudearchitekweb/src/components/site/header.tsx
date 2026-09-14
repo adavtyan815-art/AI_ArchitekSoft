@@ -83,12 +83,12 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
   return (
     <>
       <header className={cn("sticky top-0 z-40 border-b transition-[background-color,border-color,box-shadow] duration-300", open ? "border-line bg-bg" : scrolled ? "border-line bg-bg shadow-[0_10px_24px_-20px_rgba(0,0,0,0.3)]" : "border-transparent bg-transparent")}>
-        <div className="container-x flex h-16 items-center justify-between gap-6 lg:h-[76px]">
+        <div className="container-x flex h-16 items-center justify-between gap-6 xl:h-[76px]">
           <Link href={p("/")} className="flex shrink-0 items-center" aria-label="ArchiTek Soft">
             <BrandLogo className="h-7" />
           </Link>
 
-          <nav className="hidden h-full items-center lg:flex" aria-label="Primary">
+          <nav className="hidden h-full items-center xl:flex" aria-label="Primary">
             <Link href={p("/platform")} className={linkCls(isActive(p("/platform")))}>
               {nav.kitchenpro}
             </Link>
@@ -139,7 +139,7 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
               {nav.start}
               <ArrowUpRight size={15} />
             </Link>
-            <button className="btn-ghost btn-icon lg:hidden" onClick={() => setOpen((o) => !o)} aria-label={nav.menu} aria-expanded={open} aria-controls="mobile-menu">
+            <button className="btn-ghost btn-icon xl:hidden" onClick={() => setOpen((o) => !o)} aria-label={nav.menu} aria-expanded={open} aria-controls="mobile-menu">
               <span className="relative block h-3.5 w-5">
                 <span className={cn("absolute inset-x-0 top-0 h-px bg-fg transition-transform duration-200", open && "top-1/2 rotate-45")} />
                 <span className={cn("absolute inset-x-0 top-1/2 h-px bg-fg transition-opacity duration-200", open && "opacity-0")} />
@@ -151,39 +151,39 @@ export function SiteHeader({ locale, nav }: { locale: Locale; nav: HeaderNav }) 
       </header>
 
       {/* Mobile sheet */}
-      <div id="mobile-menu" className={cn("mobile-sheet fixed inset-0 top-16 z-[35] flex flex-col transition-opacity duration-200 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open}>
+      <div id="mobile-menu" className={cn("mobile-sheet fixed inset-0 top-16 z-[35] flex flex-col transition-opacity duration-200 xl:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open}>
         <nav className="container-x flex flex-1 flex-col overflow-y-auto pt-2 pb-6" aria-label="Mobile">
           <Link href={p("/platform")} className="flex items-center justify-between border-b border-line py-4 font-display text-[1.75rem] text-fg">
             {nav.kitchenpro}
             <ArrowUpRight size={20} className="text-faint" />
           </Link>
-          <div className="mt-5 kicker">{nav.solutions}</div>
+          <div className="mt-6 kicker">{nav.solutions}</div>
           <ul className="mt-2 divide-y divide-line border-y border-line">
-            {nav.solutionsMenu.map((m, i) => (
+            {nav.solutionsMenu.map((m) => (
               <li key={m.href}>
-                <Link href={p(m.href)} className="flex items-center gap-4 py-3">
-                  <span className="index w-6 flex-none">{String(i + 1).padStart(2, "0")}</span>
+                <Link href={p(m.href)} className="flex min-h-14 items-center justify-between gap-4 py-2.5">
                   <span className="min-w-0 flex-1">
                     <span className="block text-[16px] font-medium text-fg">{m.title}</span>
                     <span className="block text-[12.5px] text-muted">{m.text}</span>
                   </span>
+                  <ArrowUpRight size={16} className="flex-none text-faint" />
                 </Link>
               </li>
             ))}
           </ul>
-          <ul className="mt-5 divide-y divide-line border-y border-line">
+          <ul className="mt-6 divide-y divide-line border-y border-line">
             {[...primary, [p("/faq"), nav.faq] as [string, string]].map(([href, label]) => (
               <li key={href}>
-                <Link href={href} className="flex items-center justify-between py-3 text-[16px] font-medium text-fg">
+                <Link href={href} className="flex min-h-12 items-center justify-between py-2.5 text-[16px] font-medium text-fg">
                   {label}
                   <ArrowUpRight size={16} className="text-faint" />
                 </Link>
               </li>
             ))}
           </ul>
-          <div className="mt-6 flex items-center gap-4 font-mono text-[12px] tracking-[0.08em]">
+          <div className="mt-6 inline-flex rounded-md border border-line p-0.5 font-mono text-[12px] tracking-[0.08em]" aria-label="Language">
             {LOCALES.map((l) => (
-              <Link key={l} href={localePath(l, bare)} className={cn("border-b pb-0.5", l === locale ? "border-fg text-fg" : "border-transparent text-muted")}>
+              <Link key={l} href={localePath(l, bare)} className={cn("inline-flex h-9 items-center rounded-[4px] px-3.5 transition-colors", l === locale ? "bg-fg text-bg" : "text-muted hover:text-fg")} aria-current={l === locale ? "true" : undefined}>
                 {LOCALE_LABELS[l].short}
               </Link>
             ))}

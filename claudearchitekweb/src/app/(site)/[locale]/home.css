@@ -446,6 +446,70 @@
 .home-x .hx-next:hover svg { transform: translate(3px, -3px); color: var(--fg); }
 
 /* --- Phones ----------------------------------------------------------------- */
+/* --- Touch devices: fullscreen as an overlay viewer ------------------------------ */
+/* the control sits on the stage itself (no element-fullscreen API on iOS); on fine pointers the strip keeps
+   the native fullscreen button instead */
+.home-x .hx-stage-fs {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 7;
+  display: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(23, 21, 15, 0.62);
+  color: #f4f2ed;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+@media (pointer: coarse) {
+  .home-x .hx-stage-fs { display: inline-flex; }
+  .home-x .hx-fs { display: none; }
+}
+.home-x .hx-hero-canvas.is-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  background: var(--stage);
+}
+.home-x .is-overlay .hx-canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+}
+.home-x .is-overlay .showcase-stage {
+  flex: 1 1 auto;
+  height: 100%;
+  aspect-ratio: auto !important;
+  border-radius: 0 !important;
+}
+.home-x .is-overlay .hx-stage-fs {
+  top: calc(12px + env(safe-area-inset-top));
+  right: calc(12px + env(safe-area-inset-right));
+}
+.home-x .is-overlay .hx-strip {
+  margin: 0;
+  padding: 6px calc(6px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left));
+  border-width: 1px 0 0;
+  border-color: rgba(239, 235, 227, 0.14);
+  border-radius: 0;
+  background: var(--stage);
+}
+.home-x .is-overlay .hx-seg { color: rgba(239, 235, 227, 0.72); }
+.home-x .is-overlay .hx-seg.is-active { color: #141311; }
+.home-x .is-overlay .hx-strip-ind { background: #efebe3; }
+.home-x .is-overlay .hx-now { display: none; }
+
 /* --- Phones: an intentional composition, not stacked desktop --------------- */
 @media (max-width: 639px) {
   .home-x { --hx-r: 0px; }

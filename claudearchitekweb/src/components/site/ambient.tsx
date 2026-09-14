@@ -16,7 +16,7 @@ import { useEffect, useRef } from "react";
  *
  * Motion is time-based, paused when the tab is hidden and thinner on phones. Under
  * `prefers-reduced-motion` the autonomous drift runs at a third of the speed; the cursor response
- * (user-initiated) stays, at half strength and without threads.
+ * (user-initiated) stays at three quarters of its strength, without threads.
  * Colours and alphas come from the `--field-*` tokens in globals.css.
  */
 type Node = { bx: number; by: number; vx: number; vy: number; ox: number; oy: number; z: number; r: number; mark: boolean; x: number; y: number };
@@ -61,8 +61,8 @@ export function Ambient() {
     let my = -9999;
     let mouseOn = false;
     const MAX_D = 140; // neighbour link distance
-    const MOUSE_D = 230; // radius of the cursor's influence
-    const PULL = 38; // maximum displacement towards the cursor, px
+    const MOUSE_D = 240; // radius of the cursor's influence
+    const PULL = 42; // maximum displacement towards the cursor, px
 
     const seed = () => {
       const area = w * h;
@@ -98,7 +98,7 @@ export function Ambient() {
       // the cursor response is user-initiated, so it stays on under reduced motion at half strength
       // and without the threads; only the autonomous drift is slowed there
       const cursor = mouseOn;
-      const strength = slow ? 0.5 : 1;
+      const strength = slow ? 0.75 : 1;
       // the eased pointer follows the real one (about 120 ms behind)
       if (cursor) {
         mx += (tx - mx) * Math.min(1, 0.14 * dt);

@@ -269,7 +269,7 @@ export function StartWizard({
         <Ticks className="mt-4" />
       </div>
 
-      <div className="card p-5 sm:p-8 lg:p-10">
+      <div className="border-t border-line pt-7 sm:pt-9">
         {/* ── STEP 1 · who ── */}
         {step === 0 ? (
           <div>

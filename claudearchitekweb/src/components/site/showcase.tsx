@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, Maximize2, Minimize2 } from "lucide-react";
+import { ArrowRight, Maximize2, Minimize2, X } from "lucide-react";
 import { localePath, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { BeforeAfter } from "./before-after";
@@ -11,13 +11,18 @@ import { ViewerDemo } from "./viewer-demo";
 /**
  * Interactive showcase — the first screen of the homepage.
  * The stage (a framed canvas with corner marks) is the one dominant object; under it a hairline mode
- * strip with a single sliding ink indicator, then one mono caption line naming the selected mode.
+ * strip with a single sliding ink indicator, then one caption line naming the selected mode.
  * The headline sits beside it on the open page, the intro + CTAs below the headline (on phones: after
  * the canvas, so the product is on the first screen).
  *   01 sketch → finished picture (comparison slider)
  *   02 Web Viewer (rotate, change colour; library + model load only when opened, tap-to-load on phones)
  *   03 Live 3D walkthrough (short muted clip, loaded only when opened)
- * Selection is manual only (strip, ← → keys). Fullscreen on the stage where the API exists.
+ * Selection is manual only (strip, ← → keys).
+ *
+ * Fullscreen: on fine pointers the strip's last button requests native fullscreen on the stage. On touch
+ * devices (no element fullscreen on iOS Safari) a control on the stage opens an overlay viewer instead:
+ * the canvas fills the screen with the mode strip inside the safe area at the bottom and a close control
+ * at the top; scrolling is locked; Escape, the back gesture or the close control exits.
  */
 export type ShowcaseStrings = {
   tag: string;
@@ -57,7 +62,9 @@ export function Showcase({
   const segs = useRef<(HTMLButtonElement | null)[]>([]);
   const [i, setI] = useState(0);
   const [fs, setFs] = useState(false);
+  const [overlay, setOverlay] = useState(false);
   const [fsSupported, setFsSupported] = useState(false);
+  const [coarse, setCoarse] = useState(false);
   const [desktop, setDesktop] = useState(false);
   const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
   const [opened, setOpened] = useState<boolean[]>(() => s.items.map((_, k) => k === 0));
@@ -67,6 +74,7 @@ export function Showcase({
   useEffect(() => {
     const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
     setDesktop(window.matchMedia("(pointer: fine)").matches && !nav.connection?.saveData);
+    setCoarse(window.matchMedia("(pointer: coarse)").matches);
     setFsSupported(!!document.fullscreenEnabled);
     const onFs = () => setFs(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onFs);
@@ -86,7 +94,7 @@ export function Showcase({
       window.removeEventListener("resize", measure);
       clearTimeout(t);
     };
-  }, [i]);
+  }, [i, overlay]);
 
   const select = useCallback(
     (k: number) => {
@@ -105,12 +113,38 @@ export function Showcase({
     else v.pause();
   }, [i, s.items, opened]);
 
+  // Overlay viewer (touch devices): lock scroll, close on Escape / back gesture.
+  useEffect(() => {
+    if (!overlay) return;
+    const root = document.documentElement;
+    const prev = root.style.overflow;
+    root.style.overflow = "hidden";
+    history.pushState({ showcaseOverlay: true }, "");
+    const onPop = () => setOverlay(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") history.back();
+    };
+    window.addEventListener("popstate", onPop);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      root.style.overflow = prev;
+      window.removeEventListener("popstate", onPop);
+      document.removeEventListener("keydown", onKey);
+      if (history.state?.showcaseOverlay) history.back();
+    };
+  }, [overlay]);
+
   const toggleFs = async () => {
+    if (coarse || !fsSupported) {
+      if (overlay) history.back();
+      else setOverlay(true);
+      return;
+    }
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
       else await stageRef.current?.requestFullscreen?.();
     } catch {
-      /* unsupported */
+      setOverlay((o) => !o);
     }
   };
 
@@ -129,6 +163,7 @@ export function Showcase({
   };
 
   const cur = s.items[i];
+  const big = fs || overlay;
 
   const stage = (
     <div
@@ -142,7 +177,8 @@ export function Showcase({
     >
       {/* 01 — sketch → picture */}
       <div className={cn("absolute inset-0 transition-opacity duration-500", i === 0 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 0}>
-        <BeforeAfter before={media.before} after={media.after} labels={compareLabels} aspect="h-full w-full" labelsAt="top" />
+        {/* labels at the bottom: the top corners carry the Live chip and the touch fullscreen control */}
+        <BeforeAfter before={media.before} after={media.after} labels={compareLabels} aspect="h-full w-full" labelsAt="bottom" />
       </div>
 
       {/* 02 — Web Viewer (mounted on first open; phones get tap-to-load) */}
@@ -164,7 +200,12 @@ export function Showcase({
         </span>
       </div>
 
-      {/* Fullscreen-only caption */}
+      {/* touch devices: fullscreen / close control on the stage itself */}
+      <button type="button" className="hx-stage-fs" onClick={toggleFs} aria-label={overlay ? s.exitFullscreen : s.fullscreen} title={overlay ? s.exitFullscreen : s.fullscreen}>
+        {overlay ? <X size={18} /> : <Maximize2 size={17} />}
+      </button>
+
+      {/* Fullscreen-only caption (native fullscreen on desktop) */}
       {fs ? (
         <div className="pointer-events-none absolute right-6 bottom-6 max-w-md rounded-md bg-[#17150f]/65 px-4 py-3 text-right text-[#f4f2ed] backdrop-blur">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] opacity-70">{cur?.tag}</div>
@@ -174,7 +215,7 @@ export function Showcase({
     </div>
   );
 
-  /** Mode strip: three segments, one sliding indicator, fullscreen. Roving tabindex. */
+  /** Mode strip: three segments, one sliding indicator, fullscreen (fine pointers). Roving tabindex. */
   const strip = (
     <div className="hx-strip" role="tablist" aria-label={s.choose}>
       <span className="hx-strip-ind" aria-hidden style={ind ? { transform: `translateX(${ind.x}px)`, width: ind.w } : { opacity: 0 }} />
@@ -202,8 +243,8 @@ export function Showcase({
         );
       })}
       {fsSupported ? (
-        <button type="button" className="hx-fs" onClick={toggleFs} aria-label={fs ? s.exitFullscreen : s.fullscreen} title={fs ? s.exitFullscreen : s.fullscreen}>
-          {fs ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+        <button type="button" className="hx-fs" onClick={toggleFs} aria-label={big ? s.exitFullscreen : s.fullscreen} title={big ? s.exitFullscreen : s.fullscreen}>
+          {big ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
         </button>
       ) : null}
     </div>
@@ -223,7 +264,7 @@ export function Showcase({
   return (
     <div className="hx-hero">
       <div className="hx-hero-text">{headline}</div>
-      <div className="hx-hero-canvas">
+      <div className={cn("hx-hero-canvas", overlay && "is-overlay")} role={overlay ? "dialog" : undefined} aria-modal={overlay || undefined} aria-label={overlay ? s.title : undefined}>
         <div className="hx-canvas">{stage}</div>
         {strip}
         {now}

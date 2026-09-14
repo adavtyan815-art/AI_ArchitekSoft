@@ -132,11 +132,11 @@ a generic 2024 template and as a different site from the editorial pages.
 **Direction.** The homepage is the strongest expression of the Atelier system, not an exception to it.
 Scoped to `.home-x` in `src/app/(site)/[locale]/home.css`:
 
-- One horizontal rhythm: on the homepage the shell gets `.site-wide` (the layout reads `x-pathname`, set by
-  the middleware), which widens `container-x` to 1560 px max with 4 vw outer margins (20–72 px) for the
-  header, every section, the phone menu and the footer alike — the logo sits on the eyebrow's left edge and
-  the header CTA on the canvas's right edge. At 1440 the content spans 1325 px, at 1920 1416 px. The hero
-  splits 8/13, bands 5/7.
+- One horizontal rhythm for the whole public site: `container-x` is fluid everywhere (1520 px max, 4 vw
+  outer margins clamped to 20–72 px) for the header, every page, the phone menu and the footer, so the logo
+  never jumps between pages and always sits on the content's left edge. At 1440 the content spans 1325 px,
+  at 1920 1376 px. The hero splits 8/13, bands 5/7. The desktop navigation shows from 1280 px; between
+  768 and 1279 the sheet menu serves (the six Armenian items do not fit at 1024).
 - Header: transparent at the top of the page; once scrolled it takes the page colour (opaque) with a
   hairline and a faint shadow, so nothing passing underneath can show through the navigation. Translucent
   variants (92–97 % with blur) were tried and rejected: high-contrast content such as ink buttons still
@@ -162,10 +162,29 @@ line is orphaned.
 
 **Phones are their own composition** (`@media (max-width: 639px)` in home.css): eyebrow → three-line
 headline → the stage full-bleed and square (the product is the screen) → the mode strip with 44 px
-targets and no fullscreen button → one caption line → intro → a single outline CTA (the sticky bottom
-bar already carries "start a project") → note. No drafting grid on phones, 18–36 field points. Short
-(< 700 px) and landscape (< 520 px) rules tighten the top so the stage is reached sooner. Inside the phone
-stage the Web Viewer uses compact chips and a smaller toolbar so nothing overlaps.
+targets → one caption line → intro → a single outline CTA (the sticky bottom bar carries "start a
+project") → note. No drafting grid on phones, 18–36 field points. Short (< 700 px) and landscape
+(< 520 px) rules tighten the top so the stage is reached sooner. Inside the phone stage the Web Viewer
+uses compact chips and a smaller toolbar so nothing overlaps.
+
+**Fullscreen on touch devices** is an overlay viewer, not the element-fullscreen API (iOS Safari has none):
+a control on the stage opens `.hx-hero-canvas.is-overlay` — the stage fills the screen, the mode strip
+sits inside the bottom safe area on the stage colour, a close control sits in the top safe area, scrolling
+is locked, and Escape, the back gesture or the control exits (a history entry is pushed so "back" closes
+it). Fine pointers keep native fullscreen from the strip. The comparison labels sit at the bottom corners
+so the top corners are free for the Live chip and the control.
+
+**Sticky phone bar** (`MobileCta`): 40 px buttons, appears only once the first screen (which has its own
+call to action) is scrolled past, retires while the footer is in view, hidden on /start and /contact.
+
+**Phone footer**: shorter statement, the contact rows (they are actions), a two-column link matrix and
+social as one row — not the desktop columns stacked. **Phone menu**: full-height rows, no indices, a
+segmented language switch, the start button at the bottom. **Start flow**: the choice cards stay
+(they are the control); the outer panel is gone — the form sits on the open page under a hairline.
+
+**Background hierarchy**: from 1024 px the ambient layer is masked horizontally — full presence in the outer
+margins, about half behind the content band — so long copy and photographs read effortlessly while the
+margins keep the drafting atmosphere. No blur, no glass.
 
 **Light vs dark are designed separately.** Light: ink on paper, fine 96 px line grid, ink bands
 (`--band-*` = ink/paper). Dark: paper on warm graphite (#131211), 24 px dot grid, one still warm light at the
@@ -181,7 +200,7 @@ to the cursor. Every twelfth point is an accent cross mark (a survey station) �
 for those. Time-based motion (7–20 px/s scaled by depth), paused when the tab is hidden, 18–36 points on
 phones vs 44–110 on desktop. The cursor pulls points within 230 px by up to 38 px (smoothstep falloff), the
 displacement settles in about 0.4 s. Under `prefers-reduced-motion` the autonomous drift runs at 35 % and
-the user-initiated cursor response stays at half strength without threads (Windows reports "reduce"
+the user-initiated cursor response stays at three quarters of its strength without threads (Windows reports "reduce"
 whenever OS animation effects are off, so a dead field there would read as a bug). No glows.
 
 | Token | Light | Dark | Use |

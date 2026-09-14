@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getDictionary, isLocale, LOCALES, localePath } from "@/lib/i18n";
@@ -32,12 +31,9 @@ export default async function SiteLayout({ children, params }: { children: React
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
   const brand = getSetting("brand");
-  // The homepage uses a wider fluid rhythm; header, footer and menu follow it there (see .site-wide).
-  const pathname = (await headers()).get("x-pathname") || "";
-  const isHome = /^\/(?:(?:ru|en)\/?)?$/.test(pathname);
   const nav = { kitchenpro: dict.nav.kitchenpro, howItWorks: dict.nav.howItWorks, portfolio: dict.nav.portfolio, contact: dict.nav.contact, start: dict.nav.start, menu: dict.nav.menu, theme: dict.nav.theme, solutions: dict.siteNav.solutions, about: dict.siteNav.about, faq: dict.siteNav.faq, solutionsMenu: dict.siteNav.solutionsMenu };
   return (
-    <div className={`site-shell flex min-h-screen flex-col${isHome ? " site-wide" : ""}`}>
+    <div className="site-shell flex min-h-screen flex-col">
       <Ambient />
       <SiteHeader locale={locale} nav={nav} />
       <main className="flex-1">{children}</main>
