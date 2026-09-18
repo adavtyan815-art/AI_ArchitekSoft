@@ -13,7 +13,7 @@
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Music, MoreHorizontal, Plus, Sparkles, Star, UploadCloud, Wand2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clapperboard, Music, MoreHorizontal, Plus, Send, Sparkles, Star, UploadCloud, Wand2, X } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui";
 import { PlatformChip, PlatformDot, type PlatformMeta, type PlatformMetaMap } from "@/components/admin/smm/platform-chip";
 import { VariantPreview, type CanvasMatte, type CanvasMode } from "@/components/admin/smm/post-preview";
@@ -23,11 +23,13 @@ import { cn } from "@/lib/utils";
 import {
   deletePostAction,
   duplicatePostAction,
+  generateReelAction,
   publishNowAction,
   rewriteVariantAction,
   savePostAction,
   schedulePostAction,
   sendApprovalAction,
+  sendMobilePackAction,
   setPostStatusAction,
   applySuggestedSlotAction,
 } from "@/app/admin/actions/smm-actions";
@@ -113,6 +115,9 @@ export type EditorLabels = {
   matteBlur: string; matteDark: string;
   audioLabel: string; audioNone: string; audioAuto: string; audioCustom: string; audioTrackLabel: string; audioNoTracks: string;
   audioUploadCta: string; audioUploading: string; audioUploadFailed: string; audioNote: string;
+  // "Mode B" (send pack to Telegram) and the Cinematic Reel generator.
+  sendMobilePack: string; sendingMobilePack: string;
+  generateReel: string; generatingReel: string; reelNeedsTwoImages: string;
 };
 
 /** Set only for a post the local drop folder prepared (posts.source = 'inbox'). */
@@ -207,6 +212,7 @@ export function PostEditor({
   const [customAudio, setCustomAudio] = useState(initialCustomAudio);
   const [audioUploading, setAudioUploading] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const [reelBusy, setReelBusy] = useState(false);
 
   async function uploadAudio(file: File) {
     setAudioUploading(true);
@@ -241,6 +247,9 @@ export function PostEditor({
   const word = L.platformsWord || platformsWord || "";
   const nameOf = (platform: string) => metaMap[platform]?.label ?? platform;
   const hasMedia = attached.length > 0;
+  const imageCount = attached.filter((a) => a.mime.startsWith("image/")).length;
+  const canGenerateReel = imageCount >= 2;
+  const canSendMobilePack = imageCount > 0;
   const sent = SENT_STATUSES.includes(post.status);
   const canSendApproval = !sent && post.status !== "cancelled";
   // With every platform switched off there is nothing to publish, and publishNowAction would answer
@@ -386,6 +395,32 @@ export function PostEditor({
       setMsg({ text: `${L.slotApplied} ${r.scheduledLocal.replace("T", " ")}`, tone: "ok" });
     });
 
+  /** "Mode B": pack the photos + caption to the admin's own Telegram chat instead of publishing. */
+  const sendMobilePack = () =>
+    run(async () => {
+      const r = await sendMobilePackAction({ id: post.id });
+      setMsg(r.ok ? { text: r.message, tone: "ok" } : { text: r.error, tone: "error" });
+    });
+
+  /** Renders the Ken Burns / cross-dissolve slideshow and drops it straight into the media strip. */
+  const generateReel = () =>
+    run(async () => {
+      setReelBusy(true);
+      try {
+        const r = await generateReelAction({ id: post.id });
+        if (!r.ok) {
+          setMsg({ text: r.error, tone: "error" });
+          return;
+        }
+        // generateReelForPost already attached the new asset server-side; this just mirrors that
+        // into the client's media strip — it is not an unsaved local edit.
+        setAttached((s) => [...s, { id: r.asset.id, name: r.asset.name, kind: r.asset.kind, mime: r.asset.mime, projectId: r.asset.projectId, thumbUrl: r.asset.thumbUrl, url: r.asset.url, width: r.asset.width, height: r.asset.height, durationSec: r.asset.durationSec }]);
+        setMsg({ text: r.message, tone: "ok" });
+      } finally {
+        setReelBusy(false);
+      }
+    });
+
   const setStatus = (status: "approved" | "cancelled" | "draft" | "scheduled") =>
     run(async () => {
       const r = await setPostStatusAction({ id: post.id, status });
@@ -528,9 +563,20 @@ export function PostEditor({
           <h2 className="font-display text-[1.05rem] leading-tight font-medium tracking-[-0.01em] text-fg">
             {L.media} <span className="text-faint">({attached.length})</span>
           </h2>
-          <button type="button" onClick={() => setShowPicker((s) => !s)} aria-expanded={showPicker} className="btn-secondary btn-sm">
-            <Plus size={14} aria-hidden /> {showPicker ? L.close : L.addMedia}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={generateReel}
+              disabled={pending || !canGenerateReel}
+              title={canGenerateReel ? undefined : L.reelNeedsTwoImages}
+              className="btn-secondary btn-sm"
+            >
+              <Clapperboard size={14} aria-hidden /> {reelBusy ? L.generatingReel : L.generateReel}
+            </button>
+            <button type="button" onClick={() => setShowPicker((s) => !s)} aria-expanded={showPicker} className="btn-secondary btn-sm">
+              <Plus size={14} aria-hidden /> {showPicker ? L.close : L.addMedia}
+            </button>
+          </div>
         </header>
         <div className="p-4 sm:p-5">
           {attached.length === 0 ? (
@@ -765,6 +811,11 @@ export function PostEditor({
             <Sparkles size={14} aria-hidden /> {pending ? A.publishing : A.publishNow}
           </button>
         ) : null}
+        {canSendMobilePack ? (
+          <button type="button" onClick={sendMobilePack} disabled={pending} title={L.sendMobilePack} className="btn-secondary btn-sm hidden lg:inline-flex">
+            <Send size={14} aria-hidden /> {pending ? L.sendingMobilePack : L.sendMobilePack}
+          </button>
+        ) : null}
 
         <div className="relative ml-auto">
           <button ref={moreBtn} type="button" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu} aria-label={L.moreActions} className="btn-ghost btn-sm">
@@ -777,6 +828,7 @@ export function PostEditor({
               <div role="menu" aria-label={L.moreActions} className="absolute right-0 bottom-full z-40 mb-2 w-60 overflow-hidden rounded-md border border-line bg-surface py-1 shadow-lift">
                 {/* Publishing stays in the bar on a wide screen; on a phone the bar keeps one row. */}
                 {canPublish ? item("publish", A.publishNow, publish, { className: "lg:hidden" }) : null}
+                {canSendMobilePack ? item("mobile-pack", L.sendMobilePack, sendMobilePack, { className: "lg:hidden" }) : null}
                 {canSendApproval && post.status === "awaiting_approval" ? item("approval", A.sendApproval, approval) : null}
                 {item("duplicate", A.duplicate, duplicate)}
                 {canCancel ? item("cancel", A.cancel, cancelPost) : null}

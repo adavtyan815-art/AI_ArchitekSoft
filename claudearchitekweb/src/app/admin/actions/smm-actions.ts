@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { PLATFORMS, aiStatus, rewriteText } from "@/lib/ai";
-import { createPostPack, getPostFull, publishPost, schedulePost, sendForApproval, setPostStatus } from "@/lib/smm";
+import { createPostPack, generateReelForPost, getPostFull, publishPost, schedulePost, sendForApproval, sendMobilePack, setPostStatus } from "@/lib/smm";
 import { deletePost, duplicatePost, setPostAssets, toAssetLite, updatePost, updateVariant } from "@/lib/smm-admin";
 import { generatePoster } from "@/lib/media";
 import { runInbox, suggestSlot, suggestedSlotOf, wasImported } from "@/lib/inbox";
@@ -83,6 +83,10 @@ async function M() {
         inboxFailedAction: "Ներմուծումը չհաջողվեց։ Ստուգիր սերվերի մատյանը։",
         noSuggestedSlot: "Այս փոստը առաջարկվող ժամ չունի։",
         noSlotAvailable: "Ազատ ժամ չգտնվեց։ Ստուգիր Կարգավորումներ → Սոց. ցանցեր օրերն ու ժամը։",
+        mobilePackSent: "Նկարներն ու տեքստն ուղարկվեցին Telegram-ի ադմին չաթ։ Բացիր հեռախոսում, պահպանիր նկարները և հրապարակիր Instagram-ում՝ օրվա թրենդային երաժշտությամբ։",
+        reelNoImages: "Reel ստեղծելու համար պետք է առնվազն 2 նկար։",
+        reelFailed: "Reel-ը չհաջողվեց ստեղծել։ Ստուգիր սերվերի մատյանը։",
+        reelGenerated: "Cinematic Reel-ը ստեղծված է և ավելացված՝ մեդիայի ցանկում։",
       },
       en: {
         notFound: "Post not found.",
@@ -143,6 +147,10 @@ async function M() {
         inboxFailedAction: "The import failed. Check the server log.",
         noSuggestedSlot: "This post has no suggested slot.",
         noSlotAvailable: "No free slot was found. Check the posting days and time in Settings → Social media.",
+        mobilePackSent: "The images and text were sent to the Telegram admin chat. Open it on your phone, save the images, and post on Instagram with today's trending audio.",
+        reelNoImages: "Generating a Reel needs at least 2 images.",
+        reelFailed: "The Reel could not be generated. Check the server log.",
+        reelGenerated: "The cinematic Reel is ready and added to the media list.",
       },
     },
     locale,
@@ -494,6 +502,43 @@ export async function sendApprovalAction(input: { id: string }) {
   const configured = telegramEnabled() && !!getSetting("telegram").adminChatId;
   const dryRun = !!("dryRun" in r && r.dryRun);
   return { ok: true as const, dryRun, configured, status: getPostFull(id)?.post.status ?? "awaiting_approval", message: dryRun ? m.approvalDryMsg : m.approvalOkMsg };
+}
+
+/** "Mode B": pack the post's photos + caption to the admin's own Telegram chat instead of publishing
+ * through the platform APIs — see sendMobilePack in lib/smm.ts for why. Never changes the post's status. */
+export async function sendMobilePackAction(input: { id: string }) {
+  await requireUser();
+  const m = await M();
+  const parsed = z.object({ id: z.string() }).safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: m.invalidInput };
+  const { id } = parsed.data;
+  const full = getPostFull(id);
+  if (!full) return { ok: false as const, error: m.notFound };
+  const r = await sendMobilePack(id);
+  if (!r.ok) return { ok: false as const, error: r.error };
+  return { ok: true as const, message: m.mobilePackSent };
+}
+
+/** "🎬 Generate Cinematic Reel": renders a Ken Burns / cross-dissolve slideshow from the post's own
+ * photos (lib/social/reel.ts) and appends it to the post's media as a new video asset. */
+export async function generateReelAction(input: { id: string }) {
+  await requireUser();
+  const m = await M();
+  const parsed = z.object({ id: z.string() }).safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: m.invalidInput };
+  const { id } = parsed.data;
+  const full = getPostFull(id);
+  if (!full) return { ok: false as const, error: m.notFound };
+  if (full.assets.filter((a) => a.mime.startsWith("image/")).length < 2) return { ok: false as const, error: m.reelNoImages };
+  try {
+    const r = await generateReelForPost(id);
+    if (!r.ok) return { ok: false as const, error: r.error || m.reelFailed };
+    refresh(id);
+    return { ok: true as const, message: m.reelGenerated, asset: toAssetLite(r.asset) };
+  } catch (e) {
+    console.error("[smm] generateReelForPost failed", e);
+    return { ok: false as const, error: m.reelFailed };
+  }
 }
 
 export async function publishNowAction(input: { id: string }) {

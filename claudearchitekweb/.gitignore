@@ -8,8 +8,15 @@ data/uploads/
 data/tmp/
 # the owner's local drop folder (their own files, plus _imported/ and _failed/)
 data/inbox/
-# the owner's own royalty-free background-audio tracks
-data/audio/
+# data/audio/ ships with a curated CC0 starter pack (see data/audio/SOURCES.txt); anything the
+# owner drops in on top of that stays local, like the rest of this section.
+data/audio/*
+!data/audio/README.txt
+!data/audio/SOURCES.txt
+!data/audio/01_Luxury_Modern_Ambient.mp3
+!data/audio/02_Warm_Acoustic_Lounge.mp3
+!data/audio/03_Cinematic_Minimal.mp3
+!data/audio/04_Elegant_Piano_Lounge.mp3
 .env
 .env.local
 .env.production

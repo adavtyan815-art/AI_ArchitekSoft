@@ -10,15 +10,18 @@
  * sending an approval twice or publishing a variant twice. If the process dies inside a claim,
  * `sweepStalePost` (called by the worker on start and every tick) releases it again.
  */
+import fs from "node:fs";
 import { and, asc, eq, inArray, isNull, lt, lte, notInArray, or, sql } from "drizzle-orm";
 import { getDb, getSqlite, schema } from "./db";
 import { env } from "./env";
 import { aiStatus, generatePostPack, rewriteText, type Platform, type PostGoal } from "./ai";
 import { getSetting } from "./settings";
-import { absPath, mediaUrl } from "./media";
+import { absPath, mediaUrl, saveAsset } from "./media";
+import { setPostAssets } from "./smm-admin";
 import { resolveUiLocale, socialMessages, type UiLocale } from "./social/messages";
 import { defaultCanvasMode, ensureCanvasVariant, type CanvasMatte, type CanvasMode } from "./social/canvas";
 import { ensureMixedVideo } from "./social/audio-mix";
+import { MAX_REEL_SLIDES, MIN_REEL_SLIDES, renderCinematicReel } from "./social/reel";
 import { ambientFilePath } from "./audio";
 import * as tg from "./telegram";
 import { ADAPTERS, PLATFORM_META, type PublishInput } from "./social";
@@ -185,6 +188,10 @@ function approvalButtons(postId: string, m: ReturnType<typeof socialMessages>): 
   const lastRow: tg.InlineButton[] = [{ text: m.btnCancel, callback_data: `sk:${postId}` }];
   if (httpsApp) lastRow.push({ text: m.btnOpen, url: `${env.appUrl}/admin/smm/${postId}` });
   rows.push(lastRow);
+  // "Mode B": pack the photos to this same chat instead of publishing through the APIs — always
+  // offered, independent of the post's status (see the "mp" action, deliberately left out of
+  // CALLBACK_ALLOWED below since it never changes the post).
+  rows.push([{ text: m.btnMobilePack, callback_data: `mp:${postId}` }]);
   return rows;
 }
 
@@ -268,6 +275,84 @@ export async function sendForApproval(postId: string, header?: string) {
   db.insert(schema.telegramThreads).values({ id: newId("tgt"), postId, chatId: chat, messageId, state: "sent" }).run();
   setPostStatus(postId, "awaiting_approval", { approvalSentAt: nowIso() });
   return { ok: true as const, messageId };
+}
+
+/**
+ * "Mode B" of publishing: instead of going out through the Meta/Telegram APIs, the post's images are
+ * sent to the admin's own Telegram chat as a downloadable album, Smart-Canvas-adapted to Instagram's
+ * 4:5 portrait feed ratio — the same render `/api/admin/media-canvas` shows in the editor — plus the
+ * full caption and hashtags as a second, copy-pasteable message. The point is a manual path the
+ * automatic APIs cannot offer: the operator saves the photos to their phone, opens Instagram there,
+ * taps "Add Music", picks that day's trending chart track, and posts natively in seconds.
+ */
+export async function sendMobilePack(postId: string, locale?: UiLocale | null): Promise<{ ok: true } | { ok: false; error: string }> {
+  const full = getPostFull(postId);
+  if (!full) return { ok: false, error: "Post not found" };
+  const L = await resolveUiLocale(locale);
+  const m = socialMessages(L);
+  const chat = getSetting("telegram").adminChatId;
+  if (!chat || !tg.telegramEnabled()) return { ok: false, error: m.mobilePackNoTelegram };
+
+  const images = full.assets.filter((a) => a.mime.startsWith("image/"));
+  if (!images.length) return { ok: false, error: m.mobilePackNoImages };
+
+  const files: { path: string; type: "photo" }[] = [];
+  for (const a of images.slice(0, 10)) {
+    try {
+      const canvas = await ensureCanvasVariant(a, "smart_4_5", "blur");
+      files.push({ path: canvas.absPath, type: "photo" });
+    } catch (e) {
+      console.warn("[smm] mobile pack: canvas render failed, sending the original image:", (e as Error).message);
+      files.push({ path: absPath(a.relPath), type: "photo" });
+    }
+  }
+  await tg.sendMediaGroup(chat, files);
+
+  const primary = full.variants.find((v) => v.enabled) ?? full.variants[0];
+  const tags = primary ? parseJson<string[]>(primary.hashtags, []) : [];
+  const body = [m.mobilePackCaptionHeader(full.post.title), "", (primary?.text || full.post.coreText || "").trim(), tags.length ? `${m.mobilePackHashtagsLabel} ${tags.join(" ")}` : ""]
+    .filter(Boolean)
+    .join("\n");
+  await tg.sendLongMessage(chat, body);
+
+  return { ok: true };
+}
+
+/**
+ * Renders a Ken Burns / cross-dissolve slideshow from the post's own images (lib/social/reel.ts),
+ * mixing in whatever background-audio track the post is already set to use (the same resolution
+ * `publishPost` applies to a video variant — see `resolveAudioTrack`), and attaches the result to the
+ * post as an ordinary video asset via `saveAsset`, exactly as an uploaded clip would be. Appended,
+ * never replacing existing media, so the operator's photos stay in the strip alongside the new Reel.
+ */
+export async function generateReelForPost(postId: string): Promise<{ ok: true; asset: Asset } | { ok: false; error: string }> {
+  const full = getPostFull(postId);
+  if (!full) return { ok: false, error: "Post not found" };
+  const images = full.assets.filter((a) => a.mime.startsWith("image/"));
+  if (images.length < MIN_REEL_SLIDES) return { ok: false, error: `At least ${MIN_REEL_SLIDES} images are needed to generate a Reel` };
+
+  const audioAbsPath = resolveAudioTrack(full.post);
+  let rendered: Awaited<ReturnType<typeof renderCinematicReel>>;
+  try {
+    rendered = await renderCinematicReel(images.slice(0, MAX_REEL_SLIDES), audioAbsPath);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+  try {
+    const buffer = fs.readFileSync(rendered.path);
+    const saved = await saveAsset({ buffer, originalName: "cinematic-reel.mp4", mime: "video/mp4", kindHint: "video", projectId: full.post.projectId });
+    const db = getDb();
+    const asset = db.select().from(schema.assets).where(eq(schema.assets.id, saved.id)).get();
+    if (!asset) return { ok: false, error: "The Reel was rendered but could not be saved" };
+    setPostAssets(postId, [...full.assets.map((a) => a.id), asset.id]);
+    return { ok: true, asset };
+  } finally {
+    try {
+      fs.unlinkSync(rendered.path);
+    } catch {
+      /* already gone, or never written */
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -563,6 +648,10 @@ export async function handleTelegramCallback(data: string, chatId: string, messa
     if (thread) db.update(schema.telegramThreads).set({ state: "awaiting_edit", editingPlatform, messageId: promptId, updatedAt: nowIso() }).where(eq(schema.telegramThreads.id, thread.id)).run();
     else db.insert(schema.telegramThreads).values({ id: newId("tgt"), postId, chatId, messageId: promptId, state: "awaiting_edit", editingPlatform }).run();
     return m.waitingForReply;
+  }
+  if (action === "mp") {
+    const r = await sendMobilePack(postId, locale);
+    return r.ok ? m.mobilePackToast : r.error;
   }
   return "OK";
 }

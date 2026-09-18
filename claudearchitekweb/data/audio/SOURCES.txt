@@ -1,0 +1,26 @@
+Provenance of the starter tracks in this folder
+================================================
+All four are CC0 1.0 (public domain — no attribution legally required), sourced from
+archive.org mirrors of Freesound uploads. Kept here for the owner's own records.
+
+01_Luxury_Modern_Ambient.mp3
+  "Endless Ethereal Ambient Texture with Glockenspiel, Floating Pads and Water"
+  https://archive.org/details/soundica-fs-868373-endless-ethereal-ambient-texture-with-glockenspi
+  License: https://creativecommons.org/publicdomain/zero/1.0/
+
+02_Warm_Acoustic_Lounge.mp3
+  "Warm Hug"
+  https://archive.org/details/soundica-fs-771838-warm-hug
+  License: https://creativecommons.org/publicdomain/zero/1.0/
+
+03_Cinematic_Minimal.mp3
+  "Emotional Original Soundtrack - FORGIVENESS"
+  https://archive.org/details/soundica-fs-478246-emotional-original-soundtrack-forgiveness
+  License: https://creativecommons.org/publicdomain/zero/1.0/
+
+04_Elegant_Piano_Lounge.mp3
+  "Mio's Dream" (code-box)
+  https://archive.org/details/soundica-fs-554441-mio-s-dream
+  License: https://creativecommons.org/publicdomain/zero/1.0/
+
+Replace or add to these freely — see README.txt for the rules the picker follows.

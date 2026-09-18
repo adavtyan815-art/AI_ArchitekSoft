@@ -385,6 +385,13 @@ const hy = {
       sendWord: "Ուղարկել",
       publicWord: "Հանրային",
       morePhotosBadge: "+{n}",
+      /** "Mode B": send the post's photos + caption to the admin's own Telegram chat instead of publishing. */
+      sendMobilePack: "📱 Ուղարկել հեռախոսին",
+      sendingMobilePack: "Ուղարկվում է…",
+      /** Cinematic Reel generator (FFmpeg slideshow from the post's own photos). */
+      generateReel: "🎬 Ստեղծել Reel նկարներից",
+      generatingReel: "Ստեղծվում է՝ սա կարող է մեկ րոպե տևել…",
+      reelNeedsTwoImages: "Պահանջվում է առնվազն 2 նկար",
     },
     inbox: {
       title: "Ֆայլերի պանակ (inbox)",
@@ -1433,6 +1440,11 @@ const en: typeof hy = {
       sendWord: "Send",
       publicWord: "Public",
       morePhotosBadge: "+{n}",
+      sendMobilePack: "📱 Pack to Mobile",
+      sendingMobilePack: "Sending…",
+      generateReel: "🎬 Generate Cinematic Reel",
+      generatingReel: "Generating — this can take a minute…",
+      reelNeedsTwoImages: "Needs at least 2 images",
     },
     inbox: {
       title: "File inbox",
