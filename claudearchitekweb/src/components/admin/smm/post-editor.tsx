@@ -13,9 +13,10 @@
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, Plus, Sparkles, Wand2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Sparkles, Star, Wand2, X } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui";
 import { PlatformChip, PlatformDot, type PlatformMeta, type PlatformMetaMap } from "@/components/admin/smm/platform-chip";
+import { VariantPreview } from "@/components/admin/smm/post-preview";
 import { ABOVE_TAB_BAR, useStickyBarSpace } from "@/components/admin/smm/bar-space";
 import { fromYerevanInput, toYerevanInput } from "@/lib/tz";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,20 @@ import {
   applySuggestedSlotAction,
 } from "@/app/admin/actions/smm-actions";
 
-export type EditorAsset = { id: string; name: string; kind: string; mime: string; projectId: string | null; thumbUrl: string };
+export type EditorAsset = {
+  id: string;
+  name: string;
+  kind: string;
+  mime: string;
+  projectId: string | null;
+  thumbUrl: string;
+  /** Full-size media URL (for video: the real, playable file; range-served by /media). Optional so
+   * older callers that only pass a thumbnail keep compiling; the preview falls back to the thumb. */
+  url?: string;
+  width?: number | null;
+  height?: number | null;
+  durationSec?: number | null;
+};
 type Lang = "hy" | "ru" | "en";
 type Goal = "trust" | "sales_b2b" | "sales_b2c" | "showcase" | "education";
 const GOALS: Goal[] = ["trust", "sales_b2b", "sales_b2c", "showcase", "education"];
@@ -67,6 +81,9 @@ export type EditorLabels = {
   platformsWord: string; failedWord: string; overLimit: string; hashtagsCapped: string; captionLimitNote: string;
   lastNote: string; schedulePast: string; savingFirst: string; sendApprovalShort: string;
   fromInbox: string; suggestedSlot: string; useSuggestedSlot: string; slotApplied: string; slotGone: string; tz: string;
+  // Platform-accurate preview (post-preview.tsx) and the media-strip reorder/cover controls.
+  deviceMobile: string; deviceDesktop: string; noVideoAttached: string; safeZoneCaption: string; safeZoneUi: string;
+  carouselPrev: string; carouselNext: string; moveLeft: string; moveRight: string; setCover: string; coverBadge: string;
 };
 
 /** Set only for a post the local drop folder prepared (posts.source = 'inbox'). */
@@ -180,6 +197,31 @@ export function PostEditor({
   const patchVariant = (id: string, patch: Partial<EditorVariant>) => {
     setDirty(true);
     setVariants((vs) => vs.map((v) => (v.id === id ? { ...v, ...patch } : v)));
+  };
+
+  /**
+   * Media order is meaningful, not decorative: `attached[0]` is the cover shown in every preview and
+   * is what `saveNow()` sends first in `assetIds`, so a carousel/image post publishes in this order.
+   */
+  const moveAsset = (index: number, delta: number) => {
+    setDirty(true);
+    setAttached((s) => {
+      const to = index + delta;
+      if (to < 0 || to >= s.length) return s;
+      const next = s.slice();
+      [next[index], next[to]] = [next[to], next[index]];
+      return next;
+    });
+  };
+  const makeCover = (index: number) => {
+    if (index === 0) return;
+    setDirty(true);
+    setAttached((s) => {
+      const next = s.slice();
+      const [picked] = next.splice(index, 1);
+      next.unshift(picked);
+      return next;
+    });
   };
 
   function run(fn: () => Promise<void>) {
@@ -412,14 +454,17 @@ export function PostEditor({
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
               {attached.map((a, i) => (
-                <div key={a.id} className="relative aspect-square overflow-hidden rounded-sm border border-line">
+                <div key={a.id} className="group relative aspect-square overflow-hidden rounded-sm border border-line">
                   {a.thumbUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={a.thumbUrl} alt={a.name} loading="lazy" className="h-full w-full object-cover" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center bg-surface-2 text-[10px] text-muted">{a.kind}</span>
                   )}
-                  <span aria-hidden className="absolute top-1 left-1 rounded bg-inverse-bg/80 px-1 text-[10px] font-semibold text-inverse-fg">{i + 1}</span>
+                  <span aria-hidden className={cn("absolute top-1 left-1 inline-flex h-4 min-w-4 items-center justify-center rounded bg-inverse-bg/80 px-1 text-[10px] font-semibold text-inverse-fg", i === 0 && "bg-accent text-inverse-fg")}>
+                    {i === 0 ? <Star size={9} fill="currentColor" aria-hidden /> : i + 1}
+                  </span>
+                  {i === 0 ? <span className="sr-only">{L.coverBadge}</span> : null}
                   <button
                     type="button"
                     onClick={() => { setAttached((s) => s.filter((x) => x.id !== a.id)); setDirty(true); }}
@@ -429,6 +474,41 @@ export function PostEditor({
                   >
                     <X size={14} aria-hidden />
                   </button>
+                  {/* Reorder + "set as cover": only meaningful once there is more than one file. */}
+                  {attached.length > 1 ? (
+                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-inverse-bg/75 px-0.5 py-0.5 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                      <button
+                        type="button"
+                        onClick={() => moveAsset(i, -1)}
+                        disabled={i === 0}
+                        title={L.moveLeft}
+                        aria-label={L.moveLeft}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-sm text-inverse-fg hover:bg-inverse-fg/20 disabled:opacity-30 sm:h-6 sm:w-6"
+                      >
+                        <ChevronLeft size={13} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => makeCover(i)}
+                        disabled={i === 0}
+                        title={L.setCover}
+                        aria-label={L.setCover}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-sm text-inverse-fg hover:bg-inverse-fg/20 disabled:opacity-30 sm:h-6 sm:w-6"
+                      >
+                        <Star size={13} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveAsset(i, 1)}
+                        disabled={i === attached.length - 1}
+                        title={L.moveRight}
+                        aria-label={L.moveRight}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-sm text-inverse-fg hover:bg-inverse-fg/20 disabled:opacity-30 sm:h-6 sm:w-6"
+                      >
+                        <ChevronRight size={13} aria-hidden />
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -600,7 +680,12 @@ function VariantCard({
   const over = len > max;
   // Only the platforms that actually publish a title get the field — and only they show one in the preview.
   const needsTitle = meta?.usesTitle ?? (v.platform === "youtube" || v.platform === "linkedin");
-  const cover = attached[0];
+  // The preview is built from the SAME ordered media strip every variant publishes from — reordering
+  // or picking a cover there (see moveAsset/makeCover in PostEditor) changes what every card shows.
+  const toPreviewAsset = (a: EditorAsset) => ({ id: a.id, name: a.name, mime: a.mime, thumbUrl: a.thumbUrl, url: a.url || a.thumbUrl });
+  const previewImages = attached.filter((a) => a.mime.startsWith("image/")).map(toPreviewAsset);
+  const previewVideoAsset = attached.find((a) => a.mime.startsWith("video/"));
+  const previewVideo = previewVideoAsset ? toPreviewAsset(previewVideoAsset) : undefined;
   const failed = v.status === "failed";
 
   return (
@@ -654,24 +739,19 @@ function VariantCard({
         </div>
 
         <div>
-          <div className="mb-2.5 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{L.preview}</div>
-          <div className="frame bg-surface">
-            <div className="flex items-center gap-2 border-b border-line px-3 py-2">
-              <span aria-hidden className="h-5 w-5 rounded-sm" style={{ backgroundColor: meta?.color ?? "var(--faint)" }} />
-              <span className="text-[12.5px] font-semibold text-fg">{brandName}</span>
-              <span className="ml-auto font-mono text-[10px] tracking-[0.08em] text-faint uppercase">{meta?.label ?? v.platform}</span>
-            </div>
-            {cover?.thumbUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={cover.thumbUrl} alt="" loading="lazy" className="max-h-56 w-full object-cover" />
-            ) : null}
-            <div className="space-y-2 px-3 py-2 text-xs text-fg-2">
-              {needsTitle && v.title ? <p className="font-semibold text-fg">{v.title}</p> : null}
-              <p className="whitespace-pre-wrap">{v.text.slice(0, 600) || "…"}</p>
-              {v.cta ? <p className="font-medium text-fg">{v.cta}</p> : null}
-              {tags.length ? <p className="text-accent">{tags.slice(0, MAX_TAGS).join(" ")}</p> : null}
-            </div>
-          </div>
+          <VariantPreview
+            format={v.format}
+            meta={meta}
+            images={previewImages}
+            video={previewVideo}
+            needsTitle={needsTitle}
+            title={v.title}
+            text={v.text}
+            cta={v.cta}
+            tags={tags.length ? tags.slice(0, MAX_TAGS).join(" ") : ""}
+            brandName={brandName}
+            labels={L}
+          />
         </div>
       </div>
     </section>

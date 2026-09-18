@@ -93,8 +93,8 @@ export default async function PostEditorPage({ params, searchParams }: { params:
         <PostEditor
           post={{ id: post.id, title: post.title, goal: post.goal as never, language: post.language as never, status: post.status, scheduledLocal: toYerevanInput(post.scheduledAt), notes: post.notes }}
           variants={variants}
-          assets={attached.map((a) => ({ id: a.id, name: a.name, kind: a.kind, mime: a.mime, projectId: a.projectId, thumbUrl: a.thumbUrl }))}
-          library={library.map((a) => ({ id: a.id, name: a.name, kind: a.kind, mime: a.mime, projectId: a.projectId, thumbUrl: a.thumbUrl }))}
+          assets={attached.map((a) => ({ id: a.id, name: a.name, kind: a.kind, mime: a.mime, projectId: a.projectId, thumbUrl: a.thumbUrl, url: a.url, width: a.width, height: a.height, durationSec: a.durationSec }))}
+          library={library.map((a) => ({ id: a.id, name: a.name, kind: a.kind, mime: a.mime, projectId: a.projectId, thumbUrl: a.thumbUrl, url: a.url, width: a.width, height: a.height, durationSec: a.durationSec }))}
           metaMap={PLATFORM_META}
           labels={L}
           actionLabels={t.smm.act}

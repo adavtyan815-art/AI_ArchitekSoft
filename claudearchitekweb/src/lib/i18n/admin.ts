@@ -340,6 +340,20 @@ const hy = {
       slotApplied: "Ժամը կիրառվեց՝",
       slotGone: "Առաջարկվող ժամն արդեն անցել է — ընտրիր նոր ժամ։",
       tz: "Երևան",
+      /** Preview device toggle, above each variant's platform-accurate mockup. */
+      deviceMobile: "Հեռախոս",
+      deviceDesktop: "Դեսքթոփ",
+      noVideoAttached: "Վիդեո կցված չէ",
+      /** Reel/Short/Video mockup: dashed overlay boxes marking where the platform draws its own UI. */
+      safeZoneCaption: "Ենթագրի/տեքստի գոտի",
+      safeZoneUi: "Հարթակի կոճակներ",
+      carouselPrev: "Նախորդ նկարը",
+      carouselNext: "Հաջորդ նկարը",
+      /** Media strip: reorder tiles and choose the cover (first = cover, sent as the post's primary image). */
+      moveLeft: "Տեղափոխել ձախ",
+      moveRight: "Տեղափոխել աջ",
+      setCover: "Դարձնել գլխավոր նկար",
+      coverBadge: "Գլխավոր",
     },
     inbox: {
       title: "Ֆայլերի պանակ (inbox)",
@@ -1343,6 +1357,20 @@ const en: typeof hy = {
       slotApplied: "Slot applied:",
       slotGone: "The suggested slot has passed — pick a new time.",
       tz: "Yerevan",
+      /** Preview device toggle, above each variant's platform-accurate mockup. */
+      deviceMobile: "Mobile",
+      deviceDesktop: "Desktop",
+      noVideoAttached: "No video attached",
+      /** Reel/Short/Video mockup: dashed overlay boxes marking where the platform draws its own UI. */
+      safeZoneCaption: "Caption / text zone",
+      safeZoneUi: "Platform controls",
+      carouselPrev: "Previous image",
+      carouselNext: "Next image",
+      /** Media strip: reorder tiles and choose the cover (first = cover, sent as the post's primary image). */
+      moveLeft: "Move left",
+      moveRight: "Move right",
+      setCover: "Set as cover image",
+      coverBadge: "Cover",
     },
     inbox: {
       title: "File inbox",

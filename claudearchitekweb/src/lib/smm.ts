@@ -145,46 +145,74 @@ export function nextPostingSlot(from: Date = new Date()): string | null {
 // ---------------------------------------------------------------------------
 // Telegram approval
 // ---------------------------------------------------------------------------
-function previewText(post: Post, variants: PostVariant[], header: string) {
+function previewText(post: Post, project: { code: string } | null | undefined, variants: PostVariant[], header: string, m: ReturnType<typeof socialMessages>, locale: UiLocale) {
   const enabled = variants.filter((v) => v.enabled);
   const lines: string[] = [header, ""];
   lines.push(`<b>${tg.escapeHtml(post.title)}</b>`);
-  if (post.scheduledAt) lines.push(`🗓 ${fmtYerevan(post.scheduledAt)} (Yerevan)`);
-  lines.push(`Platforms: ${enabled.map((v) => PLATFORM_META[v.platform]?.label ?? v.platform).join(", ")}`);
+  if (project?.code) lines.push(m.approvalProjectLine(tg.escapeHtml(project.code)));
+  if (post.scheduledAt) lines.push(m.approvalScheduledLine(fmtYerevan(post.scheduledAt, "datetime", locale)));
+  lines.push(m.approvalPlatformsLine(enabled.map((v) => PLATFORM_META[v.platform]?.label ?? v.platform).join(", ")));
   lines.push("");
   const primary = enabled.find((v) => v.platform === "facebook") ?? enabled[0];
   if (primary) {
-    lines.push(`<i>${PLATFORM_META[primary.platform]?.label ?? primary.platform} text:</i>`);
+    lines.push(`<i>${m.approvalTextLabel(PLATFORM_META[primary.platform]?.label ?? primary.platform)}</i>`);
     lines.push(tg.escapeHtml(primary.text.slice(0, 700)));
     const tags = parseJson<string[]>(primary.hashtags, []);
     if (tags.length) lines.push(tg.escapeHtml(tags.join(" ")));
   }
-  lines.push("", `Review all variants: ${env.appUrl}/admin/smm/${post.id}`);
+  lines.push("", m.approvalReviewLine(`${env.appUrl}/admin/smm/${post.id}`));
   return lines.join("\n");
 }
 
-function approvalButtons(postId: string): tg.InlineButton[][] {
-  return [
+/**
+ * Telegram rejects an inline `url` button whose address is not `https://` ("400: BUTTON_URL_INVALID"),
+ * which silently breaks the whole approval message on a local/http deployment. The "Open" button is
+ * therefore only added when `env.appUrl` is https; the link is still reachable in the message text.
+ */
+function approvalButtons(postId: string, m: ReturnType<typeof socialMessages>): tg.InlineButton[][] {
+  const httpsApp = /^https:\/\//i.test(env.appUrl);
+  const rows: tg.InlineButton[][] = [
     // "Approve", not "Approve & publish": the schedule and the auto-publish setting still decide when it goes out.
-    [{ text: "✅ Approve", callback_data: `ap:${postId}` }],
+    [{ text: m.btnApprove, callback_data: `ap:${postId}` }],
     [
-      { text: "✏️ Edit text", callback_data: `ed:${postId}` },
-      { text: "🕐 Tomorrow", callback_data: `pp:${postId}` },
+      { text: m.btnEditText, callback_data: `ed:${postId}` },
+      { text: m.btnPostpone, callback_data: `pp:${postId}` },
+    ],
+  ];
+  const lastRow: tg.InlineButton[] = [{ text: m.btnCancel, callback_data: `sk:${postId}` }];
+  if (httpsApp) lastRow.push({ text: m.btnOpen, url: `${env.appUrl}/admin/smm/${postId}` });
+  rows.push(lastRow);
+  return rows;
+}
+
+/**
+ * Postpone submenu shown in place of the main keyboard after "🕐 Postpone" (`pp`). Replaces the old
+ * single hard-coded "+24h" button with a small set of durations; `pd:<postId>:<hours>` applies one,
+ * `pb:<postId>` restores the main keyboard without changing anything.
+ */
+function postponeButtons(postId: string, m: ReturnType<typeof socialMessages>): tg.InlineButton[][] {
+  return [
+    [
+      { text: m.postponeHours(1), callback_data: `pd:${postId}:1` },
+      { text: m.postponeHours(3), callback_data: `pd:${postId}:3` },
     ],
     [
-      { text: "⏭ Skip", callback_data: `sk:${postId}` },
-      { text: "🔗 Open", url: `${env.appUrl}/admin/smm/${postId}` },
+      { text: m.postponeTomorrow, callback_data: `pd:${postId}:24` },
+      { text: m.postponeDays(3), callback_data: `pd:${postId}:72` },
     ],
+    [{ text: m.postponeWeek, callback_data: `pd:${postId}:168` }],
+    [{ text: m.btnBack, callback_data: `pb:${postId}` }],
   ];
 }
 
 /** Caption that still fits under a photo/video together with the HTML markup. */
 const APPROVAL_CAPTION_MAX = 1000;
 
-export async function sendForApproval(postId: string, header = "📣 <b>Post ready for approval</b>") {
+export async function sendForApproval(postId: string, header?: string) {
   const full = getPostFull(postId);
   if (!full) throw new Error("Post not found");
-  const m = socialMessages(await resolveUiLocale());
+  const locale = await resolveUiLocale();
+  const m = socialMessages(locale);
   const previous = full.post.status;
   const chat = getSetting("telegram").adminChatId;
   const db = getDb();
@@ -195,30 +223,32 @@ export async function sendForApproval(postId: string, header = "📣 <b>Post rea
     console.log(`[smm] approval (dry-run, no Telegram): post ${postId} awaiting approval in the admin UI`);
     return { ok: false as const, dryRun: true as const };
   }
-  const text = previewText(full.post, full.variants, header);
+  const headerLine = header ?? `<b>${m.approvalHeader}</b>`;
+  const text = previewText(full.post, full.project, full.variants, headerLine, m, locale);
+  const buttons = approvalButtons(postId, m);
   const video = full.assets.find((a) => a.mime.startsWith("video/"));
   const images = full.assets.filter((a) => a.mime.startsWith("image/"));
   let messageId = 0;
   try {
     try {
       if (video) {
-        const r = await tg.sendVideo(chat, absPath(video.relPath), text.slice(0, APPROVAL_CAPTION_MAX), approvalButtons(postId), "HTML");
+        const r = await tg.sendVideo(chat, absPath(video.relPath), text.slice(0, APPROVAL_CAPTION_MAX), buttons, "HTML");
         messageId = r.result.message_id;
         if (images.length) await tg.sendMediaGroup(chat, images.slice(0, 9).map((a) => ({ path: absPath(a.thumbRelPath || a.relPath), type: "photo" as const })));
       } else if (images.length > 1) {
         await tg.sendMediaGroup(chat, images.slice(0, 10).map((a) => ({ path: absPath(a.thumbRelPath || a.relPath), type: "photo" as const })));
-        const r = await tg.sendMessage(chat, text, { buttons: approvalButtons(postId), parseMode: "HTML" });
+        const r = await tg.sendMessage(chat, text, { buttons, parseMode: "HTML" });
         messageId = r.result.message_id;
       } else if (images.length === 1) {
-        const r = await tg.sendPhoto(chat, absPath(images[0].relPath), text.slice(0, APPROVAL_CAPTION_MAX), approvalButtons(postId), "HTML");
+        const r = await tg.sendPhoto(chat, absPath(images[0].relPath), text.slice(0, APPROVAL_CAPTION_MAX), buttons, "HTML");
         messageId = r.result.message_id;
       } else {
-        const r = await tg.sendMessage(chat, text, { buttons: approvalButtons(postId), parseMode: "HTML" });
+        const r = await tg.sendMessage(chat, text, { buttons, parseMode: "HTML" });
         messageId = r.result.message_id;
       }
     } catch (e) {
       // Fallback: plain text without media so approval is still possible.
-      const r = await tg.sendMessage(chat, `${text}\n\n⚠️ Media preview failed: ${tg.escapeHtml((e as Error).message)}`, { buttons: approvalButtons(postId), parseMode: "HTML" });
+      const r = await tg.sendMessage(chat, `${text}\n\n${m.approvalMediaFailed(tg.escapeHtml((e as Error).message))}`, { buttons, parseMode: "HTML" });
       messageId = r.result.message_id;
     }
   } catch (e) {
@@ -367,27 +397,17 @@ export async function sweepStalePost(maxAgeMs = STALE_CLAIM_MS): Promise<SweptPo
 // ---------------------------------------------------------------------------
 // Telegram callbacks (approve / edit / skip / postpone) and edit replies
 // ---------------------------------------------------------------------------
-const STATUS_WORDS: Record<string, string> = {
-  draft: "a draft",
-  scheduled: "scheduled",
-  sending_approval: "being sent for approval",
-  awaiting_approval: "awaiting approval",
-  approved: "approved",
-  publishing: "publishing right now",
-  published: "published",
-  partially_published: "partially published",
-  failed: "failed",
-  cancelled: "cancelled",
-};
-const statusWord = (s: string) => STATUS_WORDS[s] ?? s.replace(/_/g, " ");
-
 /** Which post statuses each button is still valid for. A button from an old thread must never act. */
 const CALLBACK_ALLOWED: Record<string, string[]> = {
   // "Send for approval" on an inbox suggestion: only while the draft is still waiting to be sent.
   sa: ["draft", "scheduled"],
   ap: ["awaiting_approval"],
   sk: ["awaiting_approval"],
+  // "pp" only swaps the keyboard for the postpone submenu (no DB write); "pd" applies a duration
+  // from it and "pb" restores the main keyboard — both need the same states "pp" does.
   pp: ["awaiting_approval", "scheduled"],
+  pd: ["awaiting_approval", "scheduled"],
+  pb: ["awaiting_approval", "scheduled"],
   ed: ["awaiting_approval"],
   ep: ["awaiting_approval"],
   ai: ["awaiting_approval"],
@@ -396,7 +416,9 @@ const CALLBACK_ALLOWED: Record<string, string[]> = {
 export async function handleTelegramCallback(data: string, chatId: string, messageId?: number): Promise<string> {
   const [action, postId, arg] = data.split(":");
   const full = getPostFull(postId);
-  if (!full) return "Post not found";
+  const locale = await resolveUiLocale();
+  const m = socialMessages(locale);
+  if (!full) return m.postNotFound;
   const db = getDb();
   const thread = db.select().from(schema.telegramThreads).where(eq(schema.telegramThreads.postId, postId)).orderBy(sql`created_at desc`).get();
 
@@ -404,7 +426,7 @@ export async function handleTelegramCallback(data: string, chatId: string, messa
   if (allowed && !allowed.includes(full.post.status)) {
     // Stale button (the post moved on in the admin, or the message is days old): strip it and say why.
     if (messageId) await tg.editReplyMarkup(chatId, messageId, []).catch(() => {});
-    return `Too late — this post is ${statusWord(full.post.status)}.`;
+    return m.tooLate(m.statusWord(full.post.status));
   }
 
   if (action === "sa") {
@@ -412,8 +434,8 @@ export async function handleTelegramCallback(data: string, chatId: string, messa
     // cannot send two approval rounds; its own message says why when the claim fails.
     const r = await sendForApproval(postId);
     const dry = "dryRun" in r && r.dryRun;
-    if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: dry ? "📣 Awaiting approval" : "📣 Sent for approval", callback_data: "noop" }]]).catch(() => {});
-    return dry ? "Marked awaiting approval (no Telegram channel configured)" : "Sent for approval";
+    if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: dry ? m.awaitingApprovalButton : m.sentForApprovalButton, callback_data: "noop" }]]).catch(() => {});
+    return dry ? m.awaitingApprovalToast : m.sentForApprovalToast;
   }
   if (action === "ap") {
     const smm = getSetting("smm");
@@ -422,62 +444,71 @@ export async function handleTelegramCallback(data: string, chatId: string, messa
     if (smm.autoPublishAfterApproval && due) {
       // Straight from awaiting_approval into the publish claim: no "approved" window the scheduler could also pick up.
       setPostStatus(postId, "awaiting_approval", { approvedAt: nowIso() });
-      if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: "✅ Approved — publishing…", callback_data: "noop" }]]).catch(() => {});
-      const r = await publishPost(postId);
+      if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: m.approvedPublishing, callback_data: "noop" }]]).catch(() => {});
+      const r = await publishPost(postId, { locale });
       if (!r.ok) {
-        if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: "❌ Could not publish", callback_data: "noop" }]]).catch(() => {});
+        if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: m.couldNotPublish, callback_data: "noop" }]]).catch(() => {});
         return r.error;
       }
-      return r.status === "published" ? "Published" : r.status === "partially_published" ? "Partially published" : "Publishing failed";
+      return r.status === "published" ? m.publishedOk : r.status === "partially_published" ? m.partiallyPublishedOk : m.publishFailedOk;
     }
     // Approve only: the schedule the owner set, and the auto-publish setting, still decide when it goes out.
     setPostStatus(postId, "approved", { approvedAt: nowIso() });
-    const waiting = !smm.autoPublishAfterApproval ? "waits for manual Publish" : `publishes at ${fmtYerevan(full.post.scheduledAt)} (Yerevan)`;
-    if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: `✅ Approved — ${waiting}`, callback_data: "noop" }]]).catch(() => {});
-    return `Approved — ${waiting}`;
+    const waiting = !smm.autoPublishAfterApproval ? m.approvedWaitManual : m.approvedWaitSchedule(fmtYerevan(full.post.scheduledAt, "datetime", locale));
+    if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: m.approvedButton(waiting), callback_data: "noop" }]]).catch(() => {});
+    return m.approvedToast(waiting);
   }
   if (action === "sk") {
     setPostStatus(postId, "cancelled");
     if (thread) db.update(schema.telegramThreads).set({ state: "rejected", updatedAt: nowIso() }).where(eq(schema.telegramThreads.id, thread.id)).run();
-    if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: "⏭ Skipped", callback_data: "noop" }]]).catch(() => {});
-    return "Skipped";
+    if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: m.cancelled, callback_data: "noop" }]]).catch(() => {});
+    return m.cancelled;
   }
   if (action === "pp") {
-    // From now, never from an overdue schedule: +24 h on a date three days old is still in the past.
+    // Open the flexible postpone submenu in place of the main keyboard; nothing in the DB changes yet.
+    if (messageId) await tg.editReplyMarkup(chatId, messageId, postponeButtons(postId, m)).catch(() => {});
+    return m.postponeChoose;
+  }
+  if (action === "pb") {
+    // Cancel out of the submenu back to the main keyboard; nothing changes.
+    if (messageId) await tg.editReplyMarkup(chatId, messageId, approvalButtons(postId, m)).catch(() => {});
+    return "";
+  }
+  if (action === "pd") {
+    // From now, never from an overdue schedule: +N hours on a date three days old is still in the past.
+    const hours = Math.max(1, Math.min(24 * 30, Number.parseInt(arg, 10) || 24));
     const base = Math.max(full.post.scheduledAt ? new Date(full.post.scheduledAt).getTime() : 0, Date.now());
-    const next = new Date(base + 86400_000).toISOString();
+    const next = new Date(base + hours * 3_600_000).toISOString();
     schedulePost(postId, next);
     if (thread) db.update(schema.telegramThreads).set({ state: "rescheduled", updatedAt: nowIso() }).where(eq(schema.telegramThreads.id, thread.id)).run();
-    if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: `🕐 Moved to ${fmtYerevan(next)}`, callback_data: "noop" }]]).catch(() => {});
-    return `Rescheduled to ${fmtYerevan(next)} (Yerevan)`;
+    const when = fmtYerevan(next, "datetime", locale);
+    if (messageId) await tg.editReplyMarkup(chatId, messageId, [[{ text: m.postponedTo(when), callback_data: "noop" }]]).catch(() => {});
+    return m.postponedTo(when);
   }
   if (action === "ed") {
     // Ask which platform to edit (or all)
     const enabled = full.variants.filter((v) => v.enabled);
-    const rows: tg.InlineButton[][] = [[{ text: "All platforms", callback_data: `ep:${postId}:all` }]];
+    const rows: tg.InlineButton[][] = [[{ text: m.editAllPlatforms, callback_data: `ep:${postId}:all` }]];
     for (const v of enabled) rows.push([{ text: PLATFORM_META[v.platform]?.label ?? v.platform, callback_data: `ep:${postId}:${v.platform}` }]);
-    rows.push([{ text: "✨ Improve with AI instruction", callback_data: `ai:${postId}:all` }]);
-    await tg.sendMessage(chatId, "Which text do you want to edit? Reply to my next message with the new text.", { buttons: rows });
-    return "Choose platform";
+    rows.push([{ text: m.editImproveWithAi, callback_data: `ai:${postId}:all` }]);
+    await tg.sendMessage(chatId, m.editChoosePlatform, { buttons: rows });
+    return m.choosePlatformToast;
   }
   if (action === "ep" || action === "ai") {
     const platform = arg || "all";
     if (action === "ai" && aiStatus().provider === "template") {
-      await tg.sendMessage(chatId, "No AI key is configured, so I cannot rewrite the text. Add ANTHROPIC_API_KEY in .env, or use ✏️ Edit text and send the new text yourself.");
-      return "No AI key configured";
+      await tg.sendMessage(chatId, m.aiNoKeyCallback);
+      return m.aiNotConfiguredToast;
     }
     const current = platform === "all" ? full.variants.find((v) => v.enabled)?.text : full.variants.find((v) => v.platform === platform)?.text;
-    const prompt =
-      action === "ai"
-        ? `✨ Reply to this message with an instruction (e.g. "shorter", "more formal", "mention the pilot offer").`
-        : `✏️ Reply to this message with the new text for <b>${tg.escapeHtml(platform)}</b>.\n\nCurrent:\n${tg.escapeHtml((current ?? "").slice(0, 900))}`;
+    const prompt = action === "ai" ? m.aiReplyPrompt : m.editReplyPrompt(tg.escapeHtml(platform), tg.escapeHtml((current ?? "").slice(0, 900)));
     const sent = await tg.sendMessage(chatId, prompt, { parseMode: "HTML", forceReply: true });
     // The thread now waits for a reply to THIS prompt: its id is what handleTelegramReply matches against.
     const promptId = sent.result.message_id;
     const editingPlatform = `${action === "ai" ? "ai:" : ""}${platform}`;
     if (thread) db.update(schema.telegramThreads).set({ state: "awaiting_edit", editingPlatform, messageId: promptId, updatedAt: nowIso() }).where(eq(schema.telegramThreads.id, thread.id)).run();
     else db.insert(schema.telegramThreads).values({ id: newId("tgt"), postId, chatId, messageId: promptId, state: "awaiting_edit", editingPlatform }).run();
-    return "Waiting for your reply";
+    return m.waitingForReply;
   }
   return "OK";
 }
@@ -491,6 +522,7 @@ const UNEDITABLE = ["published", "partially_published", "publishing", "sending_a
  */
 export async function handleTelegramReply(chatId: string, text: string, replyToMessageId?: number): Promise<string | null> {
   const db = getDb();
+  const m = socialMessages(await resolveUiLocale());
   // A command is never post text.
   if (text.startsWith("/")) return null;
   const thread = db
@@ -515,8 +547,8 @@ export async function handleTelegramReply(chatId: string, text: string, replyToM
   }
   if (UNEDITABLE.includes(full.post.status)) {
     closeThread("sent");
-    await tg.sendMessage(chatId, `This post is ${statusWord(full.post.status)} — its text is not edited any more.`).catch(() => {});
-    return "Not editable";
+    await tg.sendMessage(chatId, m.notEditableAnymore(m.statusWord(full.post.status))).catch(() => {});
+    return m.notEditableToast;
   }
 
   const spec = thread.editingPlatform || "all";
@@ -525,23 +557,23 @@ export async function handleTelegramReply(chatId: string, text: string, replyToM
   const targets = full.variants.filter((v) => v.enabled && (platform === "all" || v.platform === platform));
   if (!targets.length) {
     closeThread("sent");
-    await tg.sendMessage(chatId, "No enabled platform to edit.").catch(() => {});
-    return "Nothing to edit";
+    await tg.sendMessage(chatId, m.noEnabledToEdit).catch(() => {});
+    return m.nothingToEditToast;
   }
 
   // Every rewrite is computed first: a failure halfway must not leave some variants rewritten and others not.
   const edits: { id: string; text: string }[] = [];
   if (useAi) {
     if (aiStatus().provider === "template") {
-      await tg.sendMessage(chatId, "No AI key is configured, so nothing was changed. Add ANTHROPIC_API_KEY in .env, or use ✏️ Edit text and send the new text yourself.").catch(() => {});
-      return "No AI key configured";
+      await tg.sendMessage(chatId, m.aiNoKeyReply).catch(() => {});
+      return m.aiNotConfiguredToast;
     }
     try {
       for (const v of targets) edits.push({ id: v.id, text: await rewriteText(text, v.text, full.post.language as "hy" | "ru" | "en") });
     } catch (e) {
       // The thread stays open, so a retry starts from the unchanged text.
-      await tg.sendMessage(chatId, `⚠️ The rewrite failed: ${tg.escapeHtml((e as Error).message)}\n\nReply again to try once more.`, { parseMode: "HTML" }).catch(() => {});
-      return "Rewrite failed";
+      await tg.sendMessage(chatId, m.rewriteFailed(tg.escapeHtml((e as Error).message)), { parseMode: "HTML" }).catch(() => {});
+      return m.rewriteFailedToast;
     }
   } else {
     for (const v of targets) edits.push({ id: v.id, text });
@@ -553,8 +585,8 @@ export async function handleTelegramReply(chatId: string, text: string, replyToM
   })();
 
   setPostStatus(thread.postId, "awaiting_approval");
-  await sendForApproval(thread.postId, `✏️ <b>Updated (${targets.length} variant${targets.length === 1 ? "" : "s"})</b> — approve?`);
-  return "Updated";
+  await sendForApproval(thread.postId, `<b>${m.approvalUpdatedHeader(targets.length)}</b>`);
+  return m.updatedToast;
 }
 
 // ---------------------------------------------------------------------------
