@@ -325,6 +325,12 @@ export const posts = sqliteTable(
     source: text("source").notNull().default("manual"),
     /** What it was made from — for 'inbox' the folder name, so the owner can trace it back. */
     sourceRef: text("source_ref"),
+    /** Background audio for a video/reel variant of this post: 'none' | 'auto' (a data/audio/ track) | 'custom' (an uploaded asset). */
+    audioMode: text("audio_mode").notNull().default("none"),
+    /** Uploaded custom track (kind = 'audio'), used when audioMode = 'custom'. */
+    audioAssetId: text("audio_asset_id").references(() => assets.id, { onDelete: "set null" }),
+    /** File name under data/audio/, used when audioMode = 'auto'. Not a foreign key: it names a file on disk, not a row. */
+    audioAmbientFile: text("audio_ambient_file"),
     createdAt: text("created_at").notNull().default(now()),
     updatedAt: text("updated_at").notNull().default(now()),
   },
@@ -343,6 +349,10 @@ export const postVariants = sqliteTable(
     hashtags: text("hashtags"), // JSON string[]
     cta: text("cta"),
     format: text("format").notNull().default("image"), // image | carousel | video | reel | short | text
+    /** Smart Canvas: null = auto (chosen from platform + format), or an explicit 'original' | 'smart_4_5' | 'story_9_16'. */
+    canvasMode: text("canvas_mode"),
+    /** How the letterbox/pillarbox margin is filled when canvasMode pads the image: 'blur' | 'dark'. */
+    canvasMatte: text("canvas_matte").notNull().default("blur"),
     status: text("status").notNull().default("pending"), // pending | publishing | published | failed | skipped | simulated
     externalId: text("external_id"),
     externalUrl: text("external_url"),

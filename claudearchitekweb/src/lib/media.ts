@@ -17,12 +17,14 @@ import { newId } from "./ids";
 export const IMAGE_MIMES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 export const VIDEO_MIMES = ["video/mp4", "video/quicktime", "video/webm", "video/x-matroska"];
 export const DOC_MIMES = ["application/pdf"];
+/** Custom background-audio uploads for the SMM editor (see lib/audio.ts for the "Auto Ambient" library). */
+export const AUDIO_MIMES = ["audio/mpeg"];
 export const MODEL_EXT = [".glb", ".usdz", ".gltf"];
 export const OTHER_EXT = [".dwg", ".dxf", ".skp", ".max", ".zip", ".rar", ".7z", ".csv", ".xlsx"];
 
 export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024; // 100 MB per file — matches the Cloudflare proxy cap and request_body max_size in deploy/Caddyfile
 
-export type AssetKind = "render" | "video" | "sketch" | "pdf" | "model_glb" | "model_usdz" | "poster" | "client_upload" | "other";
+export type AssetKind = "render" | "video" | "audio" | "sketch" | "pdf" | "model_glb" | "model_usdz" | "poster" | "client_upload" | "other";
 
 /**
  * The file extension decides how a stored file is named on disk and served by /media, so the
@@ -43,6 +45,7 @@ const EXT_MIME: Record<string, string> = {
   ".webm": "video/webm",
   ".mkv": "video/x-matroska",
   ".pdf": "application/pdf",
+  ".mp3": "audio/mpeg",
 };
 
 /** Canonical extension for a type we recognise (used when the upload has no usable extension). */
@@ -57,6 +60,7 @@ const MIME_EXT: Record<string, string> = {
   "video/webm": ".webm",
   "video/x-matroska": ".mkv",
   "application/pdf": ".pdf",
+  "audio/mpeg": ".mp3",
 };
 
 function extOf(name: string): string {
@@ -80,6 +84,7 @@ export function detectKind(mime: string, name: string, hint?: string): AssetKind
   if (hint === "sketch" || hint === "poster" || hint === "client_upload") return hint;
   if (IMAGE_MIMES.includes(mime)) return "render";
   if (VIDEO_MIMES.includes(mime)) return "video";
+  if (AUDIO_MIMES.includes(mime) || ext === ".mp3") return "audio";
   if (mime === "application/pdf" || ext === ".pdf") return "pdf";
   if (ext === ".glb" || ext === ".gltf") return "model_glb";
   if (ext === ".usdz") return "model_usdz";
@@ -131,6 +136,9 @@ export function sniffMime(buffer: Buffer): string | null {
   }
   if (["moov", "mdat", "wide", "free", "skip", "pnot"].includes(box)) return "video/quicktime";
   if (b.toString("latin1", 0, Math.min(b.length, 1024)).includes("%PDF-")) return "application/pdf";
+  // MP3: an ID3v2 tag ("ID3" ...) or, tag-less, a raw MPEG frame sync (0xFF followed by 3 set high bits).
+  if (b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) return "audio/mpeg";
+  if (b[0] === 0xff && (b[1] & 0xe0) === 0xe0) return "audio/mpeg";
   return null;
 }
 
@@ -144,6 +152,7 @@ export function contentMatchesType(buffer: Buffer, mime: string, name: string): 
   const real = sniffMime(buffer);
   if (type.startsWith("image/")) return !!real && real.startsWith("image/");
   if (type.startsWith("video/")) return !!real && real.startsWith("video/");
+  if (type === "audio/mpeg") return real === "audio/mpeg";
   if (type === "application/pdf") return real === "application/pdf";
   if (extOf(name) === ".glb") return buffer.toString("latin1", 0, 4) === "glTF";
   return true;
@@ -302,6 +311,10 @@ export async function saveAsset(input: SaveInput) {
       }
       // Neither a duration nor a single frame: ffmpeg could not read this file at all.
       if (durationSec === null && !thumbRelPath) postProcessError = "no duration and no frame could be read from the video";
+    } else if (AUDIO_MIMES.includes(mime)) {
+      durationSec = await probeDuration(full);
+      if (durationSec === null) postProcessError = "no duration could be read from the audio file";
+      /* no thumbnail; the UI shows a waveform icon */
     } else if (mime === "application/pdf") {
       /* no thumbnail; the UI shows a document icon */
     }

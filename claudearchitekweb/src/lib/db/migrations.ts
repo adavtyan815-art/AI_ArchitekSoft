@@ -382,4 +382,19 @@ ALTER TABLE posts ADD COLUMN source_ref TEXT;
 CREATE INDEX IF NOT EXISTS posts_source_idx ON posts(source);
 `,
   },
+  {
+    // Smart Canvas (per-variant, since Facebook and Instagram can want different treatment of the
+    // same source image) and background audio (per-post: one soundtrack, mixed into whichever video
+    // variant publishes). Every column is optional or defaulted, so existing rows need no backfill:
+    // canvas_mode null keeps today's platform-default padding, audio_mode 'none' keeps today's silent
+    // publish behaviour exactly.
+    id: "0005_canvas_and_audio",
+    sql: `
+ALTER TABLE post_variants ADD COLUMN canvas_mode TEXT;
+ALTER TABLE post_variants ADD COLUMN canvas_matte TEXT NOT NULL DEFAULT 'blur';
+ALTER TABLE posts ADD COLUMN audio_mode TEXT NOT NULL DEFAULT 'none';
+ALTER TABLE posts ADD COLUMN audio_asset_id TEXT REFERENCES assets(id) ON DELETE SET NULL;
+ALTER TABLE posts ADD COLUMN audio_ambient_file TEXT;
+`,
+  },
 ];

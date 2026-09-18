@@ -22,11 +22,15 @@ services:
       # volume has no path on the host to copy into. It is a bind mount instead — set
       # INBOX_HOST_DIR in ../.env to put it somewhere else (a synced folder, another disk).
       INBOX_DIR: /app/inbox
+      # Royalty-free "Auto Ambient" tracks (docs/05_SMM_AUTOMATION.md § Background audio); same
+      # bind-mount reasoning as the inbox — the owner drops .mp3 files in from the host.
+      AUDIO_DIR: /app/audio
       # RUN_WORKER_IN_APP is read from ../.env (default true). Set it to false there when you enable
       # the split-worker profile, otherwise two schedulers and two Telegram pollers run.
     volumes:
       - appdata:/app/data
       - ${INBOX_HOST_DIR:-../data/inbox}:/app/inbox
+      - ${AUDIO_HOST_DIR:-../data/audio}:/app/audio
     expose:
       - "3100"
 
@@ -65,9 +69,11 @@ services:
       UPLOAD_DIR: /app/data/uploads
       # Same folder as `web`: whichever process runs the scheduler is the one that scans the inbox.
       INBOX_DIR: /app/inbox
+      AUDIO_DIR: /app/audio
     volumes:
       - appdata:/app/data
       - ${INBOX_HOST_DIR:-../data/inbox}:/app/inbox
+      - ${AUDIO_HOST_DIR:-../data/audio}:/app/audio
     # worker.js is bundled from scripts/worker.ts in the build stage (npm run build:worker)
     command: ["node", "worker.js"]
     # the image health check probes the web server; the worker serves no HTTP

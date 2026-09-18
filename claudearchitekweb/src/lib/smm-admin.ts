@@ -108,6 +108,12 @@ export function listMediaAssetsLite(limit = 500, opts: MediaListOptions = {}): A
   return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(toAssetLite);
 }
 
+/** Previously uploaded MP3s (kind = 'audio'), newest first — the picker for post.audioMode = 'custom'. */
+export function listAudioAssetsLite(limit = 200): AssetLite[] {
+  const db = getDb();
+  return db.select().from(schema.assets).where(eq(schema.assets.kind, "audio")).orderBy(desc(schema.assets.createdAt)).limit(limit).all().map(toAssetLite);
+}
+
 export type PostRow = Post & { projectTitle: string | null; projectCode: string | null; variants: { platform: string; enabled: boolean; status: string }[] };
 
 export function listPosts(): PostRow[] {
@@ -138,11 +144,11 @@ export function smmStats() {
   };
 }
 
-export function updatePost(id: string, data: Partial<Pick<Post, "title" | "notes" | "coreText" | "goal" | "language">>) {
+export function updatePost(id: string, data: Partial<Pick<Post, "title" | "notes" | "coreText" | "goal" | "language" | "audioMode" | "audioAssetId" | "audioAmbientFile">>) {
   getDb().update(schema.posts).set({ ...data, updatedAt: nowIso() }).where(eq(schema.posts.id, id)).run();
 }
 
-export type VariantPatch = Partial<Pick<PostVariant, "enabled" | "title" | "text" | "cta" | "format">> & { hashtags?: string[] };
+export type VariantPatch = Partial<Pick<PostVariant, "enabled" | "title" | "text" | "cta" | "format" | "canvasMode" | "canvasMatte">> & { hashtags?: string[] };
 
 export function updateVariant(postId: string, variantId: string, patch: VariantPatch) {
   const { hashtags, ...rest } = patch;
@@ -172,10 +178,25 @@ export function duplicatePost(id: string, userId?: string): string | null {
   if (!post) return null;
   const newPostId = newId("post");
   db.insert(schema.posts)
-    .values({ id: newPostId, projectId: post.projectId, title: `${post.title} (copy)`, goal: post.goal, language: post.language, coreText: post.coreText, status: "draft", createdBy: userId ?? post.createdBy, notes: post.notes })
+    .values({
+      id: newPostId,
+      projectId: post.projectId,
+      title: `${post.title} (copy)`,
+      goal: post.goal,
+      language: post.language,
+      coreText: post.coreText,
+      status: "draft",
+      createdBy: userId ?? post.createdBy,
+      notes: post.notes,
+      audioMode: post.audioMode,
+      audioAssetId: post.audioAssetId,
+      audioAmbientFile: post.audioAmbientFile,
+    })
     .run();
   for (const v of db.select().from(schema.postVariants).where(eq(schema.postVariants.postId, id)).all()) {
-    db.insert(schema.postVariants).values({ id: newId("var"), postId: newPostId, platform: v.platform, enabled: v.enabled, title: v.title, text: v.text, hashtags: v.hashtags, cta: v.cta, format: v.format }).run();
+    db.insert(schema.postVariants)
+      .values({ id: newId("var"), postId: newPostId, platform: v.platform, enabled: v.enabled, title: v.title, text: v.text, hashtags: v.hashtags, cta: v.cta, format: v.format, canvasMode: v.canvasMode, canvasMatte: v.canvasMatte })
+      .run();
   }
   for (const a of db.select().from(schema.postAssets).where(eq(schema.postAssets.postId, id)).orderBy(asc(schema.postAssets.sortOrder)).all()) {
     db.insert(schema.postAssets).values({ postId: newPostId, assetId: a.assetId, role: a.role, sortOrder: a.sortOrder }).run();

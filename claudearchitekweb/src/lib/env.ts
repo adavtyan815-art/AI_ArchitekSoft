@@ -60,6 +60,14 @@ export const env = {
   get inboxDir() {
     return path.resolve(process.cwd(), str("INBOX_DIR", "./data/inbox"));
   },
+  /**
+   * Royalty-free ambient tracks the "Auto Ambient" background-audio choice picks from. Created (with
+   * a README) on boot, same convention as the inbox folder — the owner drops .mp3 files in and they
+   * appear in the picker with no other configuration.
+   */
+  get audioDir() {
+    return path.resolve(process.cwd(), str("AUDIO_DIR", "./data/audio"));
+  },
   get runWorkerInApp() {
     return bool("RUN_WORKER_IN_APP", true);
   },

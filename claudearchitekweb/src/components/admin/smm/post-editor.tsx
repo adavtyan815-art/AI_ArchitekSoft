@@ -13,10 +13,10 @@
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Sparkles, Star, Wand2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Music, MoreHorizontal, Plus, Sparkles, Star, UploadCloud, Wand2, X } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui";
 import { PlatformChip, PlatformDot, type PlatformMeta, type PlatformMetaMap } from "@/components/admin/smm/platform-chip";
-import { VariantPreview } from "@/components/admin/smm/post-preview";
+import { VariantPreview, type CanvasMatte, type CanvasMode } from "@/components/admin/smm/post-preview";
 import { ABOVE_TAB_BAR, useStickyBarSpace } from "@/components/admin/smm/bar-space";
 import { fromYerevanInput, toYerevanInput } from "@/lib/tz";
 import { cn } from "@/lib/utils";
@@ -55,6 +55,23 @@ const MAX_TAGS = 40;
 /** Once anything has gone out (or is going out) the post's history is not rewritten any more. */
 const SENT_STATUSES = ["published", "partially_published", "publishing"];
 
+const CANVAS_MODES: CanvasMode[] = ["original", "smart_4_5", "story_9_16"];
+const CANVAS_MATTES: CanvasMatte[] = ["blur", "dark"];
+type AudioMode = "none" | "auto" | "custom";
+const AUDIO_MODES: AudioMode[] = ["none", "auto", "custom"];
+
+/**
+ * Client-safe copy of lib/social/canvas.ts's `defaultCanvasMode` — that module imports sharp/fs and
+ * must never enter the browser bundle. Keep this in sync with it: a reel/video/short is vertical
+ * everywhere, an Instagram feed image/carousel is the portrait 4:5 Instagram itself recommends, and
+ * everything else is left as the operator uploaded it.
+ */
+function defaultCanvasModeClient(platform: string, format: string): CanvasMode {
+  if (format === "reel" || format === "short" || format === "video") return "story_9_16";
+  if (platform === "instagram" && (format === "image" || format === "carousel")) return "smart_4_5";
+  return "original";
+}
+
 export type EditorVariant = {
   id: string;
   platform: string;
@@ -67,7 +84,13 @@ export type EditorVariant = {
   status: string;
   externalUrl: string | null;
   error: string | null;
+  /** null = auto (see defaultCanvasModeClient). */
+  canvasMode: CanvasMode | null;
+  canvasMatte: CanvasMatte;
 };
+
+export type AmbientTrackOption = { file: string; name: string };
+export type CustomAudioOption = { id: string; name: string; url: string };
 
 export type EditorLabels = {
   internalTitle: string; goal: string; language: string; scheduled: string; scheduledHint: string; set: string;
@@ -84,6 +107,12 @@ export type EditorLabels = {
   // Platform-accurate preview (post-preview.tsx) and the media-strip reorder/cover controls.
   deviceMobile: string; deviceDesktop: string; noVideoAttached: string; safeZoneCaption: string; safeZoneUi: string;
   carouselPrev: string; carouselNext: string; moveLeft: string; moveRight: string; setCover: string; coverBadge: string;
+  seeMore: string; seeLess: string; likeWord: string; commentWord: string; shareWord: string; sendWord: string; publicWord: string;
+  // Smart Canvas (per variant) and background audio (per post).
+  canvasLabel: string; matteLabel: string; canvasAuto: string; canvasOriginal: string; canvasSmart45: string; canvasStory916: string;
+  matteBlur: string; matteDark: string;
+  audioLabel: string; audioNone: string; audioAuto: string; audioCustom: string; audioTrackLabel: string; audioNoTracks: string;
+  audioUploadCta: string; audioUploading: string; audioUploadFailed: string; audioNote: string;
 };
 
 /** Set only for a post the local drop folder prepared (posts.source = 'inbox'). */
@@ -121,6 +150,8 @@ export function PostEditor({
   variants: initialVariants,
   assets: initialAssets,
   library,
+  ambientTracks,
+  customAudio: initialCustomAudio,
   metaMap,
   labels,
   actionLabels,
@@ -131,10 +162,15 @@ export function PostEditor({
   brandName,
   inbox = null,
 }: {
-  post: { id: string; title: string; goal: Goal; language: Lang; status: string; scheduledLocal: string; notes: string | null };
+  post: {
+    id: string; title: string; goal: Goal; language: Lang; status: string; scheduledLocal: string; notes: string | null;
+    audioMode: AudioMode; audioAssetId: string | null; audioAmbientFile: string | null;
+  };
   variants: EditorVariant[];
   assets: EditorAsset[];
   library: EditorAsset[];
+  ambientTracks: AmbientTrackOption[];
+  customAudio: CustomAudioOption[];
   metaMap: PlatformMetaMap;
   labels: EditorLabels;
   actionLabels: EditorActions;
@@ -164,6 +200,43 @@ export function PostEditor({
   const [pending, start] = useTransition();
   const moreBtn = useRef<HTMLButtonElement>(null);
   useStickyBarSpace();
+
+  const [audioMode, setAudioMode] = useState<AudioMode>(post.audioMode);
+  const [audioAssetId, setAudioAssetId] = useState(post.audioAssetId);
+  const [audioAmbientFile, setAudioAmbientFile] = useState(post.audioAmbientFile);
+  const [customAudio, setCustomAudio] = useState(initialCustomAudio);
+  const [audioUploading, setAudioUploading] = useState(false);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+
+  async function uploadAudio(file: File) {
+    setAudioUploading(true);
+    setMsg(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/audio-upload", { method: "POST", body: fd });
+      const json = (await res.json()) as { asset?: CustomAudioOption; error?: string };
+      if (!res.ok || !json.asset) {
+        setMsg({ text: json.error ?? L.audioUploadFailed, tone: "error" });
+        return;
+      }
+      setCustomAudio((s) => [json.asset!, ...s]);
+      setAudioAssetId(json.asset.id);
+      setDirty(true);
+    } catch (e) {
+      setMsg({ text: (e as Error).message || L.audioUploadFailed, tone: "error" });
+    } finally {
+      setAudioUploading(false);
+      if (audioInputRef.current) audioInputRef.current.value = "";
+    }
+  }
+
+  const audioPlayerSrc =
+    audioMode === "auto" && audioAmbientFile
+      ? `/api/admin/audio-track?file=${encodeURIComponent(audioAmbientFile)}`
+      : audioMode === "custom" && audioAssetId
+        ? (customAudio.find((a) => a.id === audioAssetId)?.url ?? null)
+        : null;
 
   const word = L.platformsWord || platformsWord || "";
   const nameOf = (platform: string) => metaMap[platform]?.label ?? platform;
@@ -248,9 +321,20 @@ export function PostEditor({
     const payload = variants.map((v) => {
       const tags = splitTags(v.hashtags);
       if (tags.length > MAX_TAGS) capped.push(nameOf(v.platform));
-      return { id: v.id, enabled: v.enabled, title: v.title || null, text: v.text, hashtags: tags.slice(0, MAX_TAGS), cta: v.cta || null, format: v.format };
+      return { id: v.id, enabled: v.enabled, title: v.title || null, text: v.text, hashtags: tags.slice(0, MAX_TAGS), cta: v.cta || null, format: v.format, canvasMode: v.canvasMode, canvasMatte: v.canvasMatte };
     });
-    const r = await savePostAction({ id: post.id, title, notes: post.notes, goal, language, assetIds: attached.map((a) => a.id), variants: payload });
+    const r = await savePostAction({
+      id: post.id,
+      title,
+      notes: post.notes,
+      goal,
+      language,
+      assetIds: attached.map((a) => a.id),
+      variants: payload,
+      audioMode,
+      audioAssetId: audioMode === "custom" ? audioAssetId : null,
+      audioAmbientFile: audioMode === "auto" ? audioAmbientFile : null,
+    });
     if (!r.ok) {
       setMsg({ text: r.error, tone: "error" });
       return { ok: false, notes: [] };
@@ -540,6 +624,67 @@ export function PostEditor({
         </div>
       </section>
 
+      <section className="card">
+        <header className="flex items-center gap-2 border-b border-line px-4 py-3 sm:px-5">
+          <Music size={15} aria-hidden className="text-muted" />
+          <h2 className="font-display text-[1.05rem] leading-tight font-medium tracking-[-0.01em] text-fg">{L.audioLabel}</h2>
+        </header>
+        <div className="space-y-3 p-4 sm:p-5">
+          <div className="flex flex-wrap gap-2">
+            {AUDIO_MODES.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { setAudioMode(m); setDirty(true); }}
+                aria-pressed={audioMode === m}
+                className={cn("btn-secondary btn-sm", audioMode === m && "bg-fg text-inverse-fg hover:bg-fg")}
+              >
+                {m === "none" ? L.audioNone : m === "auto" ? L.audioAuto : L.audioCustom}
+              </button>
+            ))}
+          </div>
+
+          {audioMode === "auto" ? (
+            ambientTracks.length ? (
+              <Field label={L.audioTrackLabel} className="max-w-sm">
+                <Select value={audioAmbientFile ?? ""} onChange={(e) => { setAudioAmbientFile(e.target.value || null); setDirty(true); }}>
+                  <option value="" disabled>—</option>
+                  {ambientTracks.map((t) => (
+                    <option key={t.file} value={t.file}>{t.name}</option>
+                  ))}
+                </Select>
+              </Field>
+            ) : (
+              <p className="text-xs text-muted">{L.audioNoTracks}</p>
+            )
+          ) : null}
+
+          {audioMode === "custom" ? (
+            <div className="space-y-2">
+              {customAudio.length ? (
+                <Field label={L.audioTrackLabel} className="max-w-sm">
+                  <Select value={audioAssetId ?? ""} onChange={(e) => { setAudioAssetId(e.target.value || null); setDirty(true); }}>
+                    <option value="" disabled>—</option>
+                    {customAudio.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </Select>
+                </Field>
+              ) : null}
+              <button type="button" onClick={() => audioInputRef.current?.click()} disabled={audioUploading} className="btn-secondary btn-sm">
+                <UploadCloud size={14} aria-hidden /> {audioUploading ? L.audioUploading : L.audioUploadCta}
+              </button>
+              <input ref={audioInputRef} type="file" accept="audio/mpeg,.mp3" hidden onChange={(e) => e.target.files?.[0] && uploadAudio(e.target.files[0])} />
+            </div>
+          ) : null}
+
+          {audioMode !== "none" && audioPlayerSrc ? (
+            <audio key={audioPlayerSrc} controls src={audioPlayerSrc} className="h-10 w-full max-w-sm" />
+          ) : null}
+          <p className="text-xs text-muted">{L.audioNote}</p>
+        </div>
+      </section>
+
       {/* Platform strip — mobile only */}
       {variants.length > 1 ? (
         <div className="-mx-1 flex gap-4 overflow-x-auto border-b border-line px-1 lg:hidden" role="tablist" aria-label={L.platformsTab}>
@@ -687,6 +832,7 @@ function VariantCard({
   const previewVideoAsset = attached.find((a) => a.mime.startsWith("video/"));
   const previewVideo = previewVideoAsset ? toPreviewAsset(previewVideoAsset) : undefined;
   const failed = v.status === "failed";
+  const effectiveCanvasMode = v.canvasMode ?? defaultCanvasModeClient(v.platform, v.format);
 
   return (
     <section className={cn("card", !v.enabled && "opacity-60", className)}>
@@ -703,6 +849,28 @@ function VariantCard({
           ))}
         </Select>
       </header>
+      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2.5 sm:px-5">
+        <Select
+          value={v.canvasMode ?? ""}
+          onChange={(e) => onChange({ canvasMode: (e.target.value || null) as EditorVariant["canvasMode"] })}
+          className="h-9 w-auto py-1 text-xs"
+          aria-label={L.canvasLabel}
+        >
+          <option value="">{L.canvasLabel}: {L.canvasAuto}</option>
+          {CANVAS_MODES.map((m) => (
+            <option key={m} value={m}>
+              {L.canvasLabel}: {m === "original" ? L.canvasOriginal : m === "smart_4_5" ? L.canvasSmart45 : L.canvasStory916}
+            </option>
+          ))}
+        </Select>
+        {effectiveCanvasMode !== "original" ? (
+          <Select value={v.canvasMatte} onChange={(e) => onChange({ canvasMatte: e.target.value as EditorVariant["canvasMatte"] })} className="h-9 w-auto py-1 text-xs" aria-label={L.matteLabel}>
+            {CANVAS_MATTES.map((m) => (
+              <option key={m} value={m}>{L.matteLabel}: {m === "blur" ? L.matteBlur : L.matteDark}</option>
+            ))}
+          </Select>
+        ) : null}
+      </div>
       <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-3">
           {needsTitle ? (
@@ -740,6 +908,7 @@ function VariantCard({
 
         <div>
           <VariantPreview
+            platform={v.platform}
             format={v.format}
             meta={meta}
             images={previewImages}
@@ -751,6 +920,8 @@ function VariantCard({
             tags={tags.length ? tags.slice(0, MAX_TAGS).join(" ") : ""}
             brandName={brandName}
             labels={L}
+            canvasMode={effectiveCanvasMode}
+            canvasMatte={v.canvasMatte}
           />
         </div>
       </div>

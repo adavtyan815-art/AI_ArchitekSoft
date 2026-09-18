@@ -10,12 +10,13 @@ import { deletePost, duplicatePost, setPostAssets, toAssetLite, updatePost, upda
 import { generatePoster } from "@/lib/media";
 import { runInbox, suggestSlot, suggestedSlotOf, wasImported } from "@/lib/inbox";
 import { PLATFORM_META } from "@/lib/social";
+import { listAmbientTracks } from "@/lib/audio";
 import { toYerevanInput } from "@/lib/tz";
 import { getDb, schema } from "@/lib/db";
 import { getSetting } from "@/lib/settings";
 import { telegramEnabled } from "@/lib/telegram";
 import { nowIso } from "@/lib/utils";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { adminDict, getAdminLocale, local } from "@/lib/i18n/admin";
 
 /** Notice / error wording for this action file. */
@@ -154,6 +155,9 @@ type FullPost = NonNullable<ReturnType<typeof getPostFull>>;
 const PlatformEnum = z.enum(PLATFORMS);
 const LangEnum = z.enum(["hy", "ru", "en"]);
 const GoalEnum = z.enum(["trust", "sales_b2b", "sales_b2c", "showcase", "education"]);
+const CanvasModeEnum = z.enum(["original", "smart_4_5", "story_9_16"]);
+const CanvasMatteEnum = z.enum(["blur", "dark"]);
+const AudioModeEnum = z.enum(["none", "auto", "custom"]);
 
 /** Statuses after which something has been (or is being) sent out: no cancel, no new approval round. */
 const SENT_STATUSES = ["published", "partially_published", "publishing"];
@@ -352,6 +356,9 @@ const VariantSchema = z.object({
   hashtags: z.array(z.string().max(80)).max(40),
   cta: z.string().max(300).nullable(),
   format: z.enum(["image", "carousel", "video", "reel", "short", "text"]),
+  // null = auto (chosen from platform + format, see defaultCanvasMode in lib/social/canvas.ts)
+  canvasMode: CanvasModeEnum.nullable().optional(),
+  canvasMatte: CanvasMatteEnum.optional(),
 });
 const SaveSchema = z.object({
   id: z.string(),
@@ -361,6 +368,9 @@ const SaveSchema = z.object({
   language: LangEnum.optional(),
   variants: z.array(VariantSchema),
   assetIds: z.array(z.string()).max(MAX_MEDIA),
+  audioMode: AudioModeEnum.optional(),
+  audioAssetId: z.string().nullable().optional(),
+  audioAmbientFile: z.string().max(300).nullable().optional(),
 });
 
 export async function savePostAction(input: z.infer<typeof SaveSchema>) {
@@ -381,8 +391,35 @@ export async function savePostAction(input: z.infer<typeof SaveSchema>) {
   const data = parsed.data;
   const full = getPostFull(data.id);
   if (!full) return { ok: false as const, error: m.notFound };
-  updatePost(data.id, { title: data.title, notes: data.notes ?? null, ...(data.goal ? { goal: data.goal } : {}), ...(data.language ? { language: data.language } : {}) });
-  for (const v of data.variants) updateVariant(data.id, v.id, { enabled: v.enabled, title: v.title, text: v.text, hashtags: v.hashtags, cta: v.cta, format: v.format });
+
+  let audioPatch: { audioMode: "none" | "auto" | "custom"; audioAssetId: string | null; audioAmbientFile: string | null } | null = null;
+  if (data.audioMode) {
+    if (data.audioMode === "custom") {
+      const a = data.audioAssetId ? getDb().select({ id: schema.assets.id }).from(schema.assets).where(and(eq(schema.assets.id, data.audioAssetId), eq(schema.assets.kind, "audio"))).get() : null;
+      if (!a) return { ok: false as const, error: m.invalidInput };
+      audioPatch = { audioMode: "custom", audioAssetId: a.id, audioAmbientFile: null };
+    } else if (data.audioMode === "auto") {
+      const track = data.audioAmbientFile ? listAmbientTracks().find((t) => t.file === data.audioAmbientFile) : null;
+      if (!track) return { ok: false as const, error: m.invalidInput };
+      audioPatch = { audioMode: "auto", audioAssetId: null, audioAmbientFile: track.file };
+    } else {
+      audioPatch = { audioMode: "none", audioAssetId: null, audioAmbientFile: null };
+    }
+  }
+
+  updatePost(data.id, { title: data.title, notes: data.notes ?? null, ...(data.goal ? { goal: data.goal } : {}), ...(data.language ? { language: data.language } : {}), ...(audioPatch ?? {}) });
+  for (const v of data.variants) {
+    updateVariant(data.id, v.id, {
+      enabled: v.enabled,
+      title: v.title,
+      text: v.text,
+      hashtags: v.hashtags,
+      cta: v.cta,
+      format: v.format,
+      canvasMode: v.canvasMode ?? null,
+      ...(v.canvasMatte ? { canvasMatte: v.canvasMatte } : {}),
+    });
+  }
   setPostAssets(data.id, [...new Set(data.assetIds)]);
   refresh(data.id);
   return { ok: true as const };

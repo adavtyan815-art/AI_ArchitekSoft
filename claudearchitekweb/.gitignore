@@ -8,6 +8,8 @@ data/uploads/
 data/tmp/
 # the owner's local drop folder (their own files, plus _imported/ and _failed/)
 data/inbox/
+# the owner's own royalty-free background-audio tracks
+data/audio/
 .env
 .env.local
 .env.production

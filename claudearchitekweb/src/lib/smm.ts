@@ -17,6 +17,9 @@ import { aiStatus, generatePostPack, rewriteText, type Platform, type PostGoal }
 import { getSetting } from "./settings";
 import { absPath, mediaUrl } from "./media";
 import { resolveUiLocale, socialMessages, type UiLocale } from "./social/messages";
+import { defaultCanvasMode, ensureCanvasVariant, type CanvasMatte, type CanvasMode } from "./social/canvas";
+import { ensureMixedVideo } from "./social/audio-mix";
+import { ambientFilePath } from "./audio";
 import * as tg from "./telegram";
 import { ADAPTERS, PLATFORM_META, type PublishInput } from "./social";
 import { fmtYerevan, nextYerevanSlot } from "./tz";
@@ -279,6 +282,54 @@ export type PublishPostResult =
  * Publishes every enabled variant once. The post is claimed atomically, so a second call
  * (next scheduler tick, a Telegram tap, a second browser tab) returns without touching any platform.
  */
+/**
+ * Applies this variant's Smart Canvas (image, never cropped) and the post's background-audio choice
+ * (video, mixed in with ffmpeg) to a set of assets, returning clones that point at the derived files —
+ * the id and every other field stay the asset's own, so a platform adapter that only ever reads
+ * `asset.relPath` publishes the adapted file without knowing substitution happened. A render failure
+ * falls back to the original asset rather than blocking the publish.
+ */
+async function adaptAssetsForVariant(assets: Asset[], v: PostVariant, audioTrackAbsPath: string | null): Promise<Asset[]> {
+  const mode = (v.canvasMode as CanvasMode | null) ?? defaultCanvasMode(v.platform, v.format);
+  const matte = (v.canvasMatte as CanvasMatte) || "blur";
+  const out: Asset[] = [];
+  for (const a of assets) {
+    if (a.mime.startsWith("image/") && mode !== "original") {
+      try {
+        const canvas = await ensureCanvasVariant(a, mode, matte);
+        out.push({ ...a, relPath: canvas.relPath, width: canvas.width || a.width, height: canvas.height || a.height });
+        continue;
+      } catch (e) {
+        console.warn("[smm] canvas render failed, publishing the original image:", (e as Error).message);
+      }
+    }
+    if (a.mime.startsWith("video/") && audioTrackAbsPath) {
+      try {
+        const mixed = await ensureMixedVideo(absPath(a.relPath), audioTrackAbsPath);
+        out.push({ ...a, relPath: mixed.relPath });
+        continue;
+      } catch (e) {
+        console.warn("[smm] background-audio mix failed, publishing the video without it:", (e as Error).message);
+      }
+    }
+    out.push(a);
+  }
+  return out;
+}
+
+/** Resolves the post's chosen background-audio track to an absolute path, or null when there isn't one. */
+function resolveAudioTrack(post: Post): string | null {
+  const db = getDb();
+  if (post.audioMode === "custom" && post.audioAssetId) {
+    const asset = db.select().from(schema.assets).where(eq(schema.assets.id, post.audioAssetId)).get();
+    return asset && asset.mime === "audio/mpeg" ? absPath(asset.relPath) : null;
+  }
+  if (post.audioMode === "auto" && post.audioAmbientFile) {
+    return ambientFilePath(post.audioAmbientFile);
+  }
+  return null;
+}
+
 export async function publishPost(postId: string, opts: { onlyPlatforms?: string[]; notify?: boolean; locale?: UiLocale | null } = {}): Promise<PublishPostResult> {
   const locale = await resolveUiLocale(opts.locale);
   const m = socialMessages(locale);
@@ -304,6 +355,7 @@ export async function publishPost(postId: string, opts: { onlyPlatforms?: string
     return { ok: false, error: m.noPlatform, status: "failed", results: [] };
   }
 
+  const audioTrackAbsPath = resolveAudioTrack(full.post);
   const results: PublishOutcome[] = [];
   for (const v of enabled) {
     const adapter = ADAPTERS[v.platform];
@@ -316,7 +368,9 @@ export async function publishPost(postId: string, opts: { onlyPlatforms?: string
       .where(and(eq(schema.postVariants.id, v.id), notInArray(schema.postVariants.status, ["published", "publishing"])))
       .run().changes > 0;
     if (!claimed) continue;
-    const input: PublishInput = { post: full.post, variant: v, assets: media, posterAsset: poster, publicBaseUrl: env.appUrl, locale };
+    const adaptedMedia = await adaptAssetsForVariant(media, v, audioTrackAbsPath);
+    const adaptedPoster = poster ? (await adaptAssetsForVariant([poster], v, audioTrackAbsPath))[0] ?? poster : null;
+    const input: PublishInput = { post: full.post, variant: v, assets: adaptedMedia, posterAsset: adaptedPoster, publicBaseUrl: env.appUrl, locale };
     let r: Awaited<ReturnType<typeof adapter>>;
     try {
       r = await adapter(input);

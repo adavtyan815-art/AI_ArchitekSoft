@@ -16,6 +16,8 @@ import * as tg from "../lib/telegram";
 import { duePostsForApproval, duePostsForPublishing, handleTelegramCallback, handleTelegramReply, publishPost, sendForApproval, sweepStalePost } from "../lib/smm";
 import { runInbox } from "../lib/inbox";
 import { cleanupDerived } from "../lib/social/media-prep";
+import { cleanupCanvasCache } from "../lib/social/canvas";
+import { cleanupAudioMixCache } from "../lib/social/audio-mix";
 import { deleteAsset } from "../lib/media";
 import { env } from "../lib/env";
 import { safeEqual } from "../lib/ids";
@@ -97,7 +99,9 @@ async function schedulerTick() {
     await step("cleanup", async () => {
       const uploads = cleanupOrphanUploads();
       const derived = cleanupDerived();
-      if (uploads || derived) log(`cleanup: ${uploads} orphaned upload(s), ${derived} derived image(s)`);
+      const canvas = cleanupCanvasCache();
+      const audioMix = cleanupAudioMixCache();
+      if (uploads || derived || canvas || audioMix) log(`cleanup: ${uploads} orphaned upload(s), ${derived} derived image(s), ${canvas} canvas render(s), ${audioMix} audio mix(es)`);
     });
   }
 }

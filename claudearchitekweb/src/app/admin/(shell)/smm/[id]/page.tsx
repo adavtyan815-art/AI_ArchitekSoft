@@ -4,7 +4,8 @@ import { ExternalLink } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getPostFull } from "@/lib/smm";
 import { notesForDisplay, suggestedSlotOf } from "@/lib/inbox";
-import { hashtagsOf, listMediaAssetsLite, telegramThreadsFor, toAssetLite } from "@/lib/smm-admin";
+import { hashtagsOf, listAudioAssetsLite, listMediaAssetsLite, telegramThreadsFor, toAssetLite } from "@/lib/smm-admin";
+import { listAmbientTracks } from "@/lib/audio";
 import { PLATFORM_META, platformStatus } from "@/lib/social";
 import { fmtYerevan, toYerevanInput } from "@/lib/tz";
 import { getSetting } from "@/lib/settings";
@@ -60,7 +61,12 @@ export default async function PostEditorPage({ params, searchParams }: { params:
       status: v.status,
       externalUrl: v.externalUrl,
       error: v.error,
+      canvasMode: v.canvasMode as EditorVariant["canvasMode"],
+      canvasMatte: v.canvasMatte as EditorVariant["canvasMatte"],
     }));
+
+  const ambientTracks = listAmbientTracks();
+  const customAudio = listAudioAssetsLite().map((a) => ({ id: a.id, name: a.name, url: a.url }));
 
   return (
     <>
@@ -91,10 +97,23 @@ export default async function PostEditorPage({ params, searchParams }: { params:
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-0">
         <PostEditor
-          post={{ id: post.id, title: post.title, goal: post.goal as never, language: post.language as never, status: post.status, scheduledLocal: toYerevanInput(post.scheduledAt), notes: post.notes }}
+          post={{
+            id: post.id,
+            title: post.title,
+            goal: post.goal as never,
+            language: post.language as never,
+            status: post.status,
+            scheduledLocal: toYerevanInput(post.scheduledAt),
+            notes: post.notes,
+            audioMode: post.audioMode as "none" | "auto" | "custom",
+            audioAssetId: post.audioAssetId,
+            audioAmbientFile: post.audioAmbientFile,
+          }}
           variants={variants}
           assets={attached.map((a) => ({ id: a.id, name: a.name, kind: a.kind, mime: a.mime, projectId: a.projectId, thumbUrl: a.thumbUrl, url: a.url, width: a.width, height: a.height, durationSec: a.durationSec }))}
           library={library.map((a) => ({ id: a.id, name: a.name, kind: a.kind, mime: a.mime, projectId: a.projectId, thumbUrl: a.thumbUrl, url: a.url, width: a.width, height: a.height, durationSec: a.durationSec }))}
+          ambientTracks={ambientTracks}
+          customAudio={customAudio}
           metaMap={PLATFORM_META}
           labels={L}
           actionLabels={t.smm.act}
