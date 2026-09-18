@@ -2,7 +2,7 @@
  * Admin-side SMM queries and mutations (lists, stats, variant/asset editing, duplicate, delete).
  * Publishing / approval logic lives in ./smm.ts.
  */
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { mediaUrl } from "./media";
 import { nowIso, parseJson } from "./utils";
@@ -56,16 +56,56 @@ export function listProjectsLite(): ProjectLite[] {
   });
 }
 
-/** Images, videos and posters (the media that can go into a post or the portfolio). */
-export function listMediaAssetsLite(limit = 500): AssetLite[] {
-  return getDb()
-    .select()
-    .from(schema.assets)
-    .where(sql`(${schema.assets.mime} like 'image/%' or ${schema.assets.mime} like 'video/%')`)
-    .orderBy(desc(schema.assets.createdAt))
-    .limit(limit)
-    .all()
-    .map(toAssetLite);
+export type MediaListOptions = {
+  /**
+   * Only media of this project plus unassigned library media (filtered in SQL, before the limit).
+   * Leave undefined when the project can still change on the client (composer, portfolio form).
+   */
+  projectId?: string | null;
+  /** Asset ids that must be offered even when they are older than the limit (a post's or item's current selection). */
+  includeIds?: (string | null | undefined)[];
+  /**
+   * Without a project filter: also return the newest N media of every project, so an older project's
+   * media can still be picked after the library has grown past `limit`.
+   */
+  perProject?: number;
+};
+
+const MEDIA_MIME = sql`(${schema.assets.mime} like 'image/%' or ${schema.assets.mime} like 'video/%')`;
+
+/**
+ * Images, videos and posters (the media that can go into a post or the portfolio), newest first.
+ * The limit is applied after the project filter, and the ids in `includeIds` are always merged in, so
+ * an existing selection never drops out of the picker.
+ */
+export function listMediaAssetsLite(limit = 500, opts: MediaListOptions = {}): AssetLite[] {
+  const db = getDb();
+  const where = opts.projectId ? and(MEDIA_MIME, or(eq(schema.assets.projectId, opts.projectId), isNull(schema.assets.projectId))) : MEDIA_MIME;
+  const rows: Asset[] = db.select().from(schema.assets).where(where).orderBy(desc(schema.assets.createdAt)).limit(limit).all();
+  const seen = new Set(rows.map((a) => a.id));
+  const merge = (extra: Asset[]) => {
+    for (const a of extra) {
+      if (seen.has(a.id)) continue;
+      seen.add(a.id);
+      rows.push(a);
+    }
+  };
+
+  if (!opts.projectId && opts.perProject && rows.length >= limit) {
+    // The library is larger than the limit: top up with the newest media of each project.
+    const ids = db
+      .all<{ id: string }>(
+        sql`select id from (select id, row_number() over (partition by project_id order by created_at desc) as rn from assets where project_id is not null and (mime like 'image/%' or mime like 'video/%')) where rn <= ${opts.perProject}`
+      )
+      .map((r) => r.id)
+      .filter((id) => !seen.has(id));
+    for (let i = 0; i < ids.length; i += 400) merge(db.select().from(schema.assets).where(inArray(schema.assets.id, ids.slice(i, i + 400))).all());
+  }
+
+  const wanted = [...new Set((opts.includeIds ?? []).filter((id): id is string => !!id && !seen.has(id)))];
+  if (wanted.length) merge(db.select().from(schema.assets).where(and(MEDIA_MIME, inArray(schema.assets.id, wanted))).all());
+
+  return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(toAssetLite);
 }
 
 export type PostRow = Post & { projectTitle: string | null; projectCode: string | null; variants: { platform: string; enabled: boolean; status: string }[] };
@@ -93,7 +133,8 @@ export function smmStats() {
     awaiting: count(sql`status = 'awaiting_approval'`),
     scheduled: count(sql`status in ('scheduled','approved')`),
     published30: count(sql`status in ('published','partially_published') and published_at >= ${since30}`),
-    failed: count(sql`status = 'failed'`),
+    // A partially published post has failed variants too: it needs the same attention as a fully failed one.
+    failed: count(sql`status = 'failed' or (status = 'partially_published' and exists (select 1 from post_variants v where v.post_id = ${schema.posts.id} and v.enabled = 1 and v.status = 'failed'))`),
   };
 }
 

@@ -6,10 +6,10 @@ import { pageMeta } from "../meta";
 import { ButtonLink, CheckList, Frame, Index, SectionHeading, Tag, Ticks } from "@/components/ui";
 
 /** Page-only strings that have no dictionary key yet. */
-const LOCAL: Record<Locale, { result: string }> = {
-  hy: { result: "Արդյունքը" },
-  ru: { result: "Результат" },
-  en: { result: "Result" },
+const LOCAL: Record<Locale, { result: string; surveyCaption: string; surveyMark: string }> = {
+  hy: { result: "Արդյունքը", surveyCaption: "Չափագրում → Web Viewer", surveyMark: "24–48 Ժ" },
+  ru: { result: "Результат", surveyCaption: "Обмер → Web Viewer", surveyMark: "24–48 Ч" },
+  en: { result: "Result", surveyCaption: "Survey → Web Viewer", surveyMark: "24–48 H" },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -96,7 +96,7 @@ export default async function HowItWorksPage({ params }: { params: Promise<{ loc
             </ButtonLink>
           </div>
           <div className="lg:col-span-6 lg:col-start-7">
-            <Frame marks caption="Survey → Web Viewer" captionRight="24–48 H">
+            <Frame marks caption={t.surveyCaption} captionRight={t.surveyMark}>
               <div className="relative aspect-[4/3] bg-surface-2">
                 <Image src="/demo/render-3.webp" alt="" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
               </div>

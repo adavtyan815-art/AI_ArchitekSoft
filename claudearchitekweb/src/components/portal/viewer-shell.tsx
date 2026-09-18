@@ -1,34 +1,39 @@
 "use client";
 
-import { BrandLogo } from "@/components/brand-logo";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, Check, Link2 } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ViewerDemo } from "@/components/site/viewer-demo";
-import { portalEvent } from "./beacon";
 
 export type ViewerShellLabels = {
   back: string;
   share: string;
   copied: string;
   hint: string;
+  /** Kept for the viewer's own type; a client model is never repainted, so no swatch bar is rendered. */
   swatches: string;
   ar: string;
   reset: string;
+  /** Accessible name of the 3D model. */
+  alt: string;
+  loading: string;
+  error: string;
+  retry: string;
   theme: { light: string; dark: string };
 };
 
 /**
  * Full-screen Web Viewer for one project: a thin top bar (64 px), the model on a
  * dark stage with a dot-grid floor and corner marks, and a mono status bar below.
- * The ViewerDemo inside inherits the stage tokens, so its swatch toolbar goes dark.
+ * The ViewerDemo inside inherits the stage tokens, so its toolbar goes dark.
+ *
+ * The opening of the viewer is recorded by <OpenViewerBeacon> on the page, not here,
+ * so one click from the client page produces exactly one event.
  */
 export function ViewerShell({
-  slug,
-  token,
   title,
   code,
-  logoSrc,
   glbUrl,
   iosSrc,
   poster,
@@ -36,12 +41,9 @@ export function ViewerShell({
   shareUrl,
   labels,
 }: {
-  slug: string;
-  token: string;
   title: string;
   /** Mono project code shown above the title, e.g. AT-2026-0042. */
   code?: string | null;
-  logoSrc: string;
   glbUrl: string;
   iosSrc?: string | null;
   poster?: string | null;
@@ -49,35 +51,7 @@ export function ViewerShell({
   shareUrl: string;
   labels: ViewerShellLabels;
 }) {
-  const wrap = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
-  const sent = useRef(false);
-
-  // One "open_viewer" event per page load.
-  useEffect(() => {
-    if (sent.current) return;
-    sent.current = true;
-    portalEvent(slug, token, "open_viewer", { via: "web_viewer" });
-  }, [slug, token]);
-
-  // ViewerDemo has no ios-src prop (it is owned by the site surface), so the
-  // iOS Quick Look source is attached to the element as soon as it mounts.
-  useEffect(() => {
-    const root = wrap.current;
-    if (!iosSrc || !root) return;
-    const apply = () => {
-      const mv = root.querySelector("model-viewer");
-      if (!mv) return false;
-      if (mv.getAttribute("ios-src") !== iosSrc) mv.setAttribute("ios-src", iosSrc);
-      return true;
-    };
-    if (apply()) return;
-    const mo = new MutationObserver(() => {
-      if (apply()) mo.disconnect();
-    });
-    mo.observe(root, { childList: true, subtree: true });
-    return () => mo.disconnect();
-  }, [iosSrc]);
 
   async function share() {
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
@@ -105,8 +79,9 @@ export function ViewerShell({
           <a href={backHref} className="btn-ghost btn-icon flex-none rounded-md" aria-label={labels.back}>
             <ArrowLeft size={18} strokeWidth={1.5} aria-hidden />
           </a>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <span className="hidden flex-none sm:block"><BrandLogo className="h-6" /></span>
+          <span className="hidden flex-none sm:block">
+            <BrandLogo className="h-6" />
+          </span>
           <div className="min-w-0 flex-1">
             {code ? <div className="caption truncate text-accent">{code}</div> : null}
             {/* the truncate lives on the span: global h1 styling sets text-wrap and would win on the heading itself */}
@@ -114,22 +89,31 @@ export function ViewerShell({
               <span className="block truncate">{title}</span>
             </h1>
           </div>
-          <button type="button" onClick={share} className="btn-secondary btn-sm flex-none gap-2 font-mono text-[11px] tracking-[0.08em] uppercase" aria-label={labels.share}>
+          {/* No static aria-label: the button's own text is its accessible name, so "Copied" is announced. */}
+          <button type="button" onClick={share} className="btn-secondary btn-sm flex-none gap-2 font-mono text-[11px] tracking-[0.08em] uppercase">
             {copied ? <Check size={14} strokeWidth={2} aria-hidden /> : <Link2 size={14} strokeWidth={1.75} aria-hidden />}
+            <span className="sr-only sm:hidden">{labels.share}</span>
             <span className="hidden sm:inline">{copied ? labels.copied : labels.share}</span>
           </button>
           <ThemeToggle labels={labels.theme} className="flex-none" />
         </div>
       </header>
+      {/* Screen readers are told about the copy even when focus stays on the button. */}
+      <span role="status" aria-live="polite" className="sr-only">
+        {copied ? labels.copied : ""}
+      </span>
 
       {/* The stage fills the rest of the viewport: ViewerDemo brings the dark ground,
-          the dot-grid floor, the corner marks, the mono toolbar and the swatch bar. */}
-      <div ref={wrap} className="min-h-0 flex-1 bg-stage">
+          the dot-grid floor, the corner marks and the mono toolbar. */}
+      <div className="min-h-0 flex-1 bg-stage">
         <ViewerDemo
           autoload
           src={glbUrl}
+          iosSrc={iosSrc ?? undefined}
           poster={poster ?? undefined}
-          labels={{ hint: labels.hint, swatches: labels.swatches, ar: labels.ar, reset: labels.reset }}
+          /* A client's own model keeps its finishes: the demo palette would repaint a real kitchen. */
+          swatches={[]}
+          labels={{ hint: labels.hint, swatches: labels.swatches, ar: labels.ar, reset: labels.reset, alt: labels.alt, loading: labels.loading, error: labels.error, retry: labels.retry }}
           className="flex h-full flex-col rounded-none! border-x-0! border-t-0! shadow-none!"
           height="min-h-0 flex-1"
         />

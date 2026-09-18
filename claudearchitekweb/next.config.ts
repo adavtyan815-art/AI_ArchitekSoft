@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { NON_DOCUMENT_CSP } from "./src/lib/csp";
 
 /**
  * Performance notes
@@ -13,8 +14,17 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["better-sqlite3", "sharp", "ffmpeg-static"],
   compress: true,
   poweredByHeader: false,
+  // The dev tools bubble sits on top of the phone tab bar; it adds nothing for this project.
+  devIndicators: false,
   experimental: {
-    serverActions: { bodySizeLimit: "50mb" },
+    // Forms post small payloads; files go to /api/admin/upload and /api/upload/public, which are
+    // route handlers and not limited by this option. A large cap here would let an anonymous client
+    // make the server buffer that much before the sign-in action even looks at the password.
+    serverActions: { bodySizeLimit: "2mb" },
+    // Middleware clones the request body, so this is the ceiling for anything posted to a *page* route.
+    // Keep it at or above the server-action limit above. /api and /media are excluded from the
+    // middleware matcher (see src/middleware.ts), so uploads never pass through here.
+    middlewareClientMaxBodySize: "4mb",
     optimizePackageImports: ["lucide-react", "recharts"],
   },
   images: {
@@ -49,8 +59,17 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
         ],
       },
+      // Content-Security-Policy for documents is per-request: it carries a nonce, so it is set in
+      // src/middleware.ts (which covers every path except the two excluded from its matcher below).
+      // /api answers JSON and never passes through the middleware, so its policy is a constant.
+      { source: "/api/:path*", headers: [{ key: "Content-Security-Policy", value: NON_DOCUMENT_CSP }] },
       { source: "/brand/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
       { source: "/demo/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
+      // robots.txt no longer disallows /p/, so crawlers do fetch client pages now. The pages already
+      // carry <meta name="robots" content="noindex, nofollow">; the header backs that up and also
+      // covers the non-HTML responses (a 404, a redirect) that carry no meta tag.
+      { source: "/p/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+      { source: "/v/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
     ];
   },
 };

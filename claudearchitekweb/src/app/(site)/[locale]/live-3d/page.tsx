@@ -3,11 +3,13 @@ import type { Metadata } from "next";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { ButtonLink, CheckList, Frame, Index, SectionHeading, Spec } from "@/components/ui";
+import { TrackedCta } from "@/components/site/cta";
 import { pageMeta } from "../meta";
 
 /** Page-only strings: the quota broken down as a spec list. */
-const LOCAL: Record<Locale, { spec: { k: string; v: string }[] }> = {
+const LOCAL: Record<Locale, { realTime: string; spec: { k: string; v: string }[] }> = {
   hy: {
+    realTime: "Իրական ժամանակում",
     spec: [
       { k: "Փորձառություն", v: "Ազատ քայլում · նյութերի ակնթարթային փոփոխություն" },
       { k: "Որակ", v: "4K · 60 FPS · իրական ժամանակի լուսավորություն" },
@@ -17,6 +19,7 @@ const LOCAL: Record<Locale, { spec: { k: string; v: string }[] }> = {
     ],
   },
   ru: {
+    realTime: "В реальном времени",
     spec: [
       { k: "Опыт", v: "Свободное перемещение · мгновенная смена материалов" },
       { k: "Качество", v: "4K · 60 FPS · свет в реальном времени" },
@@ -26,6 +29,7 @@ const LOCAL: Record<Locale, { spec: { k: string; v: string }[] }> = {
     ],
   },
   en: {
+    realTime: "Real time",
     spec: [
       { k: "Experience", v: "Free walkthrough · instant material changes" },
       { k: "Quality", v: "4K · 60 FPS · real-time lighting" },
@@ -66,17 +70,17 @@ export default async function LivePage({ params }: { params: Promise<{ locale: s
               <p className="lead mt-7 max-w-[34rem]">{l.subtitle}</p>
               <CheckList items={d.home.liveBullets} className="mt-8" />
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <ButtonLink href={p("/start?segment=b2b")} size="lg" className="bg-[#f4f2ed] text-[#17150f] hover:bg-[#fffdf9]">
+                <TrackedCta href={p("/start?segment=b2b")} label="live-hero" locale={locale} segment="b2b" size="lg" className="bg-[#f4f2ed] text-[#17150f] hover:bg-[#fffdf9]">
                   {l.cta}
                   <ArrowUpRight size={18} />
-                </ButtonLink>
+                </TrackedCta>
                 <ButtonLink href={p("/viewer")} variant="secondary" size="lg">
                   {l.compareCta}
                 </ButtonLink>
               </div>
             </div>
             <div className="lg:col-span-5 lg:col-start-8 lg:self-center">
-              <Frame marks aspect="aspect-[4/3]" caption="Live 3D · 4K · 60 FPS" captionRight="Real time">
+              <Frame marks aspect="aspect-[4/3]" caption="Live 3D · 4K · 60 FPS" captionRight={t.realTime}>
                 <Image src="/demo/interior.jpg" alt="" fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
                 <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-sm bg-[#17150f]/70 px-2.5 py-1 font-mono text-[10.5px] tracking-[0.12em] text-[#f4f2ed] uppercase backdrop-blur">
                   <span className="dot bg-accent" />
@@ -147,10 +151,10 @@ export default async function LivePage({ params }: { params: Promise<{ locale: s
               <p className="mt-4 max-w-lg text-[15px] opacity-85 sm:text-[16px]">{d.home.finalText}</p>
             </div>
             <div className="flex flex-col gap-3 lg:col-span-4 lg:col-start-9 lg:items-end">
-              <ButtonLink href={p("/start?segment=b2b")} size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
+              <TrackedCta href={p("/start?segment=b2b")} label="live-closing" locale={locale} segment="b2b" size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
                 {l.cta}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
               <ButtonLink href={p("/for-business")} variant="ghost" className="w-full text-accent-fg hover:bg-accent-fg/15 hover:text-accent-fg sm:w-fit">
                 {d.nav.business}
                 <ArrowRight size={16} />

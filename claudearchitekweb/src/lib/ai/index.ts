@@ -7,6 +7,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { env } from "../env";
 import { getSetting } from "../settings";
+import { resolveUiLocale, socialMessages, type UiLocale } from "../social/messages";
 import { buildTemplatePack } from "./templates";
 
 export const PLATFORMS = ["facebook", "instagram", "linkedin", "telegram", "youtube", "tiktok"] as const;
@@ -68,7 +69,7 @@ export function buildPrompt(ctx: PostContext) {
   const brand = getSetting("brand");
   const smm = getSetting("smm");
   const system = `You are the marketing copywriter of ${brand.name} (${brand.website}), an Armenian technology company.
-Product: the ArchiTek Soft platform — interactive 3D for custom furniture (kitchens first), from selection to production documents. Never name internal tools, engines, plugins or infrastructure in the text (no "KitchenPro", no engine or cloud names): describe capabilities and results only. From one 3D design the customer gets an interactive 3D showroom link (walk around, open drawers, change materials, see the price, AR on phone) and the workshop gets production documents (cut list, edge banding, drilling coordinates, hardware and material bills). Other services: real-estate 3D presentations, showroom configurators, AR/VR, custom software. Built on Unreal Engine 5 with real manufacturers' materials and hardware (EGGER, Blum, Hettich).
+Product: the ArchiTek Soft platform — interactive 3D for custom furniture (kitchens first), from selection to production documents. Never name internal tools, engines, plugins or infrastructure in the text (no "KitchenPro", no engine or cloud names): describe capabilities and results only. From one 3D design the customer gets an interactive 3D showroom link (walk around, open drawers, change materials, see the price, AR on phone) and the workshop gets production documents (cut list, edge banding, drilling coordinates, hardware and material bills). Other services: real-estate 3D presentations, showroom configurators, AR/VR, custom software. Everything is built with real manufacturers' materials and hardware (EGGER, Blum, Hettich) — name those, never the software behind the platform.
 Audience: B2B (furniture makers, showrooms, design studios, developers) and B2C (households ordering a kitchen).
 Brand voice: ${smm.brandVoice}
 Never invent numbers, client names, prices or awards. Do not use words like "revolutionary". Keep it concrete and calm. The goal is trust and sales, not likes.
@@ -151,23 +152,54 @@ function normalise(raw: unknown, ctx: PostContext, provider: PostPack["provider"
   };
 }
 
+/**
+ * `max_tokens` is only a ceiling (nothing is billed for tokens that are not produced), so it is set well
+ * above what a six-platform Armenian pack needs. A truncated or refused answer must never be parsed:
+ * silently falling back to templates hides the reason, and half a JSON object is not a post.
+ */
+const PACK_MAX_TOKENS = 16000;
+const REWRITE_MAX_TOKENS = 8000;
+
+/** Text of a Claude answer, or an explicit error when the answer was truncated, refused or empty. */
+function claudeText(response: Anthropic.Message, what: string): string {
+  if (response.stop_reason === "refusal") throw new Error(`Claude declined the ${what}`);
+  if (response.stop_reason === "max_tokens") throw new Error(`Claude output truncated (max_tokens) while writing the ${what}`);
+  const text = response.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("\n")
+    .trim();
+  if (!text) throw new Error(`Claude returned an empty ${what}`);
+  return text;
+}
+
 async function generateWithClaude(ctx: PostContext): Promise<PostPack> {
   const client = new Anthropic({ apiKey: env.ai.anthropicKey });
   const { system, user } = buildPrompt(ctx);
   const response = await client.messages.create({
     model: env.ai.anthropicModel,
-    max_tokens: 4000,
+    max_tokens: PACK_MAX_TOKENS,
     system,
     thinking: { type: "adaptive" },
     output_config: { effort: "medium" },
     messages: [{ role: "user", content: user }],
   });
-  if (response.stop_reason === "refusal") throw new Error("Claude declined the request");
-  const text = response.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("\n");
-  return normalise(extractJson(text), ctx, "claude");
+  return normalise(extractJson(claudeText(response, "post pack")), ctx, "claude");
+}
+
+type GeminiReply = { candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[] };
+
+/** Gemini answer text, or an explicit error. Never returns "" so a failure can never pass as a result. */
+async function geminiText(res: Response, what: string): Promise<string> {
+  if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`);
+  const json = (await res.json().catch(() => null)) as GeminiReply | null;
+  const candidate = json?.candidates?.[0];
+  if (!candidate) throw new Error(`Gemini returned no ${what}`);
+  if (candidate.finishReason === "MAX_TOKENS") throw new Error(`Gemini output truncated (max_tokens) while writing the ${what}`);
+  if (candidate.finishReason && candidate.finishReason !== "STOP") throw new Error(`Gemini stopped early (${candidate.finishReason})`);
+  const text = (candidate.content?.parts?.map((p) => p.text ?? "").join("") ?? "").trim();
+  if (!text) throw new Error(`Gemini returned an empty ${what}`);
+  return text;
 }
 
 async function generateWithGemini(ctx: PostContext): Promise<PostPack> {
@@ -181,11 +213,9 @@ async function generateWithGemini(ctx: PostContext): Promise<PostPack> {
       contents: [{ parts: [{ text: user }] }],
       generationConfig: { responseMimeType: "application/json", temperature: 0.7 },
     }),
+    signal: AbortSignal.timeout(120_000),
   });
-  if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const json = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-  const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  return normalise(extractJson(text), ctx, "gemini");
+  return normalise(extractJson(await geminiText(res, "post pack")), ctx, "gemini");
 }
 
 export function aiStatus() {
@@ -194,8 +224,11 @@ export function aiStatus() {
   return { provider: "template" as const, model: "built-in templates" };
 }
 
-/** Generate a post pack. Falls back gracefully so the UI always gets a result. */
-export async function generatePostPack(ctx: PostContext): Promise<PostPack & { warning?: string }> {
+/**
+ * Generate a post pack. Falls back to the built-in templates so the composer always gets a result;
+ * the warning explains, in the admin language, why the AI was not used.
+ */
+export async function generatePostPack(ctx: PostContext, locale?: UiLocale | null): Promise<PostPack & { warning?: string }> {
   const errors: string[] = [];
   if (env.ai.anthropicKey) {
     try {
@@ -212,28 +245,32 @@ export async function generatePostPack(ctx: PostContext): Promise<PostPack & { w
     }
   }
   const pack = buildTemplatePack(ctx);
-  return { ...pack, warning: errors.length ? errors.join(" | ") : "AI բանալի չկա — տեքստը գրվել է ներկառուցված ձևանմուշներով։ AI գրառումների համար .env-ում ավելացրու ANTHROPIC_API_KEY։" };
+  const m = socialMessages(await resolveUiLocale(locale));
+  return { ...pack, warning: errors.length ? m.aiFailed(errors.join(" | ")) : m.aiNoKey };
 }
 
-/** Free-form rewrite of one variant (used by the "Improve" button and Telegram edit flow). */
+/**
+ * Free-form rewrite of one variant (used by the "Improve" button and the Telegram edit flow).
+ * Throws instead of returning the original text: a caller that saves the result must be able to tell
+ * "the AI rewrote it" from "nothing happened", otherwise a refusal or a missing key is stored as the new text.
+ */
 export async function rewriteText(instruction: string, text: string, language: PostContext["language"]): Promise<string> {
   const prompt = `Rewrite the following social media post in ${languageName(language)} according to this instruction: "${instruction}". Keep the meaning, keep hashtags at the end if present, return only the new text.\n\n---\n${text}`;
   if (env.ai.anthropicKey) {
     const client = new Anthropic({ apiKey: env.ai.anthropicKey });
     const r = await client.messages.create({
       model: env.ai.anthropicModel,
-      max_tokens: 2000,
+      max_tokens: REWRITE_MAX_TOKENS,
       thinking: { type: "adaptive" },
       output_config: { effort: "low" },
       messages: [{ role: "user", content: prompt }],
     });
-    return r.content.filter((b): b is Anthropic.TextBlock => b.type === "text").map((b) => b.text).join("\n").trim();
+    return claudeText(r, "rewrite");
   }
   if (env.ai.geminiKey) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${env.ai.geminiModel}:generateContent?key=${env.ai.geminiKey}`;
-    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
-    const json = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-    return json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() || text;
+    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }), signal: AbortSignal.timeout(120_000) });
+    return await geminiText(res, "rewrite");
   }
-  return text;
+  throw new Error("No AI key is configured");
 }

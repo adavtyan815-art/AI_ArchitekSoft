@@ -1,10 +1,26 @@
 # Executive summary
 
-**Date:** 10 September 2026 (v3) · **Branch:** `claude` · **Folder:** `claudearchitekweb/`
+**Date:** 17 September 2026 (v4) · **Branch:** `claude` · **Folder:** `claudearchitekweb/`
 
 ## Corrected positioning (v2)
 
 ArchiTek Soft **does not sell or manufacture furniture**. It helps furniture makers, showrooms and their customers choose colours, materials, form and configuration with confidence in interactive 3D, before production. The **Web Viewer** link is the default deliverable for every client; **Live 3D (Pixel Streaming)** is a premium B2B presentation with a time quota. Every page, package and CTA was rewritten with this in mind (see `12_OFFERS_AND_POSITIONING.md`).
+
+## What changed in v4 — one new feature, then a quality pass
+
+**New: the local file inbox.** Copy a folder of renders (and an optional one-page `post.txt` brief) into `data/inbox/` and the system prepares a post draft by itself: one text per platform, the media attached, a publishing slot proposed. A folder is imported only after nothing in it has changed for 30 seconds, so copying a large video in is safe; the worker scans every 60 seconds, and the same import can be triggered from the Inbox panel of Admin → Social media or with `npm run inbox`. Your files are never deleted — an imported folder moves to `data/inbox/_imported/`, a rejected one to `_failed/` with an `error.txt` beside it. Where the draft came from is recorded on the post, so an inbox suggestion is recognisable in the admin and in Telegram. Full guide: `15_INBOX_WORKFLOW.md`.
+
+**Then the whole system was audited and repaired** — the code line by line and the running interface page by page, at desktop and phone sizes, in all three site languages and both admin languages. Every confirmed defect was either fixed or written down with the reason it was left. The full report — the counts, the decisions that were taken by default so you can overrule them, and the leftovers — is `17_QA_AUDIT_2026-09.md`. What you will notice:
+
+- **Unknown addresses now get a real page.** `/anything-wrong` answers 404 with the site's own header, footer and wording, in the visitor's language, with links back into the rest of the site. A mistyped admin URL stays inside the admin shell.
+- **A client link that ran out, or that you switched off, answers 410 Gone** instead of 200, while still showing its own "no longer available" card. Link checkers, chat apps unfurling the link and uptime monitoring can now tell a finished link from a live one.
+- **Client files are gated by the link, not by the path.** A file belonging to a private client page is no longer served to someone who only knows its URL, and a lookup failure now denies access instead of allowing it.
+- **A Content-Security-Policy is sent on every response**, built fresh per request, so an injected script has nothing to run in.
+- **Admin lists on a phone are one tappable row per record** instead of a six-to-nine-line card — leads, clients, companies, projects, client pages and portfolio. The leads list went from 4362 px tall to 1224 px, portfolio from 7754 px to 1137 px.
+- **Everything you tap on a phone is at least 40 px**, money no longer breaks mid-currency, revenue axis ticks read `2.5M` instead of `2500k`, and every form that rejects your input says why, inline, in the language you are using.
+- **Publish now disappears when every platform is switched off**, so a post can no longer be "published" to nothing.
+
+The result was re-checked against a production build, not the development server: type check, lint and `next build` clean; 96 public page loads and 175 admin page loads at 1440×900 and 390×844, in every language, plus 80 checks on the client portal — with no server error, no browser console error, no hydration error and no sideways scrolling at phone width.
 
 ## What changed in v3 — design
 
@@ -28,7 +44,7 @@ One Next.js application (TypeScript, SQLite) that runs locally with a double-cli
 
 **Client website** (Armenian default, Russian, English)
 - Home: one promise ("see the kitchen in 3D before it is built"), proof strip, "Who are you?" split into *I make furniture* (B2B) and *I'm ordering a kitchen* (B2C), KitchenPro in three verbs (See · Choose · Build), three steps, "what you need to start" checklist, other solutions, real portfolio, FAQ, contact.
-- Dedicated pages: KitchenPro, For business, For home, Other solutions, How it works, Portfolio (+ detail), Contact, **Start a project** (a 4-step intake wizard with file upload that creates a lead, notifies you in Telegram and shows the client a request number).
+- Dedicated pages: KitchenPro, For business, For home, Other solutions, How it works, Portfolio (+ detail), About, FAQ, Privacy, Contact, **Start a project** (a 4-step intake wizard with file upload that creates a lead, notifies you in Telegram and shows the client a request number).
 - First-party, cookie-free analytics (no consent banner needed).
 
 **Client pages** (`/p/slug?k=token`) — the deliverable a client receives: greeting, project stage, Live 3D button, Web 3D, AR (QR for phone), sketch→3D slider, 4K gallery, video, PDF, materials, and **Approve / Request change / Question** which land in the CRM and in your Telegram. Expiry, passcode, view tracking.
@@ -39,10 +55,10 @@ One Next.js application (TypeScript, SQLite) that runs locally with a double-cli
 - Projects/orders with KitchenPro stages (request → survey → design → configuration → approval → production prep → production → installation → handover), money fields, deliverable links (Live 3D instance creation against your existing `live.architeksoft.com` backend, viewer URL, AR models).
 - Media library: drag-and-drop upload of renders, videos (auto thumbnails, duration), PDFs, GLB/USDZ; assign to projects; branded poster generator (1:1, 4:5, 16:9, 9:16).
 - Client pages manager: create, copy, send, expire, see views and actions.
-- SMM studio: pick a project and its media → AI writes one core idea and a variant per platform (Facebook, Instagram, LinkedIn, Telegram, YouTube, TikTok) in the chosen language → edit → schedule → at the scheduled time (minus lead time) the bot sends you the post, media and buttons **Approve & publish / Edit / Tomorrow / Skip** in Telegram → after approval it publishes through the platform adapters and reports links back. Daily brief in Telegram at 09:00.
+- SMM studio: pick a project and its media — or let the file inbox pick them for you — → AI writes one core idea and a variant per platform (Facebook, Instagram, LinkedIn, Telegram, YouTube, TikTok) in the chosen language → edit → schedule → at the scheduled time (minus lead time) the bot sends you the post, media and buttons **Approve & publish / Edit / Tomorrow / Skip** in Telegram → after approval it publishes through the platform adapters and reports links back. Daily brief in Telegram at the time set in Settings → Telegram (09:00 by default).
 - Analytics: website, CRM funnel, revenue, client-page views, SMM output. Settings: brand, SMM rules, Telegram, integrations status, Live 3D, security.
 
-**Runs without any key.** Add keys progressively: Anthropic (AI copy), Telegram bot (approvals), Meta (Facebook + Instagram), LinkedIn, YouTube.
+**Runs without any key.** Add keys progressively: Anthropic (AI copy), Telegram bot (approvals), Meta (Facebook + Instagram), LinkedIn, YouTube. Until a platform has its credentials, its adapter runs as an explicit simulation and says so on the post — see `16_FIRST_TEST_POST.md`.
 
 ## Key decisions (and why)
 
@@ -55,8 +71,11 @@ One Next.js application (TypeScript, SQLite) that runs locally with a double-cli
 | Telegram-first approvals and notifications | Free, instant, no approval process, already your channel. Email is optional. |
 | Native Meta + Telegram publishing first; LinkedIn/YouTube behind OAuth; TikTok manual | Matches what a solo business can actually get approved (see research). A unified API (Zernio/Upload-Post/Post Bridge) is documented as an alternative. |
 | First-party analytics | No cookies, no GDPR banner, portal opens tracked server-side. |
+| A folder on your PC as the second way in | Preparing a post should not require opening the admin at all: the renders you already export are the input, and everything else is a suggestion you approve or ignore. |
 
 ## Things found during the study that need your attention
+
+These concern the **current** live site and the old repository, not this system. They were true when the study was made (September 2026); check them off as you handle them.
 
 1. **`live.architeksoft.com` TLS certificate expired on 17 July 2026** — browsers warn before your only interactive demo. Renew (Let's Encrypt auto-renew in the docker-compose there).
 2. The current site's e-mail link is broken (`https://architeksoft@gmail.com` instead of `mailto:`), the "Write to us" button points to `#`, and `architekmain.carrd.co` returns 404.
@@ -66,4 +85,4 @@ One Next.js application (TypeScript, SQLite) that runs locally with a double-cli
 
 ## Where to go next
 
-Open `docs/09_ROADMAP.md`. Short version: (1) run locally and click through, (2) add your Telegram bot and Anthropic key, (3) connect Facebook/Instagram, (4) deploy to a €10 VPS as `new.architeksoft.com`, (5) switch DNS when you are happy.
+Open `docs/09_ROADMAP.md`. Short version: (1) run locally and click through, (2) do the first test post as a dry run with `docs/16_FIRST_TEST_POST.md`, (3) add your Telegram bot and Anthropic key, (4) connect Facebook/Instagram, (5) deploy to a €10 VPS as `new.architeksoft.com`, (6) switch DNS when you are happy.

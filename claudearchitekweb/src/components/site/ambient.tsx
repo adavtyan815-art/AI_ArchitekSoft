@@ -79,15 +79,36 @@ export function Ambient() {
     };
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, w < 700 ? 1.5 : 2);
+      const pw = w;
+      const ph = h;
+      // measure first: the DPR cap depends on the width of THIS layout, not of the previous one
       w = window.innerWidth;
       h = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, w < 700 ? 1.5 : 2);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      seed();
+      // A new mesh only when the layout really changed (first run, rotation, crossing the phone
+      // breakpoint, a large width change). Height-only changes — the phone URL bar sliding in and out —
+      // and small adjustments keep the same nodes and stretch them to the new box, so the background
+      // never jumps to another pattern while the visitor scrolls.
+      const crossedPhone = (pw < 700) !== (w < 700);
+      const reseed = !nodes.length || pw <= 0 || ph <= 0 || crossedPhone || Math.abs(w - pw) / pw > 0.25;
+      if (reseed) {
+        seed();
+        return;
+      }
+      const sx = w / pw;
+      const sy = h / ph;
+      if (sx === 1 && sy === 1) return;
+      for (const p of nodes) {
+        p.bx *= sx;
+        p.by *= sy;
+        p.x *= sx;
+        p.y *= sy;
+      }
     };
 
     const draw = (dt: number) => {

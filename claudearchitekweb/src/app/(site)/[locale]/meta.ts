@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LOCALES, localePath, type Locale } from "@/lib/i18n";
+import { LOCALES, OG_LOCALE, localePath, ogAlternateLocales, type Locale } from "@/lib/i18n";
 
 const SITE_NAME = "ArchiTek Soft";
 const DEFAULT_OG_IMAGE = "/brand/share.jpg";
@@ -41,7 +41,8 @@ export function pageMeta({
       description,
       url,
       siteName: SITE_NAME,
-      locale,
+      locale: OG_LOCALE[locale],
+      alternateLocale: ogAlternateLocales(locale),
       type: "website",
       images: images?.length ? images : [DEFAULT_OG_IMAGE],
     },

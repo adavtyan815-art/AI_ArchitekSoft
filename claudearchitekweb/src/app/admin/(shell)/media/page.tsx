@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { and, desc, eq, isNull, like, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql, type SQL } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { formatDuration, thumbSrcSetFor, thumbUrlFor } from "@/lib/admin-helpers";
+import { first, formatDuration, thumbSrcSetFor, thumbUrlFor } from "@/lib/admin-helpers";
 import { mediaUrl } from "@/lib/media";
-import { getAdminDict, labelFor } from "@/lib/i18n/admin";
+import { getAdminDict, labelFor, local } from "@/lib/i18n/admin";
 import { formatBytes } from "@/lib/utils";
 import { FilterBar, PageHeader, Panel, PillTabs, SpecStrip, StatCard } from "@/components/admin/shell";
+import { Notice } from "@/components/admin/notice";
 import { Empty, Input, Select } from "@/components/ui";
 import { UploadZone } from "@/components/admin/media/upload-zone";
 import { MediaLibrary, type MediaCard } from "@/components/admin/media/media-library";
@@ -16,16 +17,25 @@ export const dynamic = "force-dynamic";
 
 const KINDS = ["render", "video", "sketch", "pdf", "model_glb", "model_usdz", "poster", "client_upload", "other"] as const;
 
-type Search = { kind?: string; project?: string; q?: string };
+/** Next gives a repeated parameter (?q=a&q=b) as an array, so every field has to allow one. */
+type SPValue = string | string[] | undefined;
+type Search = { kind?: SPValue; project?: SPValue; q?: SPValue; notice?: SPValue; tone?: SPValue };
+
+/**
+ * `%` and `_` are LIKE wildcards: searching for "QA_MP" must not match "QA-MP", and a lone "%"
+ * must not list the whole library. Escape them and pair every LIKE with `escape '\'`.
+ */
+const likeEscape = (v: string) => v.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 export default async function MediaPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireUser();
-  const { t } = await getAdminDict();
+  const { t, locale } = await getAdminDict();
   const M = t.media;
+  const clearFilters = local({ hy: "Մաքրել զտիչները", en: "Clear filters" }, locale);
   const sp = await searchParams;
-  const kind = KINDS.includes(sp.kind as (typeof KINDS)[number]) ? sp.kind! : "all";
-  const projectFilter = (sp.project ?? "").trim().slice(0, 40) || "all";
-  const q = (sp.q ?? "").trim().slice(0, 80);
+  const kind = KINDS.includes(first(sp.kind) as (typeof KINDS)[number]) ? first(sp.kind) : "all";
+  const projectFilter = first(sp.project).trim().slice(0, 40) || "all";
+  const q = first(sp.q).trim().slice(0, 80);
   const db = getDb();
 
   const conds: SQL[] = [];
@@ -33,8 +43,14 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   if (projectFilter === "none") conds.push(isNull(schema.assets.projectId));
   else if (projectFilter !== "all") conds.push(eq(schema.assets.projectId, projectFilter));
   if (q) {
-    const p = `%${q}%`;
-    conds.push(or(like(schema.assets.originalName, p), like(schema.assets.caption, p), like(schema.assets.tags, p))!);
+    const p = `%${likeEscape(q)}%`;
+    conds.push(
+      or(
+        sql`${schema.assets.originalName} like ${p} escape '\\'`,
+        sql`${schema.assets.caption} like ${p} escape '\\'`,
+        sql`${schema.assets.tags} like ${p} escape '\\'`
+      )!
+    );
   }
   const rows = db.select().from(schema.assets).where(conds.length ? and(...conds) : undefined).orderBy(desc(schema.assets.createdAt)).limit(400).all();
 
@@ -68,7 +84,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
     projectLabel: a.projectId ? (projectLabels[a.projectId] ?? null) : null,
   }));
 
-  const href = (patch: Partial<Search>) => {
+  const href = (patch: Partial<Record<"kind" | "project" | "q", string>>) => {
     const p = new URLSearchParams();
     const next = { kind, project: projectFilter, q, ...patch };
     if (next.kind && next.kind !== "all") p.set("kind", next.kind);
@@ -83,6 +99,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title={M.title} subtitle={M.subtitle} />
+      <Notice text={sp.notice} tone={sp.tone} />
 
       <SpecStrip cols={3} className="mb-5">
         <StatCard label={M.files} value={totals?.c ?? 0} hint={M.shown(rows.length)} />
@@ -91,7 +108,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
       </SpecStrip>
 
       <Panel title={M.upload} className="mb-4">
-        <UploadZone labels={{ label: M.uploadLibraryLabel, hint: M.uploadHint, busy: M.uploading, uploaded: M.uploaded, failed: M.uploadFailed }} />
+        <UploadZone labels={{ label: M.uploadLibraryLabel, hint: M.uploadHint, busy: M.uploading, uploaded: M.uploaded, failed: M.uploadFailed, tooLarge: M.uploadTooLarge }} />
       </Panel>
 
       <FilterBar className="flex-col items-stretch">
@@ -118,7 +135,18 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
       </FilterBar>
 
       {cards.length === 0 ? (
-        <Empty title={M.emptyTitle} text={q ? M.emptyFound(q) : M.emptyText} />
+        <Empty
+          title={M.emptyTitle}
+          text={q ? M.emptyFound(q) : M.emptyText}
+          // With a filter on, clearing it is the useful next step (there is nothing to create here).
+          action={
+            kind !== "all" || projectFilter !== "all" || q ? (
+              <Link href="/admin/media" className="btn-secondary btn-sm">
+                {clearFilters}
+              </Link>
+            ) : undefined
+          }
+        />
       ) : (
         <MediaLibrary
           assets={cards}
@@ -132,6 +160,9 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
             deleteConfirm: M.deleteSelectedConfirm,
             publicShort: M.publicShort,
             noProject: M.noProject,
+            assignedNotice: M.assignedNotice,
+            unassignedNotice: M.unassignedNotice,
+            deletedNotice: M.deletedNotice,
           }}
           assignAction={bulkAssignAssetsAction}
           deleteAction={bulkDeleteAssetsAction}

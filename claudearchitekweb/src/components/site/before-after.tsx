@@ -82,6 +82,8 @@ export function BeforeAfter({ before, after, labels = ["Before", "After"], aspec
     else if (e.key === "End") next = 99;
     else return;
     e.preventDefault();
+    // the slider owns these keys: a carousel/stage around it must not also react to them
+    e.stopPropagation();
     pos.current = next;
     schedule();
     setAnnounced(Math.round(next));

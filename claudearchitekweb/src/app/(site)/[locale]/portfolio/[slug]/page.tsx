@@ -20,6 +20,21 @@ const LOCAL: Record<Locale, { project: string; category: string; plates: string;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/**
+ * The 3D link is typed by hand in the admin, so the page only renders a link it can open: an
+ * absolute http(s) address. Anything else (a `javascript:` URL, a stray word) simply has no button
+ * rather than a control that throws when it is clicked.
+ */
+function webLink(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = (isLocale(raw) ? raw : "hy") as Locale;
@@ -47,6 +62,7 @@ export default async function PortfolioItemPage({ params }: { params: Params }) 
   const filters = d.portfolio.filters as Record<string, string>;
   const categoryLabel = filters[item.category] ?? item.category;
   const gallery = item.images.filter((src) => src !== item.cover);
+  const liveUrl = webLink(item.liveUrl);
   const prevItem = pos > 0 ? all[pos - 1] : null;
   const nextItem = pos >= 0 && pos < all.length - 1 ? all[pos + 1] : null;
   const code = `AT—${pad(pos >= 0 ? pos + 1 : 1)}`;
@@ -57,8 +73,8 @@ export default async function PortfolioItemPage({ params }: { params: Params }) 
     { k: t.video, v: item.video ? t.yes : t.no },
     {
       k: t.deliverable,
-      v: item.liveUrl ? (
-        <a href={item.liveUrl} target="_blank" rel="noopener noreferrer" className="u-link inline-flex items-center gap-1.5 text-fg">
+      v: liveUrl ? (
+        <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="u-link inline-flex items-center gap-1.5 text-fg">
           {d.portfolio.openLive}
           <ExternalLink size={13} aria-hidden />
         </a>
@@ -89,8 +105,8 @@ export default async function PortfolioItemPage({ params }: { params: Params }) 
             </div>
             <h1 className="h-display mt-5 text-[2.4rem] sm:text-[3.2rem] lg:text-[3.6rem]">{item.title}</h1>
             {item.summary ? <p className="lead mt-6 max-w-[34rem]">{item.summary}</p> : null}
-            {item.liveUrl ? (
-              <ButtonLink href={item.liveUrl} size="lg" external className="mt-8 w-full sm:w-fit">
+            {liveUrl ? (
+              <ButtonLink href={liveUrl} size="lg" external className="mt-8 w-full sm:w-fit">
                 {d.portfolio.openLive}
                 <ExternalLink size={16} />
               </ButtonLink>

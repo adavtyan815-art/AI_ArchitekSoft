@@ -1,5 +1,6 @@
-import { Button, Field, Input, Select, Textarea } from "@/components/ui";
+import { Button, Field, Input, Textarea } from "@/components/ui";
 import { FormActions } from "@/components/admin/shell";
+import { FormSelect } from "@/components/admin/form-select";
 import { COMPANY_TYPES, LEAD_SOURCES } from "@/lib/crm";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
 import { parseJson } from "@/lib/utils";
@@ -15,63 +16,64 @@ export async function CompanyForm({ company, action, submitLabel }: { company?: 
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
       {company ? <input type="hidden" name="id" value={company.id} /> : null}
+      {/* maxLength mirrors the server limits in crm-actions.ts, so nothing is silently truncated. */}
       <Field label={f.companyTitle} required>
-        <Input name="name" required defaultValue={company?.name ?? ""} placeholder={f.companyTitlePlaceholder} />
+        <Input name="name" required maxLength={120} defaultValue={company?.name ?? ""} placeholder={f.companyTitlePlaceholder} />
       </Field>
       <Field label={f.type} required>
-        <Select name="type" defaultValue={company?.type ?? "manufacturer"}>
+        <FormSelect name="type" value={company?.type ?? "manufacturer"}>
           {COMPANY_TYPES.map((ty) => (
             <option key={ty} value={ty}>
               {labelFor(t, "companyTypes", ty)}
             </option>
           ))}
-        </Select>
+        </FormSelect>
       </Field>
       <Field label={f.phone}>
-        <Input name="phone" defaultValue={company?.phone ?? ""} placeholder="+374 …" />
+        <Input name="phone" maxLength={40} defaultValue={company?.phone ?? ""} placeholder="+374 …" />
       </Field>
       <Field label={f.email}>
-        <Input name="email" type="email" defaultValue={company?.email ?? ""} />
+        <Input name="email" type="email" maxLength={120} defaultValue={company?.email ?? ""} />
       </Field>
       <Field label={f.website}>
-        <Input name="website" defaultValue={company?.website ?? ""} placeholder="https://…" />
+        <Input name="website" maxLength={200} defaultValue={company?.website ?? ""} placeholder="https://…" />
       </Field>
       <Field label={f.status}>
-        <Select name="status" defaultValue={company?.status ?? "active"}>
+        <FormSelect name="status" value={company?.status ?? "active"}>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
               {labelFor(t, "companyStatus", s)}
             </option>
           ))}
-        </Select>
+        </FormSelect>
       </Field>
       <Field label={f.city}>
-        <Input name="city" defaultValue={company?.city ?? ""} placeholder={f.cityPlaceholder} />
+        <Input name="city" maxLength={80} defaultValue={company?.city ?? ""} placeholder={f.cityPlaceholder} />
       </Field>
-      <Field label={f.country}>
-        <Input name="country" maxLength={4} defaultValue={company?.country ?? "AM"} />
+      <Field label={f.country} hint={f.countryHint}>
+        <Input name="country" maxLength={4} defaultValue={company?.country ?? "AM"} placeholder="AM" />
       </Field>
       <Field label={f.taxId}>
-        <Input name="taxId" defaultValue={company?.taxId ?? ""} />
+        <Input name="taxId" maxLength={40} defaultValue={company?.taxId ?? ""} />
       </Field>
       <Field label={f.source}>
-        <Select name="source" defaultValue={company?.source ?? ""}>
+        <FormSelect name="source" value={company?.source ?? ""}>
           <option value="">{f.none}</option>
           {LEAD_SOURCES.map((s) => (
             <option key={s} value={s}>
               {labelFor(t, "leadSources", s)}
             </option>
           ))}
-        </Select>
+        </FormSelect>
       </Field>
       <Field label={f.address} className="sm:col-span-2">
-        <Input name="address" defaultValue={company?.address ?? ""} />
+        <Input name="address" maxLength={200} defaultValue={company?.address ?? ""} />
       </Field>
       <Field label={f.tags} hint={f.tagsHint} className="sm:col-span-2">
         <Input name="tags" defaultValue={tags} placeholder={f.companyTagsPlaceholder} />
       </Field>
       <Field label={f.notes} className="sm:col-span-2">
-        <Textarea name="notes" defaultValue={company?.notes ?? ""} placeholder={f.companyNotesPlaceholder} />
+        <Textarea name="notes" maxLength={4000} defaultValue={company?.notes ?? ""} placeholder={f.companyNotesPlaceholder} />
       </Field>
       <FormActions className="sm:col-span-2">
         <Button type="submit">{submitLabel ?? t.common.save}</Button>

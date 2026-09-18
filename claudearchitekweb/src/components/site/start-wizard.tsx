@@ -1,50 +1,160 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, FileText, Loader2, UploadCloud, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Copy, FileText, Loader2, UploadCloud, X } from "lucide-react";
 import { localePath, type Dictionary, type Locale } from "@/lib/i18n";
 import { Button, Field, Index, Input, Select, Textarea, Ticks } from "@/components/ui";
 import { trackEvent } from "@/components/site/track";
 import { cn, formatBytes } from "@/lib/utils";
 
 type Segment = "b2c" | "b2b";
-type Upload = { key: string; name: string; size: number; progress: number; status: "uploading" | "done" | "error"; id?: string; thumb?: string; preview?: string };
+type Upload = { key: string; name: string; size: number; progress: number; status: "uploading" | "done" | "error"; id?: string; thumb?: string; preview?: string; error?: string };
 
 /** Only what the wizard renders — the whole dictionary never reaches the client. */
 export type StartStrings = Dictionary["start"];
 export type StartCommon = Pick<Dictionary["common"], "back" | "next" | "sending">;
 
 /** Strings that are not in the shared dictionaries (wizard-only helper text). */
-type Local = { stepOf: string; of: string; chooseSegment: string; needContact: string; needConsent: string; uploadFailed: string; tooLarge: string; remove: string; uploading: string; choose: string; error: string; waitUploads: string; requestNo: string };
+type Local = {
+  stepOf: string;
+  of: string;
+  chooseSegment: string;
+  needContact: string;
+  needConsent: string;
+  uploadFailed: string;
+  tooLarge: string;
+  remove: string;
+  uploading: string;
+  choose: string;
+  error: string;
+  waitUploads: string;
+  requestNo: string;
+  /** `{max}` = the total cap, `{n}` = how many files of this selection were not added. */
+  maxFiles: string;
+  tooManyUploads: string;
+  quota: string;
+  unsupported: string;
+  filesRejected: string;
+  tooManyRequests: string;
+  sentKicker: string;
+  /** `{channel}` = the channel the visitor picked. */
+  willContact: string;
+  copy: string;
+  copied: string;
+};
 const LOCAL: Record<Locale, Local> = {
-  hy: { stepOf: "Քայլ", of: "/", chooseSegment: "Ընտրեք տարբերակներից մեկը", needContact: "Խնդրում ենք լրացնել անունն ու հեռախոսը։", needConsent: "Անհրաժեշտ է Ձեր համաձայնությունը։", uploadFailed: "Չհաջողվեց վերբեռնել", tooLarge: "Ֆայլը մեծ է 50 ՄԲ-ից", remove: "Հեռացնել", uploading: "Վերբեռնվում է…", choose: "Ընտրել…", error: "Չհաջողվեց ուղարկել։ Խնդրում ենք փորձել կրկին կամ գրել Telegram-ով։", waitUploads: "Սպասեք ֆայլերի վերբեռնման ավարտին։", requestNo: "Հարցման համար" },
-  ru: { stepOf: "Шаг", of: "из", chooseSegment: "Выберите один из вариантов", needContact: "Пожалуйста, укажите имя и телефон.", needConsent: "Нужно ваше согласие.", uploadFailed: "Не удалось загрузить", tooLarge: "Файл больше 50 МБ", remove: "Удалить", uploading: "Загрузка…", choose: "Выбрать…", error: "Не удалось отправить. Попробуйте ещё раз или напишите в Telegram.", waitUploads: "Дождитесь окончания загрузки файлов.", requestNo: "Номер заявки" },
-  en: { stepOf: "Step", of: "of", chooseSegment: "Choose one of the options", needContact: "Please enter your name and phone.", needConsent: "Your consent is required.", uploadFailed: "Upload failed", tooLarge: "File is larger than 50 MB", remove: "Remove", uploading: "Uploading…", choose: "Choose…", error: "Could not send. Please try again or write us on Telegram.", waitUploads: "Please wait until uploads finish.", requestNo: "Request number" },
+  hy: {
+    stepOf: "Քայլ",
+    of: "/",
+    chooseSegment: "Ընտրեք տարբերակներից մեկը",
+    needContact: "Խնդրում ենք լրացնել անունն ու հեռախոսը։",
+    needConsent: "Անհրաժեշտ է Ձեր համաձայնությունը։",
+    uploadFailed: "Չհաջողվեց վերբեռնել",
+    tooLarge: "Ֆայլը մեծ է 50 ՄԲ-ից",
+    remove: "Հեռացնել",
+    uploading: "Վերբեռնվում է…",
+    choose: "Ընտրել…",
+    error: "Չհաջողվեց ուղարկել։ Խնդրում ենք փորձել կրկին կամ գրել Telegram-ով։",
+    waitUploads: "Սպասեք ֆայլերի վերբեռնման ավարտին։",
+    requestNo: "Հարցման համար",
+    maxFiles: "Կարելի է կցել առավելագույնը {max} ֆայլ։ {n} ֆայլ չավելացվեց։",
+    tooManyUploads: "Չափից շատ վերբեռնումներ։ Փորձեք մեկ րոպե անց։",
+    quota: "Օրվա վերբեռնման սահմանաչափը սպառված է։",
+    unsupported: "Այս տեսակի ֆայլը չի ընդունվում",
+    filesRejected: "Ֆայլերը չհաջողվեց կցել։ Հեռացրեք մի քանիսը և փորձեք կրկին։",
+    tooManyRequests: "Չափից շատ հարցումներ։ Փորձեք մեկ րոպե անց։",
+    sentKicker: "Հարցումն ուղարկված է",
+    willContact: "Կկապվենք Ձեզ հետ ընտրված եղանակով՝ {channel}։",
+    copy: "Պատճենել",
+    copied: "Պատճենվեց",
+  },
+  ru: {
+    stepOf: "Шаг",
+    of: "из",
+    chooseSegment: "Выберите один из вариантов",
+    needContact: "Пожалуйста, укажите имя и телефон.",
+    needConsent: "Нужно ваше согласие.",
+    uploadFailed: "Не удалось загрузить",
+    tooLarge: "Файл больше 50 МБ",
+    remove: "Удалить",
+    uploading: "Загрузка…",
+    choose: "Выбрать…",
+    error: "Не удалось отправить. Попробуйте ещё раз или напишите в Telegram.",
+    waitUploads: "Дождитесь окончания загрузки файлов.",
+    requestNo: "Номер заявки",
+    maxFiles: "Можно приложить не более {max} файлов. Не добавлено: {n}.",
+    tooManyUploads: "Слишком много загрузок. Попробуйте через минуту.",
+    quota: "Дневной лимит загрузки исчерпан.",
+    unsupported: "Такой тип файла не принимается",
+    filesRejected: "Не удалось приложить файлы. Удалите часть и попробуйте снова.",
+    tooManyRequests: "Слишком много запросов. Попробуйте через минуту.",
+    sentKicker: "Заявка отправлена",
+    willContact: "Свяжемся с вами выбранным способом: {channel}.",
+    copy: "Скопировать",
+    copied: "Скопировано",
+  },
+  en: {
+    stepOf: "Step",
+    of: "of",
+    chooseSegment: "Choose one of the options",
+    needContact: "Please enter your name and phone.",
+    needConsent: "Your consent is required.",
+    uploadFailed: "Upload failed",
+    tooLarge: "File is larger than 50 MB",
+    remove: "Remove",
+    uploading: "Uploading…",
+    choose: "Choose…",
+    error: "Could not send. Please try again or write us on Telegram.",
+    waitUploads: "Please wait until uploads finish.",
+    requestNo: "Request number",
+    maxFiles: "You can attach up to {max} files. {n} were not added.",
+    tooManyUploads: "Too many uploads. Please try again in a minute.",
+    quota: "The daily upload limit is used up.",
+    unsupported: "This file type is not accepted",
+    filesRejected: "The files could not be attached. Remove some and try again.",
+    tooManyRequests: "Too many requests. Please try again in a minute.",
+    sentKicker: "Request sent",
+    willContact: "We will get in touch through the channel you chose: {channel}.",
+    copy: "Copy",
+    copied: "Copied",
+  },
 };
 
 const MAX_BYTES = 50 * 1024 * 1024;
+/** Files per request — the public upload endpoint accepts this many in one multipart body. */
+const MAX_PER_REQUEST = 8;
+/** Files on one request — the lead endpoint refuses more, so the wizard never offers more. */
+const MAX_TOTAL_FILES = 20;
 const ACCEPT = "image/*,.pdf,.dwg,.dxf,.skp,.max,.zip,.rar,.7z,.glb,.usdz,.mp4,.mov";
 
-function uploadFile(file: File, onProgress: (pct: number) => void): Promise<{ id: string; name: string; size: number; thumb: string }> {
-  return new Promise((resolve, reject) => {
+type UploadedFile = { id: string; name: string; size: number; thumb: string };
+type BatchResult = { ok: true; files: UploadedFile[] } | { ok: false; status: number; error: string; name?: string };
+
+/**
+ * One request per selection (not per file): the public endpoint accepts eight files at a time and
+ * counts requests, not files, in its rate limit — a file-by-file upload runs into a 429 after twenty.
+ */
+function uploadBatch(files: File[], onProgress: (pct: number) => void): Promise<BatchResult> {
+  return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/upload/public");
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
     };
     xhr.onload = () => {
+      let r: { ok?: boolean; files?: UploadedFile[]; error?: string; name?: string } = {};
       try {
-        const r = JSON.parse(xhr.responseText) as { ok?: boolean; files?: { id: string; name: string; size: number; thumb: string }[]; error?: string };
-        if (xhr.status < 300 && r.ok && r.files?.[0]) resolve(r.files[0]);
-        else reject(new Error(r.error || `HTTP ${xhr.status}`));
-      } catch (e) {
-        reject(e);
+        r = JSON.parse(xhr.responseText) as typeof r;
+      } catch {
+        /* a proxy error page, handled as a failure below */
       }
+      if (xhr.status < 300 && r.ok && r.files?.length) resolve({ ok: true, files: r.files });
+      else resolve({ ok: false, status: xhr.status, error: r.error ?? "failed", name: r.name });
     };
-    xhr.onerror = () => reject(new Error("network"));
+    xhr.onerror = () => resolve({ ok: false, status: 0, error: "network" });
     const fd = new FormData();
-    fd.append("files", file);
+    for (const f of files) fd.append("files", f);
     xhr.send(fd);
   });
 }
@@ -68,6 +178,7 @@ export function StartWizard({
   const s = strings;
   const t = LOCAL[locale];
   const p = (path: string) => localePath(locale, path);
+  const uid = useId();
 
   const [step, setStep] = useState(0);
   const [segment, setSegment] = useState<Segment | null>(initialSegment === "b2b" || initialSegment === "b2c" ? initialSegment : null);
@@ -88,6 +199,7 @@ export function StartWizard({
   const [message, setMessage] = useState("");
   // files
   const [uploads, setUploads] = useState<Upload[]>([]);
+  const [filesNotice, setFilesNotice] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   // contact
@@ -100,9 +212,35 @@ export function StartWizard({
   const [website, setWebsite] = useState(""); // honeypot
 
   const [error, setError] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState<{ name?: boolean; phone?: boolean }>({});
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ code: string } | null>(null);
+  const [copied, setCopied] = useState(false);
   const started = useRef(false);
+
+  const heading = useRef<HTMLHeadingElement>(null);
+  const successHeading = useRef<HTMLHeadingElement>(null);
+  const alertRef = useRef<HTMLParagraphElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const firstSegment = useRef<HTMLInputElement>(null);
+  const mounted = useRef(false);
+
+  // A step change replaces the whole panel, so focus would otherwise fall back to <body>: it moves to
+  // the heading of the step the visitor just opened. Never on the first render — that would steal focus
+  // from the page the visitor is reading.
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    heading.current?.focus({ preventScroll: true });
+  }, [step]);
+
+  // The success view replaces the form; focus and the announcement go to its heading.
+  useEffect(() => {
+    if (result) successHeading.current?.focus({ preventScroll: true });
+  }, [result]);
 
   const onFormStart = () => {
     if (started.current) return;
@@ -117,29 +255,91 @@ export function StartWizard({
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  /**
+   * A failed step: the message is shown (on phones inside the sticky bar, which is the only part of
+   * the wizard always on screen) and the control that has to change is focused and scrolled to.
+   */
+  const fail = (msg: string, el?: HTMLElement | null) => {
+    setError(msg);
+    if (el) {
+      el.focus({ preventScroll: true });
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+    } else {
+      requestAnimationFrame(() => alertRef.current?.scrollIntoView({ block: "center", behavior: "smooth" }));
+    }
+  };
+
   const next = () => {
-    if (step === 0 && !segment) return setError(t.chooseSegment);
+    if (step === 0 && !segment) return fail(t.chooseSegment, firstSegment.current);
     go(step + 1);
   };
 
   const patch = (key: string, u: Partial<Upload>) => setUploads((list) => list.map((x) => (x.key === key ? { ...x, ...u } : x)));
 
-  const addFiles = (files: FileList | File[]) => {
-    onFormStart();
-    const arr = Array.from(files).slice(0, 8);
-    for (const file of arr) {
-      const key = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const preview = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
-      const item: Upload = { key, name: file.name, size: file.size, progress: 0, status: "uploading", preview };
-      setUploads((list) => [...list, item]);
-      if (file.size > MAX_BYTES) {
-        patch(key, { status: "error", progress: 0 });
+  const uploadMessage = (r: Extract<BatchResult, { ok: false }>) => {
+    if (r.status === 429) return r.error === "quota_exceeded" ? t.quota : t.tooManyUploads;
+    if (r.error === "too_large") return t.tooLarge;
+    if (r.error === "unsupported_type") return t.unsupported;
+    return t.uploadFailed;
+  };
+
+  /**
+   * Sends one selection as a single request. If the server names the file it refused (too large or an
+   * unsupported type), that one is marked and the rest are sent again, so one bad file never fails a
+   * whole batch.
+   */
+  const sendChunk = async (chunk: { file: File; key: string }[]) => {
+    let pending = chunk;
+    for (let round = 0; round < chunk.length && pending.length; round++) {
+      const batch = pending;
+      const r = await uploadBatch(
+        batch.map((x) => x.file),
+        (pct) => batch.forEach((x) => patch(x.key, { progress: pct })),
+      );
+      if (r.ok) {
+        // the endpoint answers in the order it was given the files
+        batch.forEach((x, i) => {
+          const f = r.files[i];
+          if (f) patch(x.key, { status: "done", progress: 100, id: f.id, thumb: f.thumb || undefined });
+          else patch(x.key, { status: "error", progress: 0, error: t.uploadFailed });
+        });
+        return;
+      }
+      const msg = uploadMessage(r);
+      const bad = r.name ? batch.find((x) => x.file.name === r.name) : undefined;
+      if (bad && batch.length > 1) {
+        patch(bad.key, { status: "error", progress: 0, error: msg });
+        pending = batch.filter((x) => x !== bad);
         continue;
       }
-      uploadFile(file, (pct) => patch(key, { progress: pct }))
-        .then((r) => patch(key, { status: "done", progress: 100, id: r.id, thumb: r.thumb || undefined }))
-        .catch(() => patch(key, { status: "error" }));
+      batch.forEach((x) => patch(x.key, { status: "error", progress: 0, error: msg }));
+      return;
     }
+  };
+
+  const addFiles = (picked: FileList | File[]) => {
+    onFormStart();
+    const incoming = Array.from(picked);
+    // the lead endpoint accepts twenty attachments in total, across every batch
+    const used = uploads.filter((u) => u.status !== "error").length;
+    const room = Math.max(0, MAX_TOTAL_FILES - used);
+    const accepted = incoming.slice(0, room);
+    const skipped = incoming.length - accepted.length;
+    setFilesNotice(skipped > 0 ? t.maxFiles.replace("{max}", String(MAX_TOTAL_FILES)).replace("{n}", String(skipped)) : null);
+    if (!accepted.length) return;
+
+    const rows: Upload[] = [];
+    const sendable: { file: File; key: string }[] = [];
+    for (const file of accepted) {
+      const key = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const preview = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
+      const tooBig = file.size > MAX_BYTES;
+      rows.push({ key, name: file.name, size: file.size, progress: 0, status: tooBig ? "error" : "uploading", preview, error: tooBig ? t.tooLarge : undefined });
+      // an oversized file would make the server refuse the whole batch, so it never leaves the browser
+      if (!tooBig) sendable.push({ file, key });
+    }
+    setUploads((list) => [...list, ...rows]);
+    for (let i = 0; i < sendable.length; i += MAX_PER_REQUEST) void sendChunk(sendable.slice(i, i + MAX_PER_REQUEST));
   };
 
   const removeUpload = (key: string) =>
@@ -151,9 +351,13 @@ export function StartWizard({
 
   const submit = async () => {
     if (sending) return;
-    if (!name.trim() || !phone.trim()) return setError(t.needContact);
-    if (!consent) return setError(t.needConsent);
-    if (uploads.some((u) => u.status === "uploading")) return setError(t.waitUploads);
+    if (!name.trim() || !phone.trim()) {
+      setInvalid({ name: !name.trim(), phone: !phone.trim() });
+      return fail(t.needContact, !name.trim() ? nameRef.current : phoneRef.current);
+    }
+    setInvalid({});
+    if (!consent) return fail(t.needConsent);
+    if (uploads.some((u) => u.status === "uploading")) return fail(t.waitUploads);
     setError(null);
     setSending(true);
     const isB2bNow = segment === "b2b";
@@ -174,16 +378,24 @@ export function StartWizard({
       budget: isB2bNow ? undefined : budget || undefined,
       message: isB2bNow ? message : undefined,
       details: isB2bNow ? { companyType, volume } : { dims: width || depth || height ? { width, depth, height } : undefined, style, appliances, deadline },
-      files: uploads.filter((u) => u.status === "done" && u.id).map((u) => u.id as string),
+      files: uploads
+        .filter((u) => u.status === "done" && u.id)
+        .slice(0, MAX_TOTAL_FILES)
+        .map((u) => u.id as string),
       utm: utm && Object.keys(utm).length ? utm : undefined,
     };
     try {
       const res = await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; code?: string };
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; code?: string; issues?: { path?: string }[] };
       if (res.ok && data.ok) setResult({ code: data.code ?? "" });
-      else setError(t.error);
+      else if (res.status === 429) fail(t.tooManyRequests);
+      else if (data.issues?.some((i) => (i.path ?? "").startsWith("files"))) fail(t.filesRejected);
+      else if (data.issues?.some((i) => i.path === "name")) {
+        setInvalid({ name: true });
+        fail(t.needContact, nameRef.current);
+      } else fail(t.error);
     } catch {
-      setError(t.error);
+      fail(t.error);
     } finally {
       setSending(false);
     }
@@ -191,22 +403,37 @@ export function StartWizard({
 
   /* ─────────────────────────── success ─────────────────────────── */
   if (result) {
+    const channel = (s.contact.channels as Record<string, string>)[preferredChannel] ?? "";
+    const copyCode = () => {
+      navigator.clipboard
+        ?.writeText(result.code)
+        .then(() => {
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 2000);
+        })
+        .catch(() => {});
+    };
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-2xl" role="status">
         <div className="flex items-center gap-2.5 border-t border-line pt-7">
-          <Check size={16} strokeWidth={2.5} className="text-success" />
-          <span className="kicker text-success">{s.successTitle}</span>
+          <Check size={16} strokeWidth={2.5} className="text-success" aria-hidden />
+          <span className="kicker text-success">{t.sentKicker}</span>
         </div>
-        <h2 className="h-section mt-6">{s.successTitle}</h2>
+        <h2 ref={successHeading} tabIndex={-1} className="h-section mt-6 focus:outline-none">
+          {s.successTitle}
+        </h2>
         <p className="lead mt-5">{s.successText}</p>
         {result.code ? (
-          <figure className="frame mt-9">
-            <div className="flex flex-wrap items-baseline justify-between gap-3 px-5 py-6">
-              <span className="caption">{t.requestNo}</span>
-              <span className="font-mono text-[1.6rem] leading-none tracking-[0.06em] text-fg tabular-nums">{result.code}</span>
-            </div>
-          </figure>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <span className="caption sr-only">{t.requestNo}</span>
+            <span className="font-mono text-[2rem] leading-none tracking-[0.06em] text-fg tabular-nums">{result.code}</span>
+            <Button type="button" variant="secondary" size="sm" onClick={copyCode} aria-label={`${t.copy} — ${t.requestNo}`}>
+              {copied ? <Check size={14} aria-hidden /> : <Copy size={14} aria-hidden />}
+              {copied ? t.copied : t.copy}
+            </Button>
+          </div>
         ) : null}
+        {channel ? <p className="caption mt-6">{t.willContact.replace("{channel}", channel)}</p> : null}
         <div className="mt-9">
           <Link href={p("/viewer")} className="btn-secondary w-full sm:w-auto">
             {s.successCta}
@@ -245,7 +472,7 @@ export function StartWizard({
     );
 
   return (
-    <div className="max-w-2xl pb-24 md:pb-0 lg:max-w-none" onFocusCapture={onFormStart}>
+    <div className="max-w-2xl pb-32 md:pb-0 lg:max-w-none" onFocusCapture={onFormStart}>
       {/* ── progress: mono counter on a ruler ── */}
       <div className="mb-8">
         <div className="mb-3 flex items-baseline justify-between gap-4">
@@ -273,7 +500,9 @@ export function StartWizard({
         {/* ── STEP 1 · who ── */}
         {step === 0 ? (
           <div>
-            <h2 className="h-sub">{s.who.title}</h2>
+            <h2 ref={heading} tabIndex={-1} className="h-sub focus:outline-none">
+              {s.who.title}
+            </h2>
             <p className="mt-2 text-[14.5px] text-muted">{s.who.hint}</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label={s.who.title}>
               {(
@@ -284,6 +513,7 @@ export function StartWizard({
               ).map(([val, card], i) => (
                 <label key={val} className="choice flex-col gap-0 p-5 sm:p-6">
                   <input
+                    ref={i === 0 ? firstSegment : undefined}
                     type="radio"
                     name="segment"
                     value={val}
@@ -312,7 +542,9 @@ export function StartWizard({
         {/* ── STEP 2 · project ── */}
         {step === 1 ? (
           <div className="space-y-5">
-            <h2 className="h-sub">{s.project.title}</h2>
+            <h2 ref={heading} tabIndex={-1} className="h-sub focus:outline-none">
+              {s.project.title}
+            </h2>
             {isB2b ? (
               <>
                 <Field label={s.project.companyName}>
@@ -341,12 +573,14 @@ export function StartWizard({
                   </Field>
                 </div>
                 <div>
-                  <span className="label">{s.project.service}</span>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <span className="label" id={`${uid}-service`}>
+                    {s.project.service}
+                  </span>
+                  <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-labelledby={`${uid}-service`}>
                     {entries(s.project.services).map(([k, v]) => (
                       <label key={k} className="choice items-center gap-3 p-3.5 text-[15px] leading-snug text-fg">
                         <input type="radio" name="service" value={k} className="sr-only" checked={service === k} onChange={() => setService(k)} />
-                        <span className={cn("inline-flex h-5 w-5 flex-none items-center justify-center rounded-sm border transition-colors", service === k ? "border-fg bg-accent" : "border-line-strong")}>
+                        <span className={cn("inline-flex h-5 w-5 flex-none items-center justify-center rounded-sm border transition-colors", service === k ? "border-fg bg-accent" : "border-line-strong")} aria-hidden>
                           {service === k ? <Check size={11} strokeWidth={3} className="text-accent-fg" /> : null}
                         </span>
                         {v}
@@ -361,12 +595,14 @@ export function StartWizard({
             ) : (
               <>
                 <div>
-                  <span className="label">{s.project.roomType}</span>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  <span className="label" id={`${uid}-room`}>
+                    {s.project.roomType}
+                  </span>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-labelledby={`${uid}-room`}>
                     {entries(s.project.rooms).map(([k, v]) => (
                       <label key={k} className="choice items-center gap-2.5 p-3 text-sm leading-snug text-fg">
                         <input type="radio" name="roomType" value={k} className="sr-only" checked={roomType === k} onChange={() => setRoomType(k)} />
-                        <span className={cn("inline-flex h-4.5 w-4.5 flex-none items-center justify-center rounded-sm border transition-colors", roomType === k ? "border-fg bg-accent" : "border-line-strong")}>
+                        <span className={cn("inline-flex h-4.5 w-4.5 flex-none items-center justify-center rounded-sm border transition-colors", roomType === k ? "border-fg bg-accent" : "border-line-strong")} aria-hidden>
                           {roomType === k ? <Check size={10} strokeWidth={3} className="text-accent-fg" /> : null}
                         </span>
                         {v}
@@ -420,13 +656,20 @@ export function StartWizard({
         {/* ── STEP 3 · files ── */}
         {step === 2 ? (
           <div>
-            <h2 className="h-sub">{s.files.title}</h2>
+            <h2 ref={heading} tabIndex={-1} className="h-sub focus:outline-none">
+              {s.files.title}
+            </h2>
             <p className="mt-2 text-[15px] leading-relaxed text-muted">{s.files.text}</p>
             <div
               role="button"
               tabIndex={0}
               onClick={() => fileInput.current?.click()}
-              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && fileInput.current?.click()}
+              onKeyDown={(e) => {
+                // Space would otherwise scroll the page while opening the picker
+                if (e.key !== "Enter" && e.key !== " ") return;
+                e.preventDefault();
+                fileInput.current?.click();
+              }}
               onDragOver={(e) => {
                 e.preventDefault();
                 setDragging(true);
@@ -445,12 +688,15 @@ export function StartWizard({
               <UploadCloud size={26} className="text-muted" aria-hidden />
               <span className="mt-4 block font-display text-[1.2rem] leading-tight text-fg">{s.files.drop}</span>
               <span className="caption mt-2 block">{s.files.hint}</span>
+              {/* the surrounding div is the keyboard control; this input is only the file picker */}
               <input
                 ref={fileInput}
                 type="file"
                 multiple
                 accept={ACCEPT}
                 className="sr-only"
+                tabIndex={-1}
+                aria-hidden="true"
                 onChange={(e) => {
                   if (e.target.files?.length) addFiles(e.target.files);
                   e.target.value = "";
@@ -458,8 +704,14 @@ export function StartWizard({
               />
             </div>
 
+            {filesNotice ? (
+              <p role="status" className="mt-4 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm text-fg-2">
+                {filesNotice}
+              </p>
+            ) : null}
+
             {uploads.length ? (
-              <ul className="mt-5 space-y-2">
+              <ul className="mt-5 space-y-2" aria-live="polite" aria-label={s.files.title}>
                 {uploads.map((u) => (
                   <li key={u.key} className="flex items-center gap-3 rounded-md border border-line bg-surface p-2.5 pr-2">
                     <span className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-sm bg-surface-2 text-muted">
@@ -467,13 +719,13 @@ export function StartWizard({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={u.thumb || u.preview} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <FileText size={18} />
+                        <FileText size={18} aria-hidden />
                       )}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-fg">{u.name}</span>
                       <span className="block font-mono text-[11px] tracking-[0.04em] text-muted tabular-nums">
-                        {u.status === "error" ? <span className="text-danger">{u.size > MAX_BYTES ? t.tooLarge : t.uploadFailed}</span> : u.status === "uploading" ? `${t.uploading} ${u.progress}%` : formatBytes(u.size)}
+                        {u.status === "error" ? <span className="text-danger">{u.error ?? t.uploadFailed}</span> : u.status === "uploading" ? `${t.uploading} ${u.progress}%` : formatBytes(u.size)}
                       </span>
                       {u.status === "uploading" ? (
                         <span className="mt-1.5 block h-[3px] overflow-hidden bg-surface-3">
@@ -481,31 +733,58 @@ export function StartWizard({
                         </span>
                       ) : null}
                     </span>
-                    {u.status === "uploading" ? <Loader2 size={16} className="flex-none animate-spin text-faint" /> : u.status === "done" ? <Check size={16} className="flex-none text-success" /> : null}
-                    <button type="button" onClick={() => removeUpload(u.key)} className="btn-ghost btn-icon h-10 w-10 flex-none text-faint" aria-label={t.remove} title={t.remove}>
-                      <X size={16} />
+                    {u.status === "uploading" ? <Loader2 size={16} className="flex-none animate-spin text-faint" aria-hidden /> : u.status === "done" ? <Check size={16} className="flex-none text-success" aria-hidden /> : null}
+                    <button type="button" onClick={() => removeUpload(u.key)} className="btn-ghost btn-icon h-10 w-10 flex-none text-faint" aria-label={`${t.remove} — ${u.name}`} title={t.remove}>
+                      <X size={16} aria-hidden />
                     </button>
                   </li>
                 ))}
               </ul>
             ) : null}
 
-            <button type="button" onClick={() => go(3)} className="u-link mt-6 font-mono text-[11.5px] tracking-[0.08em] text-muted uppercase hover:text-fg">
+            {/* The main way a visitor without files continues — a real button, not an 11 px text link. */}
+            <Button type="button" variant="secondary" onClick={() => go(3)} className="mt-6 w-full font-mono text-[11.5px] tracking-[0.08em] uppercase sm:w-auto">
               {s.files.skip}
-            </button>
+            </Button>
           </div>
         ) : null}
 
         {/* ── STEP 4 · contact ── */}
         {step === 3 ? (
           <div className="space-y-5">
-            <h2 className="h-sub">{s.contact.title}</h2>
+            <h2 ref={heading} tabIndex={-1} className="h-sub focus:outline-none">
+              {s.contact.title}
+            </h2>
             <div className="grid items-end gap-5 sm:grid-cols-2">
-              <Field label={s.contact.name} required>
-                <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={120} autoComplete="name" />
+              <Field label={s.contact.name} required error={invalid.name ? t.needContact : undefined}>
+                <Input
+                  ref={nameRef}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (invalid.name) setInvalid((v) => ({ ...v, name: false }));
+                  }}
+                  required
+                  maxLength={120}
+                  autoComplete="name"
+                  aria-invalid={invalid.name || undefined}
+                />
               </Field>
-              <Field label={s.contact.phone} required>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={40} autoComplete="tel" inputMode="tel" placeholder="+374" />
+              <Field label={s.contact.phone} required error={invalid.phone ? t.needContact : undefined}>
+                <Input
+                  ref={phoneRef}
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (invalid.phone) setInvalid((v) => ({ ...v, phone: false }));
+                  }}
+                  required
+                  maxLength={40}
+                  autoComplete="tel"
+                  inputMode="tel"
+                  placeholder="+374"
+                  aria-invalid={invalid.phone || undefined}
+                />
               </Field>
               <Field label={s.contact.telegram}>
                 <Input value={telegram} onChange={(e) => setTelegram(e.target.value)} maxLength={60} placeholder="@" />
@@ -515,11 +794,16 @@ export function StartWizard({
               </Field>
             </div>
             <div>
-              <span className="label">{s.contact.channel}</span>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <span className="label" id={`${uid}-channel`}>
+                {s.contact.channel}
+              </span>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-labelledby={`${uid}-channel`}>
                 {entries(s.contact.channels).map(([k, v]) => (
                   <label key={k} className="choice items-center justify-center gap-2 p-3 text-sm font-medium text-fg">
                     <input type="radio" name="channel" value={k} className="sr-only" checked={preferredChannel === k} onChange={() => setPreferredChannel(k)} />
+                    <span className={cn("relative h-4 w-4 flex-none rounded-full border-[1.5px] transition-colors", preferredChannel === k ? "border-fg" : "border-line-strong")} aria-hidden>
+                      <span className={cn("absolute inset-[2.5px] rounded-full bg-accent transition-transform", preferredChannel === k ? "scale-100" : "scale-0")} />
+                    </span>
                     {v}
                   </label>
                 ))}
@@ -535,8 +819,10 @@ export function StartWizard({
           </div>
         ) : null}
 
+        {/* Desktop error. On phones the same message sits in the sticky bar, where it cannot fall below
+            the fold — `hidden` keeps this copy out of the accessibility tree there. */}
         {error ? (
-          <p role="alert" className="mt-5 rounded-md border border-danger/40 bg-danger-soft px-4 py-3 text-sm text-danger">
+          <p ref={alertRef} role="alert" className="mt-5 hidden rounded-md border border-danger/40 bg-danger-soft px-4 py-3 text-sm text-danger md:block">
             {error}
           </p>
         ) : null}
@@ -550,6 +836,11 @@ export function StartWizard({
 
       {/* ── nav (mobile, sticky) ── */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line glass pb-safe md:hidden">
+        {error ? (
+          <p role="alert" className="border-b border-danger/30 bg-danger-soft px-4 py-2.5 text-[13px] leading-snug text-danger">
+            {error}
+          </p>
+        ) : null}
         <div className="flex items-center gap-2 px-4 py-2.5">
           {backBtn}
           {nextBtn}

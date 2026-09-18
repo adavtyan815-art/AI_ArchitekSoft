@@ -4,25 +4,31 @@ import { and, desc, eq } from "drizzle-orm";
 import { Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { clientLabel, relTime } from "@/lib/admin-helpers";
+import { clientLabel, externalUrl, fmtAdminDate, formatMoneyTotals, relTime, sumByCurrency } from "@/lib/admin-helpers";
+import { RelTime } from "@/components/admin/rel-time";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
-import { formatDate, formatMoney, parseJson } from "@/lib/utils";
+import { formatMoney, parseJson } from "@/lib/utils";
 import { KV, PageHeader, Panel, SpecStrip, StatCard, StatusBadge } from "@/components/admin/shell";
 import { Badge } from "@/components/ui";
+import { Notice, noticeFrom } from "@/components/admin/notice";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { ContactLinks } from "@/components/admin/crm/contact-links";
 import { ActivityTimeline } from "@/components/admin/crm/activity-timeline";
 import { ClientForm } from "@/components/admin/crm/client-form";
 import { CompanyForm } from "@/components/admin/crm/company-form";
+import { OpenTasksPanel, openTasksFor } from "@/app/admin/(shell)/tasks/open-tasks-panel";
 import { createClientAction, deleteCompanyAction, updateCompanyAction } from "@/app/admin/actions/crm-actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+type SP = Record<string, string | string[] | undefined>;
+
+export default async function CompanyDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SP> }) {
   await requireUser();
   const { t, locale } = await getAdminDict();
   const K = t.crm.companies;
   const { id } = await params;
+  const sp = await searchParams;
   const db = getDb();
   const company = db.select().from(schema.companies).where(eq(schema.companies.id, id)).get();
   if (!company) notFound();
@@ -36,15 +42,21 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
       .all()
       .map((u) => [u.id, u.name])
   );
+  // Tasks linked to this company are otherwise visible only on /admin/tasks.
+  const openTasks = openTasksFor("company", id);
   const tags = parseJson<string[]>(company.tags, []);
-  const quoted = projects.reduce((s, p) => s + (p.quoteAmount ?? 0), 0);
-  const paid = projects.reduce((s, p) => s + (p.paidAmount ?? 0), 0);
+  // One figure per currency: a USD quote is never added to an AMD one.
+  const quoted = formatMoneyTotals(sumByCurrency(projects, (p) => p.quoteAmount, (p) => p.currency));
+  const paid = formatMoneyTotals(sumByCurrency(projects, (p) => p.paidAmount, (p) => p.currency));
+  const paidAny = projects.some((p) => p.paidAmount);
   const active = projects.filter((p) => p.status === "active").length;
+  const site = externalUrl(company.website);
 
   const subtitle = [[company.city, company.country].filter(Boolean).join(", ") || null, company.website ? company.website.replace(/^https?:\/\//, "") : null, t.crm.leads.createdAgo(relTime(company.createdAt, locale))].filter(Boolean).join(" · ");
 
   return (
     <>
+      <Notice {...noticeFrom(sp)} />
       <PageHeader
         crumbs={[{ label: K.title, href: "/admin/companies" }, { label: company.name }]}
         title={
@@ -65,8 +77,8 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
       <SpecStrip className="mb-5">
         <StatCard label={K.colContacts} value={contacts.length} />
         <StatCard label={K.colProjects} value={projects.length} hint={`${active} ${t.common.active.toLowerCase()}`} />
-        <StatCard label={K.quotedTotal} value={formatMoney(quoted)} />
-        <StatCard label={K.paidTotal} value={formatMoney(paid)} tone={paid ? "success" : undefined} />
+        <StatCard label={K.quotedTotal} value={<span className="block text-[1.15rem] leading-tight break-words sm:text-[1.3rem]">{quoted}</span>} />
+        <StatCard label={K.paidTotal} value={<span className="block text-[1.15rem] leading-tight break-words sm:text-[1.3rem]">{paid}</span>} tone={paidAny ? "success" : undefined} />
       </SpecStrip>
 
       <div className="grid gap-6 lg:grid-cols-3 lg:gap-0">
@@ -83,10 +95,11 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
                 {contacts.map((c) => (
                   <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
                     <div className="min-w-0">
-                      <Link href={`/admin/clients/${c.id}`} className="text-sm font-medium text-fg transition-colors hover:text-accent">
+                      {/* 40px tap target on a phone; a long unbroken name wraps instead of widening the page */}
+                      <Link href={`/admin/clients/${c.id}`} className="flex min-h-10 items-center text-sm font-medium [overflow-wrap:anywhere] text-fg transition-colors hover:text-accent sm:min-h-0">
                         {clientLabel(c)}
                       </Link>
-                      <div className="text-xs text-muted">{[c.position, c.phone, c.email].filter(Boolean).join(" · ") || "—"}</div>
+                      <div className="text-xs [overflow-wrap:anywhere] text-muted">{[c.position, c.phone, c.email].filter(Boolean).join(" · ") || "—"}</div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge value={c.status} label={labelFor(t, "clientStatus", c.status)} />
@@ -97,7 +110,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
               </ul>
             )}
             <details className="mt-4 rounded-xl border border-line p-4">
-              <summary className="cursor-pointer text-sm font-semibold text-fg">{K.addContact}</summary>
+              <summary className="flex min-h-10 cursor-pointer items-center text-sm font-semibold text-fg">{K.addContact}</summary>
               <div className="mt-4">
                 <ClientForm action={createClientAction} companies={[]} defaultCompanyId={company.id} lockCompany returnTo={`/admin/companies/${company.id}`} submitLabel={K.addContactSubmit} compact />
               </div>
@@ -141,7 +154,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
                           {formatMoney(p.paidAmount, p.currency)}
                         </td>
                         <td data-label={t.common.updated} className="font-mono text-[12px] whitespace-nowrap text-muted">
-                          {relTime(p.updatedAt, locale)}
+                          <RelTime iso={p.updatedAt} locale={locale} />
                         </td>
                       </tr>
                     ))}
@@ -163,9 +176,14 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
               {company.email ? <div>{company.email}</div> : null}
               {company.website ? (
                 <div>
-                  <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-accent">
-                    {company.website.replace(/^https?:\/\//, "")}
-                  </a>
+                  {/* a website typed as "example.com" must open the external site, not /admin/companies/example.com */}
+                  {site ? (
+                    <a href={site} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center text-accent sm:min-h-0">
+                      {company.website.replace(/^https?:\/\//, "")}
+                    </a>
+                  ) : (
+                    <span>{company.website}</span>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -173,6 +191,8 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
               <ContactLinks phone={company.phone} email={company.email} />
             </div>
           </Panel>
+
+          <OpenTasksPanel tasks={openTasks} t={t} locale={locale} />
 
           <Panel title={K.details}>
             <KV label={t.common.address}>{company.address ?? "—"}</KV>
@@ -191,8 +211,8 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
                 "—"
               )}
             </KV>
-            <KV label={t.common.created}>{formatDate(company.createdAt, true)}</KV>
-            <KV label={t.common.updated}>{formatDate(company.updatedAt, true)}</KV>
+            <KV label={t.common.created}>{fmtAdminDate(company.createdAt, locale, true)}</KV>
+            <KV label={t.common.updated}>{fmtAdminDate(company.updatedAt, locale, true)}</KV>
           </Panel>
 
           {company.notes ? (

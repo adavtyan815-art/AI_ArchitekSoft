@@ -5,6 +5,7 @@ import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
 import { getSetting } from "@/lib/settings";
 import { ButtonLink, CheckList, Frame, Index, SectionHeading, Spec, Tag, Ticks } from "@/components/ui";
+import { TrackedCta } from "@/components/site/cta";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { cn } from "@/lib/utils";
 
@@ -75,10 +76,10 @@ export default async function ForBusinessPage({ params }: { params: Promise<{ lo
             <h1 className="h-display max-sm:break-words">{b.title}</h1>
             <p className="lead mt-7 max-w-[34rem]">{b.subtitle}</p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <ButtonLink href={startB2b} size="lg">
+              <TrackedCta href={startB2b} label="b2b-hero" locale={locale} segment="b2b" size="lg">
                 {b.cta}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
               <ButtonLink href={p("/portfolio")} variant="secondary" size="lg">
                 {d.common.seeWork}
               </ButtonLink>
@@ -228,10 +229,10 @@ export default async function ForBusinessPage({ params }: { params: Promise<{ lo
             <div className="rounded-xl bg-accent p-7 text-accent-fg sm:p-10">
               <h2 className="font-display text-[1.9rem] leading-[1.08] sm:text-[2.4rem]">{d.home.finalTitle}</h2>
               <p className="mt-3 max-w-md text-[15px] opacity-85">{d.home.finalText}</p>
-              <ButtonLink href={startB2b} size="lg" className="mt-7 bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620]">
+              <TrackedCta href={startB2b} label="b2b-closing" locale={locale} segment="b2b" size="lg" className="mt-7 bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620]">
                 {b.cta}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
             </div>
           </div>
         </div>

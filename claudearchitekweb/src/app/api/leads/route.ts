@@ -1,28 +1,42 @@
-import { NextResponse, type NextRequest } from "next/server";
+/**
+ * POST /api/leads — the public intake endpoint behind /contact and the /start wizard.
+ *
+ * It is unauthenticated, so everything is bounded: the body is read up to a fixed size, every field
+ * has a length cap, `details` is an explicit shape (unknown keys are dropped) and one address may
+ * send a limited number of requests per minute. The owner notification runs after the response.
+ */
+import { NextResponse, after, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createLead } from "@/lib/crm";
 import { notifyNewLead } from "@/lib/notify";
 import { track } from "@/lib/analytics";
+import { leadCode } from "@/lib/ids";
+import { clientIp, createLimiter, retryHeaders } from "@/lib/rate-limit";
+import { readJsonObject } from "../_lib/body";
 
 export const runtime = "nodejs";
 
-const LIMIT = 10;
-const WINDOW_MS = 60_000;
-const hits = new Map<string, { count: number; reset: number }>();
+/** A full form is a few kilobytes; 64 KB leaves room for long messages and nothing else. */
+const MAX_BODY_BYTES = 64 * 1024;
+/** `details` is stored verbatim in the lead row, so it gets its own ceiling. */
+const MAX_DETAILS_BYTES = 8 * 1024;
 
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const cur = hits.get(ip);
-  if (!cur || cur.reset < now) {
-    hits.set(ip, { count: 1, reset: now + WINDOW_MS });
-    if (hits.size > 5000) for (const [k, v] of hits) if (v.reset < now) hits.delete(k);
-    return false;
-  }
-  cur.count++;
-  return cur.count > LIMIT;
-}
+const leads = createLimiter("leads", { limit: 10, windowMs: 60_000 });
 
 const opt = (max: number) => z.string().trim().max(max).optional().or(z.literal(""));
+
+/**
+ * The extra answers the wizard collects. Known keys only: zod drops everything else, so a bot cannot
+ * use the lead row as free storage.
+ */
+const DetailsSchema = z.object({
+  companyType: opt(60),
+  volume: opt(60),
+  dims: z.object({ width: opt(20), depth: opt(20), height: opt(20) }).optional(),
+  style: opt(2000),
+  appliances: opt(500),
+  deadline: opt(120),
+});
 
 const LeadSchema = z.object({
   segment: z.enum(["b2b", "b2c"]),
@@ -37,25 +51,38 @@ const LeadSchema = z.object({
   roomType: opt(40),
   budget: opt(20),
   message: z.string().max(4000).optional().or(z.literal("")),
-  details: z.record(z.string(), z.unknown()).optional(),
+  details: DetailsSchema.optional(),
   files: z.array(z.string().max(40)).max(20).optional(),
-  utm: z.record(z.string(), z.string().max(200)).optional(),
+  utm: z.record(z.string().max(40), z.string().max(200)).optional(),
   pagePath: opt(300),
   source: opt(30),
-  website: z.string().optional(), // honeypot
+  website: z.string().max(200).optional(), // honeypot
 });
 
-export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "local";
-  if (rateLimited(ip)) return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
-
-  let json: unknown;
-  try {
-    json = await req.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
+/** Empty strings and empty objects are not worth storing. */
+function pruneEmpty<T extends Record<string, unknown>>(obj: T): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined || v === null || v === "") continue;
+    if (typeof v === "object" && !Array.isArray(v)) {
+      const inner = pruneEmpty(v as Record<string, unknown>);
+      if (inner) out[k] = inner;
+      continue;
+    }
+    out[k] = v;
   }
-  const parsed = LeadSchema.safeParse(json);
+  return Object.keys(out).length ? out : undefined;
+}
+
+export async function POST(req: NextRequest) {
+  const ip = clientIp(req.headers);
+  const limit = leads.take(ip || "local");
+  if (!limit.ok) return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429, headers: retryHeaders(limit) });
+
+  const body = await readJsonObject(req, MAX_BODY_BYTES);
+  if (!body.ok) return NextResponse.json({ ok: false, error: body.error === "too_large" ? "too_large" : "invalid_json" }, { status: body.status });
+
+  const parsed = LeadSchema.safeParse(body.value);
   if (!parsed.success) return NextResponse.json({ ok: false, error: "invalid", issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })) }, { status: 400 });
   const b = parsed.data;
 
@@ -64,7 +91,10 @@ export async function POST(req: NextRequest) {
 
   if (!b.phone && !b.email && !b.telegram) return NextResponse.json({ ok: false, error: "contact_required" }, { status: 400 });
 
-  const utm = b.utm ? Object.fromEntries(Object.entries(b.utm).filter(([, v]) => v)) : undefined;
+  const details = b.details ? pruneEmpty(b.details) : undefined;
+  if (details && JSON.stringify(details).length > MAX_DETAILS_BYTES) return NextResponse.json({ ok: false, error: "details_too_large" }, { status: 400 });
+
+  const utm = b.utm ? Object.fromEntries(Object.entries(b.utm).filter(([, v]) => v).slice(0, 12)) : undefined;
   const lead = createLead({
     segment: b.segment,
     name: b.name,
@@ -78,18 +108,22 @@ export async function POST(req: NextRequest) {
     roomType: b.roomType || undefined,
     budget: b.budget || undefined,
     message: b.message || undefined,
-    details: b.details,
+    details,
     files: b.files,
     utm,
     pagePath: b.pagePath || undefined,
     source: b.source || "website",
   });
 
-  try {
-    await notifyNewLead(lead);
-  } catch (e) {
-    console.warn("[leads] notify failed", (e as Error).message);
-  }
+  // Telegram/e-mail can be slow or unreachable; the visitor must not wait for them (and must not
+  // resend the form because of it). `after()` runs once the response has been handed to the client.
+  after(async () => {
+    try {
+      await notifyNewLead(lead);
+    } catch (e) {
+      console.warn("[leads] notify failed", (e as Error).message);
+    }
+  });
 
   track({
     type: "form_submit",
@@ -102,5 +136,6 @@ export async function POST(req: NextRequest) {
     meta: { leadId: lead.id, service: lead.service, roomType: lead.roomType },
   });
 
-  return NextResponse.json({ ok: true, id: lead.id, code: lead.id.slice(-6).toUpperCase() });
+  // `code` is the request number the visitor is shown; staff find it again with the same helper.
+  return NextResponse.json({ ok: true, id: lead.id, code: leadCode(lead.id) });
 }

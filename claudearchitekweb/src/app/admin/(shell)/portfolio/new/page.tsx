@@ -12,7 +12,8 @@ export default async function NewPortfolioItemPage() {
   const { t } = await getAdminDict();
   const L = t.portfolio;
   const projects = listProjectsLite();
-  const assets = listMediaAssetsLite(300);
+  // The project is picked on the client, so offer the newest media overall plus the newest of every project.
+  const assets = listMediaAssetsLite(300, { perProject: 60 });
 
   return (
     <>

@@ -3,7 +3,12 @@ import { env } from "@/lib/env";
 import { LOCALES, localePath } from "@/lib/i18n";
 import { getPortfolio } from "@/lib/public-data";
 
-const ROUTES: { path: string; priority: number; changeFrequency: "weekly" | "monthly" | "yearly" }[] = [
+/** Rendered per request: APP_URL and the portfolio come from the running server, never from the build machine. */
+export const dynamic = "force-dynamic";
+
+type ChangeFrequency = "weekly" | "monthly" | "yearly";
+
+const ROUTES: { path: string; priority: number; changeFrequency: ChangeFrequency }[] = [
   { path: "/", priority: 1, changeFrequency: "weekly" },
   { path: "/platform", priority: 0.9, changeFrequency: "monthly" },
   { path: "/for-business", priority: 0.9, changeFrequency: "monthly" },
@@ -22,17 +27,27 @@ const ROUTES: { path: string; priority: number; changeFrequency: "weekly" | "mon
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = env.appUrl;
-  const now = new Date();
-  const entry = (path: string, priority: number, changeFrequency: (typeof ROUTES)[number]["changeFrequency"]): MetadataRoute.Sitemap => {
+  /**
+   * One entry per locale, cross-linked with hreflang alternates. `lastModified` is set only when a real change date
+   * is known: a date that moves on every fetch teaches crawlers to ignore it, so static pages carry none.
+   */
+  const entry = (path: string, priority: number, changeFrequency: ChangeFrequency, lastModified?: string): MetadataRoute.Sitemap => {
     const languages = Object.fromEntries(LOCALES.map((l) => [l, `${base}${localePath(l, path)}`]));
-    return LOCALES.map((l) => ({ url: `${base}${localePath(l, path)}`, lastModified: now, priority: l === "hy" ? priority : Math.max(0.1, priority - 0.1), changeFrequency, alternates: { languages } }));
+    return LOCALES.map((l) => ({
+      url: `${base}${localePath(l, path)}`,
+      ...(lastModified ? { lastModified } : {}),
+      priority: l === "hy" ? priority : Math.max(0.1, priority - 0.1),
+      changeFrequency,
+      alternates: { languages },
+    }));
   };
 
   const out: MetadataRoute.Sitemap = ROUTES.flatMap((r) => entry(r.path, r.priority, r.changeFrequency));
   try {
-    for (const it of getPortfolio("hy")) out.push(...entry(`/portfolio/${it.slug}`, 0.6, "monthly"));
-  } catch {
-    /* DB unavailable at build time — public routes are still listed */
+    for (const it of getPortfolio("hy")) out.push(...entry(`/portfolio/${it.slug}`, 0.6, "monthly", it.updatedAt));
+  } catch (err) {
+    // The static routes are still worth serving when the database cannot be read.
+    console.error("[sitemap] portfolio entries skipped:", err);
   }
   return out;
 }

@@ -14,6 +14,21 @@ function bool(name: string, fallback: boolean): boolean {
   return ["1", "true", "yes", "on"].includes(v.toLowerCase());
 }
 
+/** Built-in development fallbacks and the placeholders shipped in the example env files. None of them is a secret. */
+const DEV_SECRET = "dev-secret-change-me-please-32-chars-min";
+const DEV_ADMIN_PASSWORD = "architek2026";
+const PLACEHOLDER = /^(replace|change[-_ ]?me|your[-_ ]|example|secret$|password$)/i;
+
+/** True when APP_SECRET is the fallback, a shipped placeholder or shorter than 32 characters. */
+export function isWeakSecretValue(v: string): boolean {
+  return !v || v === DEV_SECRET || PLACEHOLDER.test(v) || v.length < 32;
+}
+
+/** True when ADMIN_PASSWORD is unset, the published development default, a placeholder or under 12 characters. */
+export function isWeakAdminPasswordValue(v: string | undefined): boolean {
+  return !v || v === DEV_ADMIN_PASSWORD || PLACEHOLDER.test(v) || v.length < 12;
+}
+
 export const env = {
   get appUrl() {
     return str("APP_URL", "http://localhost:3100").replace(/\/$/, "");
@@ -21,14 +36,29 @@ export const env = {
   get isProd() {
     return process.env.NODE_ENV === "production";
   },
+  /**
+   * Server secret. Keys the client-page passcode cookies and salts the visitor / IP hashes stored with
+   * analytics and client-page events. Admin sessions do not depend on it (they are random tokens).
+   */
   get secret() {
-    return str("APP_SECRET", "dev-secret-change-me-please-32-chars-min");
+    return str("APP_SECRET", DEV_SECRET);
+  },
+  /** For Settings → Security and the boot log: the secret is a fallback/placeholder or too short. */
+  get isWeakSecret() {
+    return isWeakSecretValue(str("APP_SECRET"));
   },
   get databasePath() {
     return path.resolve(process.cwd(), str("DATABASE_PATH", "./data/architeksoft.db"));
   },
   get uploadDir() {
     return path.resolve(process.cwd(), str("UPLOAD_DIR", "./data/uploads"));
+  },
+  /**
+   * Drop-folder the owner copies local files into. Created on boot together with a README, so the
+   * feature needs no configuration at all; INBOX_DIR moves it (e.g. to a synced folder or a volume).
+   */
+  get inboxDir() {
+    return path.resolve(process.cwd(), str("INBOX_DIR", "./data/inbox"));
   },
   get runWorkerInApp() {
     return bool("RUN_WORKER_IN_APP", true);
@@ -37,8 +67,13 @@ export const env = {
     get email() {
       return str("ADMIN_EMAIL", "admin@architeksoft.com");
     },
+    /** Only used once, to create the first owner account (see ensureFirstAdmin). */
     get password() {
-      return str("ADMIN_PASSWORD", "architek2026");
+      return str("ADMIN_PASSWORD", DEV_ADMIN_PASSWORD);
+    },
+    /** ADMIN_PASSWORD is missing, the published default, a placeholder or under 12 characters. */
+    get isWeakPassword() {
+      return isWeakAdminPasswordValue(process.env.ADMIN_PASSWORD);
     },
     get name() {
       return str("ADMIN_NAME", "Admin");

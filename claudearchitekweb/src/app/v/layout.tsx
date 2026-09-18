@@ -6,8 +6,8 @@ import type { Metadata } from "next";
  */
 export const dynamic = "force-dynamic";
 
+/** Same as /p: robots lives in the page's generateMetadata only, so a 404 carries exactly one tag. */
 export const metadata: Metadata = {
-  robots: { index: false, follow: false },
   title: "ArchiTek Soft",
 };
 

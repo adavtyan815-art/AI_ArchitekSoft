@@ -2,17 +2,17 @@
 
 | Service | Used for | Setup effort | Cost | Env vars |
 |---|---|---|---|---|
-| **Anthropic Claude** | Post copy, rewrites | Create API key | ~$0.003–0.03 per post; < $1/mo at your volume (Opus 5 default; Sonnet 5/Haiku 4.5 cheaper) | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` |
-| Google Gemini (fallback) | Same | API key | Free tier / cents | `GEMINI_API_KEY` |
-| **Telegram Bot API** | Approvals, notifications, daily brief, channel publishing | @BotFather → token; send /start; add bot as channel admin | Free | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_CHANNEL_ID` |
+| **Anthropic Claude** | Post copy, rewrites | Create API key | ~$0.006–0.03 per post; < $1/mo at your volume (Opus 5 default $5/$25 per 1M tokens; Sonnet 5 $2/$10 and Haiku 4.5 $1/$5 are cheaper) | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` |
+| Google Gemini (fallback) | Same | API key | Free tier / cents | `GEMINI_API_KEY`, `GEMINI_MODEL` |
+| **Telegram Bot API** | Approvals, notifications, daily brief, channel publishing | @BotFather → token; bind the chat with `/setadmin <code>`; add bot as channel admin | Free | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_CHANNEL_ID` |
 | **Meta (Facebook Page + Instagram Business)** | Publishing | Meta app (Standard Access is enough for your own Page/IG when you are the app admin); long-lived user token → non-expiring Page token; IG professional account linked to the Page | Free | `META_PAGE_ID`, `META_PAGE_ACCESS_TOKEN`, `META_IG_USER_ID` |
 | **LinkedIn** | Company-page publishing | Community Management API access form (registered business, business e-mail, page super-admin verification); 60-day tokens | Free | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_ORG_URN`, `LINKEDIN_API_VERSION` |
-| **YouTube Data API** | Video/Shorts upload | Google Cloud project, OAuth consent (sensitive scope), refresh token; compliance audit for public uploads | Free (quota 10k units/day; 100 uploads/day) | `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN` |
+| **YouTube Data API** | Video/Shorts upload | Google Cloud project, OAuth consent (sensitive scope), refresh token; compliance audit for public uploads | Free (quota 10k units/day; 100 uploads/day) | `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`, `YOUTUBE_PRIVACY` |
 | TikTok | — | Audited app required; kept manual | Free | — |
 | Unified alternative | Instead of native LinkedIn/YouTube/TikTok | Sign-up | Zernio: 2 accounts free, then $6/account/mo · Upload-Post: free 10 posts/mo, $24/mo · Post Bridge ~$29–34/mo · Ayrshare $149/mo | (adapter to add) |
 | **live.architeksoft.com** (your backend) | Creating Live 3D instances | Admin username/password of that backend | AWS g4dn.2xlarge ≈ $0.75/h + egress $0.09/GB while running; MongoDB Atlas free tier | `LIVE_BACKEND_URL`, `LIVE_ADMIN_USERNAME`, `LIVE_ADMIN_PASSWORD` |
 | Managed pixel streaming (optional) | Replace self-managed AWS | Vagon Streams REST API | $0.025–0.047/min + $0.67/day app hosting; Streampixel €99/mo flat (2 CCU) | — |
-| Resend (optional) | E-mail notifications | API key + verified domain | Free 3,000/mo | `RESEND_API_KEY`, `NOTIFY_EMAIL_*` |
+| Resend (optional) | E-mail notifications | API key + verified domain | Free 3,000/mo | `RESEND_API_KEY`, `NOTIFY_EMAIL_FROM`, `NOTIFY_EMAIL_TO` |
 | **Hosting** | App + worker + files | VPS with Docker | Hetzner CAX21 €10.49/mo (8 GB) or CPX22 €19.49; DigitalOcean $24; + Cloudflare free | see `08_DEPLOYMENT.md` |
 | Object storage (optional) | Videos at scale, backups | Cloudflare R2 bucket + token | $0.015/GB-month, **$0 egress** | (Litestream config in `deploy/`) |
 | Domain / DNS | `architeksoft.com` | Cloudflare (free plan) | ~$0 | — |
@@ -20,12 +20,17 @@
 
 **Total at low usage:** ≈ $16–25/month for everything except GPU streaming; add ≈ $50/month per 20 hours of Live 3D sessions.
 
+Three of these variables are only *defaults*: `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_CHANNEL_ID` and `LIVE_BACKEND_URL` are read on every request, but a non-empty value saved in Admin → Settings overrides them, so the owner can change them without touching `.env`. Every variable and its one-line meaning is listed in `.env.example`.
+
 ## Setup guides (short)
 
 ### Telegram (10 minutes)
 1. Telegram → @BotFather → `/newbot` → copy the token into `.env` (`TELEGRAM_BOT_TOKEN`), restart.
-2. Open your bot, press **Start**, then send `/setadmin` (first time) or `/chatid` and paste the id into Settings → Telegram.
-3. Optional channel: create a channel, add the bot as admin with "Post messages", put `@channelname` into `TELEGRAM_CHANNEL_ID`.
+2. Open **Admin → Settings → Telegram**: while no chat is bound it shows a `/setadmin <code>` line (10 hex
+   characters derived from `APP_SECRET`). Press **Start** in your bot and send that whole line from the chat
+   that should receive approvals. Alternative: send `/chatid` and paste the id into the same form.
+   A bare `/setadmin` is refused — the code is required, so nobody who finds the bot can bind themselves.
+3. Optional channel: create a channel, add the bot as admin with "Post messages", put `@channelname` into `TELEGRAM_CHANNEL_ID` (or the Settings field, which wins).
 4. Settings → Telegram → **Send test message**.
 
 ### Meta (Facebook + Instagram) (30–60 minutes)
@@ -35,10 +40,10 @@
 4. Put `META_PAGE_ID`, `META_PAGE_ACCESS_TOKEN`, `META_IG_USER_ID` in `.env`. Instagram fetches media by URL, so `APP_URL` must be public HTTPS.
 
 ### LinkedIn (days; vetting)
-Apply for the Community Management API (Development tier is enough for your own page), authorise `w_organization_social`, get the organization URN (`urn:li:organization:<id>`), 60-day token; re-authorise every ~50 days (the daily brief can remind you).
+Apply for the Community Management API (Development tier is enough for your own page), authorise `w_organization_social`, get the organization URN (`urn:li:organization:<id>`), 60-day token; re-authorise every ~50 days (nothing reminds you — put it in a calendar). The app only treats LinkedIn as connected when the URN matches `urn:li:organization:<digits>` exactly — anything else stays in dry-run. `LINKEDIN_API_VERSION` defaults to `202606` in the code and needs bumping about once a year; LinkedIn answers HTTP 426 and the error message names the variable when it lapses.
 
 ### YouTube (1–2 hours + audit)
-Google Cloud → enable YouTube Data API v3 → OAuth client (Desktop) → consent screen in *production* → get a refresh token with scope `youtube.upload` via the OAuth playground → `.env`. Uploads are **private** until the API compliance audit passes; set `YOUTUBE_PRIVACY=private` meanwhile and flip in Studio.
+Google Cloud → enable YouTube Data API v3 → OAuth client (Desktop) → consent screen in *production* → get a refresh token with scope `youtube.upload` via the OAuth playground → `.env`. Uploads must stay **private** until the API compliance audit passes: the code default for `YOUTUBE_PRIVACY` is `public`, so set `YOUTUBE_PRIVACY=private` explicitly and flip the videos in Studio.
 
 ### Anthropic
-console.anthropic.com → API key → `ANTHROPIC_API_KEY`. Model default `claude-opus-5`; set `ANTHROPIC_MODEL=claude-sonnet-5` or `claude-haiku-4-5` to reduce cost further.
+console.anthropic.com → API key → `ANTHROPIC_API_KEY`. Model default `claude-opus-5` ($5 / $25 per 1M input / output tokens); set `ANTHROPIC_MODEL=claude-sonnet-5` ($2 / $10) or `claude-haiku-4-5` ($1 / $5) to reduce cost further. Without a key — or when the call fails and there is no Gemini key either — the drafts come from the built-in templates, so nothing breaks.

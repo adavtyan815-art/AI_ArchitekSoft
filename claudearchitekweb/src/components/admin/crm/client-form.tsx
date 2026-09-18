@@ -1,5 +1,6 @@
-import { Button, Field, Input, Select, Textarea } from "@/components/ui";
+import { Button, Field, Input, Textarea } from "@/components/ui";
 import { FormActions } from "@/components/admin/shell";
+import { FormSelect } from "@/components/admin/form-select";
 import { LEAD_SOURCES } from "@/lib/crm";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
 import { parseJson } from "@/lib/utils";
@@ -37,78 +38,79 @@ export async function ClientForm({
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       <input type="hidden" name="kind" value="contact" />
       {lockCompany ? <input type="hidden" name="companyId" value={companyId} /> : null}
+      {/* maxLength mirrors the server limits in crm-actions.ts, so nothing is silently truncated. */}
       <Field label={f.firstName} required>
-        <Input name="firstName" required defaultValue={client?.firstName ?? ""} placeholder="Արեն" />
+        <Input name="firstName" required maxLength={80} defaultValue={client?.firstName ?? ""} placeholder="Արեն" />
       </Field>
       <Field label={f.lastName}>
-        <Input name="lastName" defaultValue={client?.lastName ?? ""} />
+        <Input name="lastName" maxLength={80} defaultValue={client?.lastName ?? ""} />
       </Field>
       {!lockCompany ? (
         <Field label={f.company} hint={f.companyHint}>
-          <Select name="companyId" defaultValue={companyId}>
+          <FormSelect name="companyId" value={companyId}>
             <option value="">{f.individualOption}</option>
             {companies.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
-          </Select>
+          </FormSelect>
         </Field>
       ) : null}
       <Field label={f.position}>
-        <Input name="position" defaultValue={client?.position ?? ""} placeholder={f.positionPlaceholder} />
+        <Input name="position" maxLength={80} defaultValue={client?.position ?? ""} placeholder={f.positionPlaceholder} />
       </Field>
       <Field label={f.phone}>
-        <Input name="phone" defaultValue={client?.phone ?? ""} placeholder="+374 …" />
+        <Input name="phone" maxLength={40} defaultValue={client?.phone ?? ""} placeholder="+374 …" />
       </Field>
       <Field label={f.telegram}>
-        <Input name="telegram" defaultValue={client?.telegram ?? ""} placeholder="@username" />
+        <Input name="telegram" maxLength={60} defaultValue={client?.telegram ?? ""} placeholder="@username" />
       </Field>
       <Field label={f.whatsapp}>
-        <Input name="whatsapp" defaultValue={client?.whatsapp ?? ""} placeholder="+374 …" />
+        <Input name="whatsapp" maxLength={40} defaultValue={client?.whatsapp ?? ""} placeholder="+374 …" />
       </Field>
       <Field label={f.email}>
-        <Input name="email" type="email" defaultValue={client?.email ?? ""} />
+        <Input name="email" type="email" maxLength={120} defaultValue={client?.email ?? ""} />
       </Field>
       <Field label={f.language}>
-        <Select name="language" defaultValue={client?.language ?? "hy"}>
+        <FormSelect name="language" value={client?.language ?? "hy"}>
           <option value="hy">{f.langHy}</option>
           <option value="ru">{f.langRu}</option>
           <option value="en">{f.langEn}</option>
-        </Select>
+        </FormSelect>
       </Field>
       <Field label={f.status}>
-        <Select name="status" defaultValue={client?.status ?? "active"}>
+        <FormSelect name="status" value={client?.status ?? "active"}>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
               {labelFor(t, "clientStatus", s)}
             </option>
           ))}
-        </Select>
+        </FormSelect>
       </Field>
       <Field label={f.city}>
-        <Input name="city" defaultValue={client?.city ?? ""} placeholder={f.cityPlaceholder} />
+        <Input name="city" maxLength={80} defaultValue={client?.city ?? ""} placeholder={f.cityPlaceholder} />
       </Field>
       <Field label={f.source}>
-        <Select name="source" defaultValue={client?.source ?? ""}>
+        <FormSelect name="source" value={client?.source ?? ""}>
           <option value="">{f.none}</option>
           {LEAD_SOURCES.map((s) => (
             <option key={s} value={s}>
               {labelFor(t, "leadSources", s)}
             </option>
           ))}
-        </Select>
+        </FormSelect>
       </Field>
       {compact ? null : (
         <>
           <Field label={f.address} className="sm:col-span-2">
-            <Input name="address" defaultValue={client?.address ?? ""} />
+            <Input name="address" maxLength={200} defaultValue={client?.address ?? ""} />
           </Field>
           <Field label={f.tags} hint={f.tagsHint} className="sm:col-span-2">
             <Input name="tags" defaultValue={tags} placeholder={f.tagsPlaceholder} />
           </Field>
           <Field label={f.notes} className="sm:col-span-2">
-            <Textarea name="notes" defaultValue={client?.notes ?? ""} placeholder={f.notesPlaceholder} />
+            <Textarea name="notes" maxLength={4000} defaultValue={client?.notes ?? ""} placeholder={f.notesPlaceholder} />
           </Field>
         </>
       )}

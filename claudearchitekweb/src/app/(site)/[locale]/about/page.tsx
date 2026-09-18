@@ -18,14 +18,46 @@ const MATERIALS: { label: string; fill: string }[] = [
   { label: "EGGER U626", fill: "#6c7a5c" },
 ];
 
-/** Capabilities as a spec list — customer-facing, language-neutral. No implementation details on the public site. */
-const STACK: { k: string; v: string }[] = [
-  { k: "3D", v: "Real-time · true to size · real materials" },
-  { k: "Web", v: "Interactive viewing · any phone or computer · no installation" },
-  { k: "AR", v: "In the customer's room · 1:1 scale" },
-  { k: "Live 3D", v: "Cinematic presentation · 4K · showroom screens" },
-  { k: "Platform", v: "Client pages · approvals · production documents" },
-];
+/**
+ * Capabilities as a spec list — customer-facing, language-neutral. No implementation details on the
+ * public site. Page-local strings, like the other pages that carry captions of their own; product
+ * names (AR, Live 3D, Web Viewer) stay literal in every language.
+ */
+const LOCAL: Record<Locale, { stackTag: string; studio: string; stack: { k: string; v: string }[] }> = {
+  hy: {
+    stackTag: "Հնարավորություններ",
+    studio: "ArchiTek Soft · Ստուդիա",
+    stack: [
+      { k: "3D", v: "Իրական ժամանակում · ճշգրիտ չափերով · իրական նյութերով" },
+      { k: "Web", v: "Ինտերակտիվ դիտում · ցանկացած հեռախոս կամ համակարգիչ · առանց տեղադրման" },
+      { k: "AR", v: "Պատվիրատուի սենյակում · 1:1 մասշտաբով" },
+      { k: "Live 3D", v: "Կինոյի որակի ցուցադրություն · 4K · սրահի էկրաններ" },
+      { k: "Հարթակ", v: "Հաճախորդի էջեր · հաստատումներ · արտադրական փաստաթղթեր" },
+    ],
+  },
+  ru: {
+    stackTag: "Возможности",
+    studio: "ArchiTek Soft · Студия",
+    stack: [
+      { k: "3D", v: "В реальном времени · точно по размерам · реальные материалы" },
+      { k: "Web", v: "Интерактивный просмотр · любой телефон или компьютер · без установки" },
+      { k: "AR", v: "В комнате заказчика · масштаб 1:1" },
+      { k: "Live 3D", v: "Кинематографичная презентация · 4K · экраны в салонах" },
+      { k: "Платформа", v: "Страницы клиента · согласования · производственные документы" },
+    ],
+  },
+  en: {
+    stackTag: "Capabilities",
+    studio: "ArchiTek Soft · Studio",
+    stack: [
+      { k: "3D", v: "Real-time · true to size · real materials" },
+      { k: "Web", v: "Interactive viewing · any phone or computer · no installation" },
+      { k: "AR", v: "In the customer's room · 1:1 scale" },
+      { k: "Live 3D", v: "Cinematic presentation · 4K · showroom screens" },
+      { k: "Platform", v: "Client pages · approvals · production documents" },
+    ],
+  },
+};
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;
@@ -39,6 +71,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   const locale = (isLocale(raw) ? raw : "hy") as Locale;
   const d = getDictionary(locale);
   const a = d.about;
+  const t = LOCAL[locale];
   const brand = getSetting("brand");
   const p = (path: string) => localePath(locale, path);
 
@@ -59,7 +92,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
       {/* full-bleed frame */}
       <section className="container-x mt-12 sm:mt-16">
-        <Frame marks caption={a.whatTitle} captionRight="ArchiTek Soft · Studio">
+        <Frame marks caption={a.whatTitle} captionRight={t.studio}>
           <div className="relative aspect-[4/3] bg-surface-2 sm:aspect-[21/9]">
             <Image src="/demo/interior.webp" alt="" fill priority sizes="100vw" className="object-cover" />
           </div>
@@ -85,11 +118,11 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       <section className="container-x section-tight reveal">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-5">
-            <SectionHeading index={3} eyebrow="Stack" title={a.techTitle} />
+            <SectionHeading index={3} eyebrow={t.stackTag} title={a.techTitle} />
             <p className="mt-6 text-[15px] leading-relaxed text-fg-2">{a.techText}</p>
           </div>
           <div className="lg:col-span-6 lg:col-start-7">
-            <Spec rows={STACK.map((s) => ({ k: s.k, v: <span className="font-mono text-[13.5px] text-fg-2">{s.v}</span> }))} />
+            <Spec rows={t.stack.map((s) => ({ k: s.k, v: <span className="font-mono text-[13.5px] text-fg-2">{s.v}</span> }))} />
             <div className="mt-9 flex flex-wrap items-end gap-x-5 gap-y-4" aria-hidden>
               {MATERIALS.map((m) => (
                 <div key={m.label} className="flex flex-col items-start gap-1.5">

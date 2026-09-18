@@ -69,7 +69,11 @@ export function Tag({ className, children }: { className?: string; children: Rea
   return <span className={cn("tag", className)}>{children}</span>;
 }
 
-export function Field({ label, hint, required, children, className }: { label: string; hint?: string; required?: boolean; children: ReactNode; className?: string }) {
+/**
+ * Labelled form row. `error` is rendered inside the same <label> as the control, so a screen reader
+ * reads the problem together with the field name (pair it with `aria-invalid` on the control).
+ */
+export function Field({ label, hint, required, error, children, className }: { label: string; hint?: string; required?: boolean; error?: string; children: ReactNode; className?: string }) {
   return (
     <label className={cn("block", className)}>
       <span className="label">
@@ -77,12 +81,13 @@ export function Field({ label, hint, required, children, className }: { label: s
         {required ? <span className="text-accent"> *</span> : null}
       </span>
       {children}
-      {hint ? <span className="field-hint">{hint}</span> : null}
+      {error ? <span className="mt-1.5 block text-xs text-danger">{error}</span> : null}
+      {hint && !error ? <span className="field-hint">{hint}</span> : null}
     </label>
   );
 }
 
-export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: React.ComponentPropsWithRef<"input">) {
   return <input className={cn("input", className)} {...props} />;
 }
 
@@ -249,12 +254,16 @@ export function CheckList({ items, className, numbered, tone }: { items: string[
   );
 }
 
-/** Material chip: a colour or an image fill, with an optional mono label below. */
+/**
+ * Material chip: a colour or an image fill, with an optional mono label below.
+ * The button is the hit area (44 px wide at least); the 36 px chip inside carries the selected ring
+ * (`button[aria-pressed="true"] > .swatch` in globals.css), so the state never depends on colour alone.
+ */
 export function Swatch({ hex, image, label, active, className, ...rest }: { hex?: string; image?: string; label?: string; active?: boolean; className?: string } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button type="button" aria-pressed={active} className={cn("group flex flex-col items-center gap-1.5", className)} {...rest}>
-      <span className="swatch overflow-hidden" style={{ background: image ? `url(${image}) center/cover` : hex }} />
-      {label ? <span className={cn("font-mono text-[10px] uppercase tracking-[0.08em]", active ? "text-fg" : "text-muted")}>{label}</span> : null}
+    <button type="button" aria-pressed={!!active} className={cn("group flex min-w-11 flex-col items-center gap-1.5 pt-1", className)} {...rest}>
+      <span aria-hidden className="swatch overflow-hidden" style={{ background: image ? `url(${image}) center/cover` : hex }} />
+      {label ? <span className={cn("font-mono text-[10px] whitespace-nowrap uppercase tracking-[0.08em]", active ? "text-fg" : "text-muted")}>{label}</span> : null}
     </button>
   );
 }

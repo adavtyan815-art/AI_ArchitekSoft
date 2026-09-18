@@ -6,6 +6,7 @@ import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { getPortfolio } from "@/lib/public-data";
 import { ButtonLink, Index } from "@/components/ui";
+import { TrackedCta } from "@/components/site/cta";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { PortfolioGrid } from "@/components/site/portfolio-grid";
 import { Showcase } from "@/components/site/showcase";
@@ -53,7 +54,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <Showcase
           locale={locale}
           s={d.showcase}
-          viewerLabels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }}
+          viewerLabels={{
+            hint: d.home.viewerHint,
+            swatches: d.home.viewerSwatches,
+            ar: d.home.viewerAr,
+            reset: d.home.viewerReset,
+            load: d.common.tryDemo,
+            alt: d.home.viewerAlt,
+            loading: d.home.viewerLoading,
+            error: d.home.viewerError,
+            retry: d.home.viewerRetry,
+            swatchNames: d.home.viewerColors,
+          }}
           compareLabels={[d.portal.before, d.portal.after]}
           media={{ before: "/demo/sketch-plan.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/wardrobe.webp" }}
           headline={
@@ -71,10 +83,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <div className="rise" style={delay(140)}>
               <p className="hx-intro">{c.intro}</p>
               <div className="hx-ctas">
-                <ButtonLink href={p("/start")} className="hx-cta-primary">
+                <TrackedCta href={p("/start")} label="home-hero" locale={locale} className="hx-cta-primary">
                   {d.home.heroPrimary}
                   <ArrowUpRight size={16} />
-                </ButtonLink>
+                </TrackedCta>
                 <ButtonLink href={p("/viewer")} variant="secondary">
                   {d.home.heroSecondary}
                 </ButtonLink>
@@ -211,10 +223,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <div className="hx-band reveal p-7 sm:p-10 lg:p-12">
               <h2 className="text-[1.9rem] leading-[1.08] sm:text-[2.5rem]">{d.home.finalTitle}</h2>
               <p className="mt-4 max-w-md text-[15.5px] text-fg-2">{d.home.finalText}</p>
-              <ButtonLink href={p("/start")} variant="brand" size="lg" className="mt-8">
+              <TrackedCta href={p("/start")} label="home-closing" locale={locale} variant="brand" size="lg" className="mt-8">
                 {d.common.startProject}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
               <div className="mt-9 border-t border-line pt-5">
                 <ContactChannels brand={brand} dict={d} compact />
               </div>

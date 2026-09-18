@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
-import { ExternalLink, MessageCircle, RefreshCw, Send, Trash2 } from "lucide-react";
+import { ExternalLink, RefreshCw, Send, Trash2 } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { PROJECT_STAGES, PROJECT_TYPES, shareUrl } from "@/lib/crm";
 import { clientLabel, clientOptions, companyOptions, relTime } from "@/lib/admin-helpers";
+import { RelTime } from "@/components/admin/rel-time";
 import { liveConfigured } from "@/lib/live";
 import { env } from "@/lib/env";
 import { getAdminDict, labelFor, local } from "@/lib/i18n/admin";
@@ -14,10 +15,11 @@ import { FormActions, KV, PageHeader, Panel, SpecStrip, StatCard, StatusBadge, T
 import { Badge, Button, Field, Input, Select, Textarea } from "@/components/ui";
 import { AutoSubmitSelect } from "@/components/admin/auto-submit-select";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { CopyButton } from "@/components/admin/copy-button";
+import { Notice } from "@/components/admin/notice";
 import { ActivityTimeline } from "@/components/admin/crm/activity-timeline";
 import { UploadZone } from "@/components/admin/media/upload-zone";
 import { ProjectMediaGrid } from "@/components/admin/projects/project-media-grid";
+import { ShareHandoff } from "./share-handoff";
 import {
   createLiveLinkAction,
   createShareLinkAction,
@@ -40,7 +42,9 @@ const TAB_KEYS = ["", "media", "client", "deliverables", "feedback", "timeline"]
 
 type Room = { width?: number | null; depth?: number | null; height?: number | null; notes?: string | null };
 
-export default async function ProjectDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
+type SP = { tab?: string; notice?: string | string[]; tone?: string | string[] };
+
+export default async function ProjectDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SP> }) {
   await requireUser();
   const { t, locale } = await getAdminDict();
   const P = t.projects;
@@ -53,6 +57,8 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
   if (!project) notFound();
 
   const client = project.clientId ? db.select().from(schema.clients).where(eq(schema.clients.id, project.clientId)).get() : null;
+  // A converted lead keeps its history; the project should link back to it (and say nothing when the lead was deleted).
+  const lead = project.leadId ? db.select({ id: schema.leads.id, name: schema.leads.name }).from(schema.leads).where(eq(schema.leads.id, project.leadId)).get() : null;
   const company = project.companyId ? db.select().from(schema.companies).where(eq(schema.companies.id, project.companyId)).get() : null;
   const assets = db.select().from(schema.assets).where(eq(schema.assets.projectId, id)).orderBy(asc(schema.assets.sortOrder), asc(schema.assets.createdAt)).all();
   const links = db.select().from(schema.shareLinks).where(eq(schema.shareLinks.projectId, id)).orderBy(desc(schema.shareLinks.createdAt)).all();
@@ -81,7 +87,9 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
     : [];
   const linkTitles = Object.fromEntries(links.map((l) => [l.id, l.slug]));
   const room = parseJson<Room>(project.room, {});
-  const openFeedback = feedback.filter((fb) => !fb.resolved).length;
+  // An approval is good news, not an open item: counting it here put a permanent warning figure on the
+  // header of every approved project and asked the owner to "resolve" the approval.
+  const openFeedback = feedback.filter((fb) => !fb.resolved && fb.type !== "approve").length;
 
   const tabs = [
     { key: "", label: P.tabs.overview },
@@ -94,13 +102,50 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
 
   const subtitle = [labelFor(t, "rooms", project.type), client ? clientLabel(client) : null, company ? company.name : null, !client && !company ? P.noClient : null, P.updatedAgo(relTime(project.updatedAt, locale))].filter(Boolean).join(" · ");
 
-  const uploadLabels = { label: t.media.uploadLabel, hint: t.media.uploadHint, busy: t.media.uploading, uploaded: t.media.uploaded, failed: t.media.uploadFailed };
+  const uploadLabels = { label: t.media.uploadLabel, hint: t.media.uploadHint, busy: t.media.uploading, uploaded: t.media.uploaded, failed: t.media.uploadFailed, tooLarge: t.media.uploadTooLarge };
 
-  /** What the client did on their page — only these few event kinds are recorded. */
+  /** What the client did on their page. Every type the portal records must be here, or the panel falls back to the raw English key. */
   const eventNames: Record<string, string> = local(
     {
-      hy: { view: "Բացել է էջը", open_viewer: "Բացել է Web Viewer-ը", web_viewer: "Web Viewer", approve: "Հաստատել է", change_request: "Փոփոխություն է ուզում", question: "Հարց է տվել" },
-      en: { view: "Opened the page", open_viewer: "Opened the Web Viewer", web_viewer: "Web Viewer", approve: "Approved", change_request: "Asked for a change", question: "Asked a question" },
+      hy: {
+        view: "Բացել է էջը",
+        open_viewer: "Բացել է Web Viewer-ը",
+        web_viewer: "Web Viewer",
+        open_live: "Բացել է Live 3D-ն",
+        open_ar: "Բացել է AR-ը",
+        download: "Ներբեռնել է ֆայլ",
+        approve: "Հաստատել է",
+        change_request: "Փոփոխություն է ուզում",
+        question: "Հարց է տվել",
+      },
+      en: {
+        view: "Opened the page",
+        open_viewer: "Opened the Web Viewer",
+        web_viewer: "Web Viewer",
+        open_live: "Opened Live 3D",
+        open_ar: "Opened AR",
+        download: "Downloaded a file",
+        approve: "Approved",
+        change_request: "Asked for a change",
+        question: "Asked a question",
+      },
+    },
+    locale
+  );
+
+  /** Wording this page adds on top of the shared admin dictionary. */
+  const X = local(
+    {
+      hy: {
+        fromLead: "Հարցումից",
+        deactivateConfirm: "Անջատե՞լ այս հաճախորդի էջը։ Հղումն այլևս չի բացվի։",
+        expiresHint: "Դատարկ՝ ժամկետ չկա։ Նվազագույնը 1 օր։",
+      },
+      en: {
+        fromLead: "From lead",
+        deactivateConfirm: "Deactivate this client page? The link will stop opening.",
+        expiresHint: "Empty means no expiry. One day at least.",
+      },
     },
     locale
   );
@@ -141,6 +186,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
           </form>
         }
       />
+      <Notice text={sp.notice} tone={sp.tone} />
 
       <SpecStrip className="mb-5">
         <StatCard label={P.quote} value={formatMoney(project.quoteAmount, project.currency)} hint={project.depositAmount ? P.depositHint(formatMoney(project.depositAmount, project.currency)) : undefined} />
@@ -207,25 +253,25 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                 </Select>
               </Field>
               <Field label={P.fRoomWidth}>
-                <Input name="roomWidth" inputMode="numeric" defaultValue={room.width ?? ""} />
+                <Input name="roomWidth" inputMode="decimal" defaultValue={room.width ?? ""} />
               </Field>
               <Field label={P.fRoomDepth}>
-                <Input name="roomDepth" inputMode="numeric" defaultValue={room.depth ?? ""} />
+                <Input name="roomDepth" inputMode="decimal" defaultValue={room.depth ?? ""} />
               </Field>
               <Field label={P.fRoomHeight}>
-                <Input name="roomHeight" inputMode="numeric" defaultValue={room.height ?? ""} />
+                <Input name="roomHeight" inputMode="decimal" defaultValue={room.height ?? ""} />
               </Field>
               <Field label={P.fRoomNotes}>
                 <Input name="roomNotes" defaultValue={room.notes ?? ""} maxLength={500} placeholder={P.roomNotesPlaceholder} />
               </Field>
               <Field label={P.fQuote}>
-                <Input name="quoteAmount" inputMode="numeric" defaultValue={project.quoteAmount ?? ""} />
+                <Input name="quoteAmount" inputMode="decimal" defaultValue={project.quoteAmount ?? ""} />
               </Field>
               <Field label={P.fDeposit}>
-                <Input name="depositAmount" inputMode="numeric" defaultValue={project.depositAmount ?? ""} />
+                <Input name="depositAmount" inputMode="decimal" defaultValue={project.depositAmount ?? ""} />
               </Field>
               <Field label={P.fPaid}>
-                <Input name="paidAmount" inputMode="numeric" defaultValue={project.paidAmount ?? ""} />
+                <Input name="paidAmount" inputMode="decimal" defaultValue={project.paidAmount ?? ""} />
               </Field>
               <Field label={f.currency}>
                 <Select name="currency" defaultValue={project.currency}>
@@ -242,7 +288,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
               <Field label={t.common.description} className="sm:col-span-2">
                 <Textarea name="description" defaultValue={project.description ?? ""} placeholder={P.descriptionPlaceholder} />
               </Field>
-              <label className="flex items-center gap-2 text-sm text-fg-2 sm:col-span-2">
+              <label className="flex min-h-10 items-center gap-2 text-sm text-fg-2 sm:col-span-2">
                 <input type="checkbox" name="isPortfolio" defaultChecked={project.isPortfolio} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
                 {P.showInPortfolio}
               </label>
@@ -275,6 +321,15 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
               </KV>
               <KV label={t.common.stage}>
                 <StatusBadge value={project.stage} label={labelFor(t, "projectStage", project.stage)} />
+              </KV>
+              <KV label={X.fromLead}>
+                {lead ? (
+                  <Link href={`/admin/leads/${lead.id}`} className="text-accent">
+                    {lead.name}
+                  </Link>
+                ) : (
+                  "—"
+                )}
               </KV>
               <KV label={P.colDeadline}>{project.deadline ? formatDate(project.deadline) : "—"}</KV>
               <KV label={t.common.created}>{formatDate(project.createdAt, true)}</KV>
@@ -327,13 +382,13 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                           </div>
                           <div className="text-xs text-muted sm:text-right">
                             <div>{P.viewsCount(l.viewsCount)}</div>
-                            <div>{l.lastViewedAt ? P.lastView(relTime(l.lastViewedAt, locale)) : P.notOpened}</div>
+                            <div suppressHydrationWarning>{l.lastViewedAt ? P.lastView(relTime(l.lastViewedAt, locale)) : P.notOpened}</div>
                             {l.expiresAt ? <div>{P.expiresOn(formatDate(l.expiresAt))}</div> : null}
-                            {l.sentAt ? <div>{P.sentVia(sentViaNames[l.sentVia ?? ""] ?? l.sentVia ?? "—", relTime(l.sentAt, locale))}</div> : null}
+                            {l.sentAt ? <div suppressHydrationWarning>{P.sentVia(sentViaNames[l.sentVia ?? ""] ?? l.sentVia ?? "—", relTime(l.sentAt, locale))}</div> : null}
                           </div>
                         </div>
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <CopyButton text={url} label={P.copyLink} copiedLabel={t.common.copied} />
+                          <ShareHandoff linkId={l.id} url={url} waUrl={wa} copyLabel={P.copyLink} copiedLabel={t.common.copied} whatsappLabel={t.common.whatsapp} />
                           <a href={url} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm">
                             <ExternalLink size={14} /> {P.open}
                           </a>
@@ -343,9 +398,6 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                               <Send size={14} /> {P.sendTelegram}
                             </button>
                           </form>
-                          <a href={wa} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm">
-                            <MessageCircle size={14} /> {t.common.whatsapp}
-                          </a>
                           <form action={regenerateShareTokenAction}>
                             <input type="hidden" name="id" value={l.id} />
                             <ConfirmButton message={P.regenerateConfirm} className="btn-ghost btn-sm">
@@ -354,9 +406,16 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                           </form>
                           <form action={toggleShareLinkAction}>
                             <input type="hidden" name="id" value={l.id} />
-                            <button type="submit" className="btn-ghost btn-sm">
-                              {l.isActive ? P.deactivate : P.activate}
-                            </button>
+                            {/* Same confirmation as /admin/pages: turning a link off breaks it for a client who already has it. */}
+                            {l.isActive ? (
+                              <ConfirmButton message={X.deactivateConfirm} className="btn-ghost btn-sm">
+                                {P.deactivate}
+                              </ConfirmButton>
+                            ) : (
+                              <button type="submit" className="btn-ghost btn-sm">
+                                {P.activate}
+                              </button>
+                            )}
                           </form>
                           <form action={deleteShareLinkAction}>
                             <input type="hidden" name="id" value={l.id} />
@@ -394,12 +453,12 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                 <ul className="divide-y divide-line text-sm">
                   {events.map((e) => (
                     <li key={e.id} className="flex items-center justify-between gap-3 py-2">
-                      <span className="min-w-0 text-fg-2">
+                      <span className="min-w-0 [overflow-wrap:anywhere] text-fg-2">
                         <span className="tag mr-2">{eventNames[e.type] ?? e.type.replace(/_/g, " ")}</span>
                         <span className="font-mono text-xs text-muted">/p/{linkTitles[e.shareLinkId] ?? "—"}</span>
                       </span>
                       <span className="num text-[11px] whitespace-nowrap text-muted" title={formatDate(e.createdAt, true)}>
-                        {relTime(e.createdAt, locale)}
+                        <RelTime iso={e.createdAt} locale={locale} />
                       </span>
                     </li>
                   ))}
@@ -426,11 +485,11 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                 </Select>
               </Field>
               <div className="grid grid-cols-2 gap-3">
-                <Field label={P.expiresDays}>
-                  <Input name="expiresDays" inputMode="numeric" placeholder="30" />
+                <Field label={P.expiresDays} hint={X.expiresHint}>
+                  <Input name="expiresDays" type="number" min={1} max={3650} step={1} inputMode="numeric" placeholder="30" />
                 </Field>
                 <Field label={P.passcode}>
-                  <Input name="passcode" maxLength={12} placeholder={P.passcodePlaceholder} />
+                  <Input name="passcode" minLength={6} maxLength={24} placeholder={P.passcodePlaceholder} />
                 </Field>
               </div>
               <div className="space-y-1.5 text-sm text-fg-2">
@@ -443,7 +502,7 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                     ["allowFeedback", P.allowFeedback, true],
                   ] as const
                 ).map(([name, label, on]) => (
-                  <label key={name} className="flex items-center gap-2">
+                  <label key={name} className="flex min-h-10 items-center gap-2 sm:min-h-0">
                     <input type="checkbox" name={name} defaultChecked={on} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
                     {label}
                   </label>
@@ -557,10 +616,12 @@ export default async function ProjectDetailPage({ params, searchParams }: { para
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge tone={fb.type === "approve" ? "success" : fb.type === "change_request" ? "warning" : "neutral"}>{labelFor(t, "feedbackType", fb.type)}</Badge>
                       {fb.resolved ? <Badge tone="neutral">{P.resolved}</Badge> : null}
-                      <span className="text-xs text-muted">{relTime(fb.createdAt, locale)}</span>
+                      <span className="text-xs text-muted"><RelTime iso={fb.createdAt} locale={locale} /></span>
                     </div>
-                    {fb.message ? <div className="mt-1 text-sm whitespace-pre-wrap text-fg-2">{fb.message}</div> : null}
-                    {fb.contact ? <div className="mt-0.5 text-xs text-muted">{fb.contact}</div> : null}
+                    {/* Client text is pasted, so it can be one 4000-character "word" (a Drive link). Without
+                        overflow-wrap the whole phone layout grows to that width and the sticky bars fall off. */}
+                    {fb.message ? <div className="mt-1 text-sm whitespace-pre-wrap [overflow-wrap:anywhere] text-fg-2">{fb.message}</div> : null}
+                    {fb.contact ? <div className="mt-0.5 text-xs [overflow-wrap:anywhere] text-muted">{fb.contact}</div> : null}
                   </div>
                   <form action={toggleFeedbackResolvedAction}>
                     <input type="hidden" name="id" value={fb.id} />

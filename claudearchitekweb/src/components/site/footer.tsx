@@ -50,18 +50,20 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
         <div className="grid gap-8 py-12 sm:py-14 lg:grid-cols-12 lg:py-20">
           <div className="lg:col-span-7">
             <p className="font-display text-[1.45rem] leading-[1.2] text-fg sm:text-[2.2rem] sm:leading-[1.15]">{dict.footer.tagline}</p>
-            <Link href={p("/start")} className="link-arrow mt-5 text-[15px] sm:mt-6">
+            <Link href={p("/start")} className="link-arrow mt-4 min-h-10 text-[15px] sm:mt-6 sm:min-h-0">
               {dict.common.startProject}
               <ArrowUpRight size={16} />
             </Link>
           </div>
           <div className="lg:col-span-5 lg:pl-8">
             <div className="kicker">{dict.footer.contact}</div>
+            {/* The padding sits on the <a>, not the <li>: the row is the tap target, so the whole
+                44px band is clickable on a phone — same rule as ContactChannels on /contact. */}
             <ul className="mt-3 divide-y divide-line border-y border-line">
               {contacts.map(([label, value, href]) => (
-                <li key={label} className="contain-w flex items-baseline justify-between gap-4 py-2.5 text-[14px]">
+                <li key={label} className="contain-w flex items-center justify-between gap-4 text-[14px]">
                   <span className="caption">{label}</span>
-                  <a href={href} className="min-w-0 truncate text-fg transition-colors hover:text-accent" target={href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
+                  <a href={href} className="min-h-11 min-w-0 flex-1 truncate py-3 text-right text-fg transition-colors hover:text-accent" target={href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
                     {value}
                   </a>
                 </li>
@@ -85,10 +87,12 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
           {cols.map((c) => (
             <div key={c.title} className="md:col-span-3">
               <div className="kicker">{c.title}</div>
-              <ul className="mt-3 space-y-2.5 text-[14px] md:space-y-2">
+              {/* Phones: each link is a full-width 40px row (the rows sit tight, so the column keeps
+                  its height). From md the pointer is a mouse again and the type-led spacing returns. */}
+              <ul className="mt-2 space-y-0 text-[14px] md:mt-3 md:space-y-2">
                 {c.links.map(([href, label]) => (
                   <li key={href}>
-                    <Link className="inline-block py-0.5 text-fg-2 transition-colors hover:text-fg" href={href}>
+                    <Link className="flex min-h-10 items-center text-fg-2 transition-colors hover:text-fg md:inline-flex md:min-h-0 md:py-0.5" href={href}>
                       {label}
                     </Link>
                   </li>
@@ -97,11 +101,11 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
             </div>
           ))}
           <div className="col-span-2 md:col-span-2">
-            <div className="kicker">Social</div>
-            <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[14px] md:block md:space-y-2">
+            <div className="kicker">{dict.footer.social}</div>
+            <ul className="mt-2 flex flex-wrap gap-x-5 text-[14px] md:mt-3 md:block md:space-y-2">
               {socials.map(([name, url]) => (
                 <li key={name}>
-                  <a href={url} target="_blank" rel="noopener noreferrer" className="inline-block py-0.5 text-fg-2 transition-colors hover:text-fg">
+                  <a href={url} target="_blank" rel="noopener noreferrer" className="flex min-h-10 items-center text-fg-2 transition-colors hover:text-fg md:inline-flex md:min-h-0 md:py-0.5">
                     {name}
                   </a>
                 </li>
@@ -118,7 +122,7 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
             </span>{" "}
             <span className="block sm:inline">· {dict.footer.rights}</span>
           </div>
-          <span className="hidden sm:inline">Yerevan · 3D · AR · Web Viewer</span>
+          <span className="hidden sm:inline">{dict.footer.meta}</span>
         </div>
       </div>
     </footer>

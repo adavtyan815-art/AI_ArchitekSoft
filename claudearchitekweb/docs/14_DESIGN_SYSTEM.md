@@ -38,9 +38,12 @@ Palette (light → dark):
 | line / line-strong | #DDD8CE / #B9B3A6 | #2B2925 / #45413B | hairlines |
 | fg / fg-2 / muted / faint | #17150F / #3B3831 / #6B675E / #9A958A | #EFEBE3 / #CFC9BE / #9A948A / #6E6961 | text |
 | accent | #D9491F oxide | #FF7A4D | links, index numbers, live dots, one CTA per screen |
+| accent-hover / accent-fg | #C13F18 / #FFF8F3 | #FF8F69 / #1A0C06 | accent button hover, text on accent |
 | accent-soft / -fg | #F8E4DB / #9A2F0F | #3A1D12 / #FFB399 | tints |
 | success / warning / danger | #2E7D4F / #A66A12 / #C0392B | #5FBF85 / #E0A94F / #F0705F | status only |
+| success-soft / warning-soft / danger-soft | #E1EFE5 / #F6E9D2 / #F7E0DD | #16301F / #33250C / #3A1614 | status chip and notice grounds |
 | inverse | ink on paper ↔ paper on graphite | | inverse blocks |
+| stage | #141311 | #0E0D0C | the 3D stage; `.stage` rescopes line/fg/surface for dark UI on top of it |
 
 Radii: 4 (chips, images inside cards), 6 (buttons, inputs), 10 (cards), 14 (large media). No pills except tags.
 Shadows: none in light except `shadow-lift` for floating layers; dark uses 1 px inner rings.
@@ -60,22 +63,37 @@ Scale: display `clamp(2.6rem, 5.6vw, 4.6rem)`; section `clamp(1.9rem, 3.2vw, 2.7
 - **Index + rule**: every site section opens with `01 — Title` (mono index, hairline rule above). `SectionHeading` renders it.
 - **Frame**: media sits in `.frame` — 1 px hairline, 8 px radius, mono caption bar below, optional corner marks (`.frame-marks`). Caption bars (`figcaption` or `.frame-bar`) use `contain: inline-size`, so a nowrap/truncated caption can never widen the frame on phones.
 - **Ticks**: `.ticks` renders a ruler line (repeating small marks) as a divider in heroes and stat rows.
-- **Swatches**: material chips (`.swatch`) with real wood/colour fills and a mono label. Used in the viewer and as decoration on KitchenPro.
+- **Swatches**: material chips (`.swatch`) with real wood/colour fills and a mono label. Used in the viewer and as the material board on `/platform`.
 - **Spec table**: two-column key/value list with mono keys (`.spec`). Used for packages, project facts, portal summary.
-- **Inverse band**: full-bleed ink/paper block for the KitchenPro block and final CTAs.
+- **Inverse band**: full-bleed ink/paper block for the platform band and final CTAs (on the light homepage a deeper paper panel serves instead — see §13).
 - **Dot grid**: `.grid-paper` background for hero and empty states (very subtle).
 
 ## 6. Components (src/components/ui.tsx)
 
 Logo: `<BrandLogo />` (src/components/brand-logo.tsx) renders the brand wordmark (`/brand/logo.png`, its own blue) in both themes — the logo is the brand mark, not a UI element that flips with the page. The monochrome ink/paper PNGs remain in /public/brand for special cases.
 
-Button (primary=ink, secondary=outline, accent, ghost, danger; sizes sm/md/lg; square 6 px), ButtonLink, Card (hairline, radius 10), Frame, Rule/Ticks, Index, SectionHeading (index, title, text, action), Stat (mono value), Badge/Pill (square chips), Field/Input/Select/Textarea (44 px, 6 px radius, accent focus ring), CheckList (en-dash markers, not check circles), Spec, Swatch, Empty, Skeleton.
+Button (primary=ink, secondary=outline, brand=accent, soft, ghost, danger; sizes sm/md/lg; square 6 px), ButtonLink, Card (hairline, radius 10), Frame, Rule/Ticks, Index, SectionHeading (index, title, text, action), Stat (mono value), Badge/Pill/Tag (square chips), Field/Input/Select/Textarea (44 px, 6 px radius, accent focus ring), CheckList (en-dash markers, not check circles), Spec, Swatch, Empty, IconBox, Kbd, Divider, Skeleton.
+
+**Button colour carries meaning.** `btn-primary` is **ink** and is the ordinary main action — save, send, next,
+sign in. `btn-brand` is the **terracotta accent** and is rationed: one per screen at most, on the action that is the
+point of the page. On the public site that is the closing call to action; in the admin it is "Generate post pack",
+the one action that costs an AI call, so an ordinary Save must never shout louder; in the client portal it is
+"Open the Web Viewer" (and the AR button on the model). `btn-secondary` is the outline companion, `btn-danger` a
+soft red that fills on hover. Everything else is `btn-ghost` or `btn-soft`.
+
+**Form state.** `Field` renders the error inside the same `<label>` as the control, so a screen reader reads the
+problem together with the field name; pair it with `aria-invalid` on the control, which `.input[aria-invalid="true"]`
+turns red. `.choice` (the card-shaped radio/checkbox row used by the wizard, the contact form and the portal decision
+panel) has a `has-[:focus-visible]` outline. One-of-many choices use a round ring that fills; genuine checkboxes stay
+square. `Swatch` puts the 44 px hit area on the button and the selected ring on the 36 px chip
+(`button[aria-pressed="true"] > .swatch`), so the state never depends on colour alone.
 
 ## 7. Layout rules
 
-- Container 1240 px, 24/40 px gutters; inner content grids use 12 columns on lg.
+- `container-x` is the one horizontal rhythm of the public site: fluid, 1520 px max, outer padding `clamp(20px, 4vw, 72px)` — header, every page, the phone menu and the footer share it, so the logo never jumps between pages. `container-narrow` (`max-w-3xl`) is for long text: privacy, the 404, article-width blocks.
+- Inner content grids use 12 columns on lg.
 - Hero: text left (5–6 cols), image right (6–7 cols) or full-bleed image band; ticks under the hero.
-- Sections: `section` = 88/120 px vertical rhythm; every section starts with index + rule.
+- Sections: `section` = 80/112/128 px vertical rhythm (`py-20 sm:py-28 lg:py-32`); every section starts with index + rule.
 - Cards only when there is a real group of items; otherwise use rules and columns.
 - Images: 4:3 / 16:10 with captions; portfolio tiles are large (2-up), not 3-up thumbnails.
 - Mobile: same hierarchy; index + title stack; frames go edge-to-edge (-mx-5) where useful.
@@ -88,11 +106,128 @@ Button (primary=ink, secondary=outline, accent, ghost, danger; sizes sm/md/lg; s
 
 ## 9. Admin
 
-Same tokens, denser: 13.5 px table text, mono numerals right-aligned, hairline rows, sticky header. Page title in serif. Stat cards → "spec strip" (label, mono value, delta). Sidebar: mono group labels, active item = ink bar on the left + surface-2 fill. Buttons square. Charts use accent + ink + muted only.
+Same tokens, denser: 13.5 px table text, mono numerals right-aligned, hairline rows, sticky header. Page title in
+serif (`PageHeader`, with mono crumbs above and a muted subtitle below). Buttons square. Charts use accent + ink +
+muted only. The building blocks live in `src/components/admin/shell.tsx`; these are the rules they encode.
+
+**Shell and navigation.** Desktop: a 232 px sidebar on the paper surface with a hairline on the right, items grouped
+under mono labels (Work · Clients · Content · System), the active item marked by an ink bar on the left plus a
+surface-2 fill. Phone: a bottom tab bar of **four modules plus "More"** — Overview, Leads, Projects, Social, then
+everything else behind the More sheet. Four plus More gives about 78 px per column at 390 px, which is what the
+Armenian labels need; with six columns three of them were ellipsised. "More" is highlighted while the current route
+is one of the modules it hides, and its sheet behaves as a dialog: focus moves in, Tab is trapped, Escape closes,
+the background does not scroll and focus returns to the button.
+
+**Tabs.** Two components, both wrapping `ScrollStrip`:
+
+| | Used for | Shape |
+|---|---|---|
+| `Tabs` | sections of one record (`?tab=`) — project detail, Settings | underline strip on a `border-b` rail |
+| `PillTabs` | list filters with counts (status, stage, type, kind, state) | underline items inside `FilterBar`, each a link with its own href |
+
+`ScrollStrip` is the horizontal container: it keeps its own scrollbar instead of widening the page, brings the
+`[aria-current="page"]` item into view on mount without scrolling the window (on a phone the Settings tabs are wider
+than the screen, so the active tab could sit entirely off-screen), and fades the edge that still has content so the
+row reads as scrollable rather than cut off. It is always `min-w-0`; `PillTabs` also sets `w-full`, because
+`FilterBar` is a wrapping flex container that several pages turn into a column — without a definite width the strip
+is sized to its content (1183 px on Projects) and the page itself scrolls sideways, pushing the fixed bottom tab bar
+off screen.
+
+**Spec strip instead of stat cards.** `SpecStrip` + `StatCard`: mono label, large tabular value, mono hint; the
+hairlines are the 1 px gaps over a `bg-line` ground. Two columns on phones, 3 / 4 / 5 from `sm`. **Odd-count rule:**
+an empty cell would show up as a solid grey block the size of a figure, so the last card spans the gap instead — on
+phones whenever the count is odd, and at `sm`–`lg` for a five-card strip in three columns. A `StatCard` with an
+`href` turns the whole figure into a link to the list it counts.
+
+**Lists on phones are rows, not key/value cards.** Below `md` a responsive table turns every column into its own
+labelled line, so one record costs six to nine lines and a short list runs several screens. `CompactList` /
+`CompactRow` replace it: the record's name, one mono context line (code · segment · updated) and one status chip, in
+a 56 px row that is itself the link. Everything truncates, so a 120-character name without spaces cannot widen a
+390 px page. Pair it with the real table — `<CompactList>` for phones, the `table-admin` inside a `max-md:hidden`
+wrapper from `md`. Leads, clients, companies, projects, client pages and portfolio all use the pair. Where a
+`.table-responsive` phone card is still the right shape (dense secondary tables), the cards are compact and a cell
+carrying several blocks stacks them full width under the label instead of squeezing them into narrow columns. A card
+that scrolls a wide table sideways also gets `contain: paint` from `md` up: `overflow-x: auto` alone is not enough,
+because the table's sticky header cells still count towards the document's scrollable area and gave the page its own
+horizontal scrollbar behind a table that was already scrolling itself.
+
+**StatusBadge, never colour alone.** One square chip carries the state, and `STATUS_TONES` maps every value the
+product uses — lead statuses, project stages, client types, post statuses, integration states, b2b/b2c — onto one of
+six tones (neutral, brand, success, warning, danger, dark). Pass `label` to show the localised name; the word is
+always there, the tone only reinforces it.
+
+**Notice is the save feedback.** Server actions redirect back with `?notice=…&tone=ok|error`, and `<Notice>` renders
+it as a `role="status"` hairline row with a square dot, green or red. `NoticeUrlCleanup` then drops the two
+parameters with `history.replaceState` — keeping tab, filter and search parameters — so a reload does not repeat the
+message; `router.replace` is deliberately not used, because it re-runs the server component and the message would
+disappear while it is still being read. While an action runs, `SubmitButton` shows a pending label through
+`useFormStatus` and stays disabled; `ConfirmSubmit` asks first, and a destructive confirmation names what else goes
+with the record (linked tasks and timeline entries).
+
+**Empty states end in one action, and with a filter on that action is "Clear filters".** Title, one line of text, one
+button. When a search or a filter is active, clearing it is the useful next step and the create button is not: the
+page header already carries "New …", and offering it twice invites an accidental record.
+
+**Tap targets.** 44 px for anything that is really a control (`.btn` is `h-11`; `btn-icon` is 40 × 40), and 40 px
+minimum for links inside dense rows — crumbs, tab strips, compact rows and list links all carry `min-h-10` or more.
+Measured at 390 × 844 with touch emulation, not assumed.
+
+**Sticky bars clear the tab bar.** `FormActions` keeps a form's primary action reachable on a phone (sticky above the
+tab bar, static from `sm`). A fixed editor bar sits at `ABOVE_TAB_BAR` = `calc(59px + max(0.75rem,
+env(safe-area-inset-bottom)))`, and `useStickyBarSpace()` gives `<main>` the matching bottom padding for as long as
+such a bar is mounted, restoring the layout's own padding on unmount.
+
+**RelTime for relative timestamps.** "5 min ago" is read from the clock at render time and the dev server renders a
+page twice; when the two passes land on opposite sides of a minute boundary React reports a hydration mismatch on a
+page that is in fact correct. `<RelTime>` carries `suppressHydrationWarning` on that one text node (and
+`PageHeader` does the same for a subtitle that bakes one in). Use it instead of calling `relTime()` straight into JSX.
+
+**Numbers, money and dates.** Mono, tabular, right-aligned (`td.num`). Money prints as `6,750,000 AMD` — the ֏ sign
+has no glyph in Source Serif 4 or JetBrains Mono. Dates, times and file sizes are formatted in Asia/Yerevan and take
+the interface language. Titles that can be user content wrap with `[overflow-wrap:anywhere]`.
+
+**Armenian in dense UI.** `html:lang(hy)` gives table headers and responsive-card labels `font-size-adjust:
+from-font`, matching the Armenian fallback to the mono x-height so a mixed-script table header does not look like two
+sizes; Latin and Cyrillic are untouched.
 
 ## 10. Client pages and viewer
 
-Portal = a project sheet: project code (mono), serif title, stage ruler, media in frames, decision panel with three clear actions. Viewer: dark stage (`#141311`) with dot grid, model centred, swatch bar with material chips, mono toolbar, corner marks.
+**`PortalChrome` is the shell of every client-page state** on `/p` and `/v`: a thin brand bar, the content, a footer.
+The **pages** render it, never the segment layout — a layout never receives the `?k=` key, so it cannot tell a link
+holder from someone guessing a slug. The logo is a plain span, not a link: a private client page must not send the
+client to the marketing site. Beside it, the tagline only when Settings stores it per language and has one for this
+page's language (a non-localised string is hidden rather than printed in English on an Armenian page), the language
+tag and the theme toggle. The footer carries "powered by" and the studio's website at a 44 px tap height, and clears
+the fixed phone bar (`max-lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))]`) when the page renders one.
+
+**`PortalState`** is the message card for a link that is not open: centred type on grid paper, a hairline, and the
+contact rows underneath. A link that ran out and a link the studio switched off get **different sentences**; an
+unknown slug and a wrong key answer identically (404), so neither can be used to probe for real slugs.
+
+**Passcode gate.** A narrow centred panel: mono hint, serif title, one code field — 56 px tall (`h-14`), centred mono
+at 2xl with `0.4em` tracking and upper-cased input. The keyboard is the normal one (`inputMode="text"`,
+`autoCapitalize="characters"`, autocorrect off, `autocomplete="one-time-code"`): a numeric keypad makes letters
+untypeable on iOS. A format hint sits under the field through `aria-describedby`, a wrong code refocuses and selects
+the field, and three states have three messages — wrong code, could not reach the server, and locked for *m* minutes
+after five wrong tries. Below the form, a "did not get a code?" block with the contact channels.
+
+**Project sheet.** Mono project code, serif title, and the cover render as a hero frame directly under it (16/10 on
+phones, 16/9 from `sm`) with a caption line, so the client sees their furniture on the first screen. Then the stage
+ruler — 11.5 px labels, only the current stage and its two neighbours drawn, the rest kept in the accessibility tree
+as sr-only text — framed media, and the decision panel. Decision options are the wizard's round radio rings and they
+follow the stage: past approval only "I want a change" and "I have a question" are offered. Choosing "I approve"
+visibly relabels the message box as "Comment (optional)", so a half-written change request cannot be sent unnoticed
+as an approval comment. Earlier questions show a status word next to the date.
+
+**`StickyActions`** is the phone-first bottom bar with the two things a client actually does; it is hidden from `lg`,
+where the same actions sit inline in the page. The Web Viewer button is the page's one accent button; the second is
+outline and becomes "Message" once the project has moved past approval. The bar carries short labels — the Armenian
+sentence "Բացել Web Viewer-ը" does not fit a 203 px button — with the full sentence as the accessible name.
+
+**Viewer.** Dark stage (`#141311`) with dot grid, model centred, mono toolbar, corner marks. A client's own model is
+never repainted, so `/v` passes no swatches and draws no swatch bar; the demo viewer on the public site keeps the
+material chips and a reset control. The gallery lightbox is a named dialog: it traps Tab, swipes sideways between
+images, ignores pinch, and Escape returns focus to the thumbnail that opened it.
 
 ## 11. What was redesigned in this pass (v3)
 
@@ -104,23 +239,33 @@ Portal = a project sheet: project code (mono), serif title, stage ruler, media i
 | Web Viewer | `components/site/viewer-demo.tsx`, `app/v/[slug]`, `components/portal/viewer-shell.tsx`, `app/demo/ar` | Dark stage, grid floor, corner marks, mono toolbar, material swatches |
 | Client portal | `app/p/[slug]/**`, `components/portal/*` | Project sheet: mono code, serif title, stage ruler, framed media, decision rows |
 | Admin | `app/admin/**`, `components/admin/**` | Hairline shell, spec strip stats, mono tables, square controls, recoloured charts |
+| Not found | `app/not-found.tsx`, `app/(site)/[locale]/not-found.tsx`, `components/site/not-found-view.tsx` | The public 404 in the site's own rhythm: index + eyebrow, serif headline, two buttons and a hairline list of where to go instead, in all three languages |
 
-Verification: 100 full-page screenshots (every page × light/dark × desktop/mobile) before and after; console sweep over 35 routes with zero errors or warnings; no horizontal overflow at 390 px on any public page; `tsc` and `next build` clean.
+Verification: 100 full-page screenshots (every page × light/dark × desktop/mobile) before and after; console sweep over
+35 routes with zero errors or warnings; no horizontal overflow at 390 px on any public page; `npm run typecheck`,
+`npm run lint` and `npm run build` clean. The release pass repeated it against a production server: 174 page loads
+(public, admin, portal × desktop and 390 × 844 phone) with no console error, no uncaught page error and no horizontal
+overflow.
 
-Known limits: long Armenian display words can still break mid-word below 640 px (`overflow-wrap`), the admin "client pages" table scrolls horizontally at 1440 px, and headless captures of the 3D demo render the GLB without proper shading (real browsers are fine).
+Known limits: long Armenian display words can still break mid-word below 640 px (`overflow-wrap`); a wide admin table
+scrolls sideways **inside its own card** from `md` up (it is contained, so the page itself does not scroll, and below
+`md` the compact rows replace it); the header brand-logo link is 34 px tall on a phone, below the 40 px rule the rest
+of the site keeps; and headless captures of the 3D demo render the GLB without proper shading (real browsers are fine).
 
 ## 12. Interactive showcase (home, first screen)
 
-`src/components/site/showcase.tsx` — the product console. On wide screens the stage (16:10) takes 8 of 12 columns
-and a rail beside it carries the headline, one paragraph, the **selector** and the CTAs; on phones the headline
-comes first, then the stage, the selector as a segmented row, then the intro. Three demonstrations: **01 sketch →
-finished picture** (comparison slider), **02 Web Viewer** (rotate, change colour; AR on phones), **03 Live 3D**
-(10 s cinematic walkthrough clip). **Selection is manual only** — three option buttons (the selected one is filled
-ink with the accent index and a left accent bar, larger on wide screens), ← → keys; no automatic switching. A
-caption bar under the stage names the active demonstration and links to its page. **Fullscreen** on the stage
-(hidden where the API is missing). **Performance**: the 3D library and model load only when 02 is opened
-(tap-to-load on phones), the clip (≈450 KB, 720p, muted) only when 03 is opened. Media lives in
-`public/demo/showcase-*`; the sample model is a placeholder and should be replaced with a real export.
+`src/components/site/showcase.tsx` — the product console. On wide screens the stage takes the right-hand columns and
+the headline, one paragraph and the CTAs sit beside it; on phones the headline comes first, then the stage
+full-bleed and square, then the strip and the intro (see §13). Three demonstrations: **sketch → finished picture**
+(comparison slider), **Web Viewer** (rotate, change colour; AR on phones), **Live 3D** (10 s cinematic walkthrough
+clip). **Selection is manual only** — a hairline **mode strip** of three labels with one sliding ink indicator
+measured to the label (420 ms), a roving tabindex and ← → keys; no automatic switching, no counter. One **caption
+line** under it names the selected mode and links to its page. **Fullscreen** sits at the end of the strip on fine
+pointers and as a control on the stage on touch devices (§13). **Performance**: the 3D library and model load only
+when the Web Viewer mode is opened (near-viewport on desktop, tap-to-load on phones), the clip (≈450 KB, 720p,
+muted) only when Live 3D is opened; the inactive panels are `inert`, so their controls are out of the tab order and
+the slider inside keeps its own arrow keys. Media lives in `public/demo/showcase-*`; the sample model is a
+placeholder and should be replaced with a real export.
 
 ## 13. Homepage v7 "the drafting table" and the ambient layer (v3.2)
 

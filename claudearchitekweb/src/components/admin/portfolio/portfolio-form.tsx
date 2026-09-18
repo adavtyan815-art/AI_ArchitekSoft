@@ -1,6 +1,7 @@
 "use client";
 
 /** Create / edit form for a public portfolio item. Calls savePortfolioAction (which redirects). */
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Field, Input, Select, Textarea } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -62,8 +63,22 @@ export function PortfolioForm({
   const [pending, start] = useTransition();
 
   const scoped = projectId ? assets.filter((a) => a.projectId === projectId) : assets;
-  const images = scoped.filter((a) => a.mime.startsWith("image/"));
+  // A pick that the project filter would hide is still shown, so the cover and gallery saved on the
+  // item can always be seen and cleared — otherwise an edit page renders "Gallery (3)" with two
+  // tiles and no selected cover, and the hidden ids get saved again on every Save.
+  const picked = new Set([coverAssetId, videoAssetId, ...assetIds].filter(Boolean));
+  const inScope = new Set(scoped.map((a) => a.id));
+  const visible = [...scoped, ...assets.filter((a) => !inScope.has(a.id) && picked.has(a.id))];
+  const images = visible.filter((a) => a.mime.startsWith("image/"));
   const videos = assets.filter((a) => a.mime.startsWith("video/"));
+
+  /** Switching project drops the picks that no longer belong to it instead of saving them invisibly. */
+  function changeProject(next: string) {
+    setProjectId(next);
+    const allowed = new Set((next ? assets.filter((a) => a.projectId === next) : assets).map((a) => a.id));
+    setAssetIds((ids) => ids.filter((id) => allowed.has(id)));
+    setCoverAssetId((id) => (id && allowed.has(id) ? id : ""));
+  }
 
   function submit() {
     setError("");
@@ -109,7 +124,7 @@ export function PortfolioForm({
             </Select>
           </Field>
           <Field label={L.project} hint={L.projectHint}>
-            <Select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+            <Select value={projectId} onChange={(e) => changeProject(e.target.value)}>
               <option value="">{L.none}</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>{p.code} · {p.title}</option>
@@ -145,11 +160,12 @@ export function PortfolioForm({
               ))}
             </Select>
           </Field>
+          {/* The label is the hit area: min-h-10 keeps it tappable around the 16px box. */}
           <div className="flex flex-wrap items-end gap-4 pb-2">
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex min-h-10 items-center gap-2 text-sm">
               <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" /> {L.published}
             </label>
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex min-h-10 items-center gap-2 text-sm">
               <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" /> {L.featured}
             </label>
           </div>
@@ -179,11 +195,11 @@ export function PortfolioForm({
           <h2 className="font-display text-[1.05rem] leading-tight font-medium tracking-[-0.01em] text-fg">{L.gallery} <span className="num text-[12px] text-faint">({assetIds.length})</span></h2>
         </header>
         <div className="p-4 sm:p-5">
-          {scoped.length === 0 ? (
+          {visible.length === 0 ? (
             <p className="text-sm text-muted">{L.noMedia}</p>
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-8">
-              {scoped.map((a) => {
+              {visible.map((a) => {
                 const idx = assetIds.indexOf(a.id);
                 return (
                   <button key={a.id} type="button" title={a.name} onClick={() => setAssetIds((s) => (s.includes(a.id) ? s.filter((x) => x !== a.id) : [...s, a.id]))} className={cn("relative aspect-square overflow-hidden rounded-lg border transition-colors", idx >= 0 ? "border-accent ring-2 ring-accent-soft" : "border-line hover:border-line-strong")}>
@@ -203,8 +219,10 @@ export function PortfolioForm({
       </section>
 
       <div className="glass pb-safe fixed inset-x-0 bottom-[68px] z-20 flex gap-2 border-t border-line px-4 py-3 sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
-        <button type="button" onClick={submit} disabled={pending} className="btn-brand flex-1 sm:flex-none">{pending ? L.saving : item.id ? L.save : L.create}</button>
-        <a href="/admin/portfolio" className="btn-ghost">{L.cancel}</a>
+        {/* Ink for the page's main save action (design system §6): the accent is reserved for the
+            one generate/AI call to action, not for an ordinary Save. */}
+        <button type="button" onClick={submit} disabled={pending} className="btn-primary flex-1 sm:flex-none">{pending ? L.saving : item.id ? L.save : L.create}</button>
+        <Link href="/admin/portfolio" className="btn-ghost">{L.cancel}</Link>
       </div>
     </div>
   );

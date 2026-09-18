@@ -31,6 +31,17 @@ export const LOCALE_LABELS: Record<Locale, { short: string; name: string }> = {
   en: { short: "ENG", name: "English" },
 };
 
+/**
+ * Open Graph locales. `og:locale` must be `language_TERRITORY`; share-card scrapers ignore a bare
+ * language code and fall back to en_US.
+ */
+export const OG_LOCALE: Record<Locale, string> = { hy: "hy_AM", ru: "ru_RU", en: "en_US" };
+
+/** `og:locale:alternate` values for a page rendered in `locale`. */
+export function ogAlternateLocales(locale: Locale): string[] {
+  return LOCALES.filter((l) => l !== locale).map((l) => OG_LOCALE[l]);
+}
+
 export function pickLang<T>(value: string | null | undefined, locale: Locale, fallback: T): string | T {
   if (!value) return fallback;
   try {

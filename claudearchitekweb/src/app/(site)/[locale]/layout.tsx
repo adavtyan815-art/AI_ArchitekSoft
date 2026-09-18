@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { getDictionary, isLocale, LOCALES, localePath } from "@/lib/i18n";
+import { getDictionary, isLocale, LOCALES, localePath, OG_LOCALE, ogAlternateLocales } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
@@ -10,6 +10,7 @@ import { MobileCta } from "@/components/site/mobile-cta";
 import { telegramUrl } from "@/components/site/contact-channels";
 import { RevealObserver } from "@/components/reveal";
 import { Ambient } from "@/components/site/ambient";
+import { HtmlLang } from "@/components/site/html-lang";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: { default: dict.meta.title, template: "%s — ArchiTek Soft" },
     description: dict.meta.description,
     alternates: { canonical: localePath(locale, "/"), languages: Object.fromEntries(LOCALES.map((l) => [l, localePath(l, "/")])) },
-    openGraph: { title: dict.meta.title, description: dict.meta.description, locale, type: "website", siteName: "ArchiTek Soft", images: ["/brand/share.jpg"] },
+    openGraph: { title: dict.meta.title, description: dict.meta.description, locale: OG_LOCALE[locale], alternateLocale: ogAlternateLocales(locale), type: "website", siteName: "ArchiTek Soft", images: ["/brand/share.jpg"] },
     twitter: { card: "summary_large_image", title: dict.meta.title, description: dict.meta.description, images: ["/brand/share.jpg"] },
   };
 }
@@ -35,6 +36,8 @@ export default async function SiteLayout({ children, params }: { children: React
   return (
     <div className="site-shell flex min-h-screen flex-col">
       <Ambient />
+      {/* The root layout sets <html lang> on a full load only; this keeps it right after a soft locale switch. */}
+      <HtmlLang lang={locale} />
       <SiteHeader locale={locale} nav={nav} />
       <main className="flex-1">{children}</main>
       <SiteFooter locale={locale} dict={dict} brand={brand} />

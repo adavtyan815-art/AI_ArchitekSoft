@@ -9,6 +9,7 @@ import { mediaUrl, mediaSrcSet } from "@/lib/media";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
 import { formatBytes, formatDate, parseJson } from "@/lib/utils";
 import { FormActions, KV, PageHeader, Panel } from "@/components/admin/shell";
+import { Notice } from "@/components/admin/notice";
 import { Badge, Button, Field, Input, Select, Textarea } from "@/components/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { deleteAssetAction, updateAssetAction } from "@/app/admin/actions/media-actions";
@@ -17,11 +18,14 @@ export const dynamic = "force-dynamic";
 
 const KINDS = ["render", "video", "sketch", "pdf", "model_glb", "model_usdz", "poster", "client_upload", "other"] as const;
 
-export default async function MediaDetailPage({ params }: { params: Promise<{ id: string }> }) {
+type SP = Record<string, string | string[] | undefined>;
+
+export default async function MediaDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SP> }) {
   await requireUser();
   const { t } = await getAdminDict();
   const M = t.media;
   const { id } = await params;
+  const sp = await searchParams;
   const db = getDb();
   const asset = db.select().from(schema.assets).where(eq(schema.assets.id, id)).get();
   if (!asset) notFound();
@@ -63,6 +67,7 @@ export default async function MediaDetailPage({ params }: { params: Promise<{ id
           </>
         }
       />
+      <Notice text={sp.notice} tone={sp.tone} />
 
       <div className="grid gap-6 lg:grid-cols-3 lg:gap-0">
         <div className="space-y-4 lg:col-span-2 lg:pr-6">
@@ -71,7 +76,6 @@ export default async function MediaDetailPage({ params }: { params: Promise<{ id
               // eslint-disable-next-line @next/next/no-img-element
               <img src={mediaUrl(asset.relPath, 1280)} srcSet={mediaSrcSet(asset.relPath, [640, 1280, 1920])} sizes="(max-width: 1024px) 100vw, 720px" alt={asset.caption ?? asset.originalName} className="mx-auto max-h-[60vh] w-auto rounded-xl" />
             ) : isVideo ? (
-              // eslint-disable-next-line jsx-a11y/media-has-caption
               <video src={url} poster={thumb ?? undefined} controls className="mx-auto max-h-[60vh] w-full rounded-xl bg-black" />
             ) : isPdf ? (
               <div className="flex flex-col items-center gap-3 py-8">
@@ -121,8 +125,9 @@ export default async function MediaDetailPage({ params }: { params: Promise<{ id
               <Field label={t.common.tags} hint={t.crm.form.tagsHint} className="sm:col-span-2">
                 <Input name="tags" defaultValue={tags.join(", ")} placeholder="խոհանոց, 4k, երեկո" />
               </Field>
-              <label className="flex items-center gap-2 text-sm text-fg-2 sm:col-span-2">
-                <input type="checkbox" name="isPublic" defaultChecked={asset.isPublic} className="h-4 w-4 rounded-none border-line-strong accent-[var(--accent)]" />
+              {/* The whole row is the hit area (44px on a phone), not just the 16px box. */}
+              <label className="-mx-2 flex min-h-11 cursor-pointer items-center gap-2.5 px-2 text-sm text-fg-2 sm:col-span-2">
+                <input type="checkbox" name="isPublic" defaultChecked={asset.isPublic} className="h-5 w-5 flex-none rounded-none border-line-strong accent-[var(--accent)]" />
                 {M.isPublic}
               </label>
               <FormActions className="sm:col-span-2">

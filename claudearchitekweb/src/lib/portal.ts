@@ -4,7 +4,8 @@
  */
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
-import { sha256 } from "./ids";
+import { env } from "./env";
+import { hmac, safeEqual } from "./ids";
 import { nowIso } from "./utils";
 import type { Asset, Client, ClientFeedback, Company, Project, ShareLink } from "./db/schema";
 
@@ -28,12 +29,47 @@ export type AccessResult = "ok" | "not_found" | "expired" | "inactive" | "bad_to
 
 export const PASSCODE_COOKIE_PREFIX = "pp_";
 
+/**
+ * Keys (`?k=` tokens) of the client pages this browser has been given.
+ *
+ * A client page carries its key in the URL, but the files it shows are loaded from `/media/...`,
+ * where that query string is gone. `src/middleware.ts` copies the key of every `/p` and `/v` request
+ * into this HttpOnly cookie so the media route can serve a project's files only to a visitor who
+ * actually holds one of its links — and only with the download permission of that link.
+ *
+ * Format: the tokens, newest first, joined with "." (they are base64url, so the dot is unambiguous),
+ * capped at `LINK_KEYS_MAX`. The middleware writes it without importing this module (it must stay
+ * free of database imports), so the name and the format are duplicated there — keep both in sync.
+ */
+export const LINK_KEYS_COOKIE = "pk";
+export const LINK_KEYS_MAX = 5;
+
+export function parseLinkKeys(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(".")
+    .filter((t) => t.length > 0 && t.length <= 200)
+    .slice(0, LINK_KEYS_MAX);
+}
+
 export function passcodeCookieName(linkId: string) {
   return `${PASSCODE_COOKIE_PREFIX}${linkId}`;
 }
 
-export function hashPasscode(passcode: string) {
-  return sha256(`passcode|${passcode.trim()}`);
+/**
+ * Value stored in the `pp_<linkId>` cookie once a visitor has entered the right code.
+ *
+ * It is keyed with the server secret and bound to the link, so it can neither be computed from the
+ * code (a four-digit sha256 is reversed instantly) nor replayed on another client page. Changing
+ * APP_SECRET or regenerating the link invalidates it, and visitors simply enter the code again.
+ */
+export function passcodeCookieValue(linkId: string, passcode: string) {
+  return hmac(env.secret, `passcode|${linkId}|${passcode.trim()}`);
+}
+
+/** Does the code the visitor typed match the one on the link? Constant time, so it leaks no prefix. */
+export function passcodeMatches(link: { passcode: string | null }, passcode: string) {
+  return !!link.passcode && safeEqual(passcode.trim(), link.passcode.trim());
 }
 
 export function getShareLinkBySlug(slug: string): ShareLink | null {
@@ -58,7 +94,9 @@ export function getPortalData(slug: string): PortalData | null {
     .orderBy(asc(schema.assets.sortOrder), asc(schema.assets.createdAt))
     .all();
 
-  const byId = (id: string | null | undefined) => (id ? (assets.find((a) => a.id === id) ?? db.select().from(schema.assets).where(eq(schema.assets.id, id)).get() ?? null) : null);
+  // Only this project's own files. A role column that still points at a file which has been moved to
+  // another project resolves to nothing instead of quietly showing the other project's work.
+  const byId = (id: string | null | undefined) => (id ? (assets.find((a) => a.id === id) ?? null) : null);
   const firstOfKind = (kind: string) => assets.find((a) => a.kind === kind) ?? null;
 
   const isImage = (a: Asset) => a.mime.startsWith("image/");
@@ -82,27 +120,51 @@ export function getPortalData(slug: string): PortalData | null {
 
 /**
  * Decide whether a visitor may see the page.
- * `passcodeCookie` is the raw value of cookie `pp_<linkId>` (sha256 of the passcode) if present.
+ * `passcodeCookie` is the raw value of cookie `pp_<linkId>` (see `passcodeCookieValue`) if present.
  */
 export function checkAccess(link: ShareLink | null | undefined, token: string | null | undefined, passcodeCookie?: string | null): AccessResult {
   if (!link) return "not_found";
-  if (!token || token !== link.token) return "bad_token";
+  if (!token || !safeEqual(token, link.token)) return "bad_token";
   if (!link.isActive) return "inactive";
   if (link.expiresAt && new Date(link.expiresAt).getTime() < Date.now()) return "expired";
   if (link.passcode) {
-    if (!passcodeCookie || passcodeCookie !== hashPasscode(link.passcode)) return "passcode";
+    if (!passcodeCookie || !safeEqual(passcodeCookie, passcodeCookieValue(link.id, link.passcode))) return "passcode";
   }
   return "ok";
 }
 
-function ipHashOf(ip: string) {
-  return sha256(`portal|${ip || "unknown"}`).slice(0, 24);
+/** The columns `holdsLink` needs; a full `ShareLink` satisfies it. */
+export type LinkCredentials = Pick<ShareLink, "id" | "token" | "passcode" | "isActive" | "expiresAt">;
+
+/**
+ * Does this browser hold this exact link right now — the same question `checkAccess` answers for the
+ * page, asked where the URL is no longer available (the media route). `keys` comes from the `pk`
+ * cookie and `passcodeCookie` from `pp_<linkId>`; a link behind a passcode counts as held only once
+ * the code has been entered, so the code protects the files and not just the page.
+ */
+export function holdsLink(link: LinkCredentials, keys: string[], passcodeCookie?: string | null): boolean {
+  if (!link.isActive) return false;
+  if (link.expiresAt && new Date(link.expiresAt).getTime() < Date.now()) return false;
+  if (!keys.some((k) => safeEqual(k, link.token))) return false;
+  if (link.passcode && !(passcodeCookie && safeEqual(passcodeCookie, passcodeCookieValue(link.id, link.passcode)))) return false;
+  return true;
 }
 
-/** Insert a `view` event (de-duplicated per ipHash within 30 minutes) and bump counters. */
+/**
+ * Pseudonymous visitor key stored with client-page events. Keyed with the server secret: a plain
+ * sha256 of an address can be reversed by trying all of IPv4, which would turn a database copy into
+ * a record of who opened which page.
+ */
+function ipHashOf(ip: string, ua = "") {
+  // Local runs and direct hits have no address; the user agent then keeps separate visitors apart
+  // instead of collapsing everyone into one "unknown".
+  return hmac(env.secret, ip ? `portal|${ip}` : `portal|ua|${ua.slice(0, 300)}`).slice(0, 24);
+}
+
+/** Insert a `view` event (de-duplicated per visitor within 30 minutes) and bump counters. */
 export function recordView(linkId: string, ip: string, ua: string) {
   const db = getDb();
-  const ipHash = ipHashOf(ip);
+  const ipHash = ipHashOf(ip, ua);
   const since = new Date(Date.now() - 30 * 60_000).toISOString();
   const recent = db
     .select({ id: schema.shareEvents.id })
@@ -125,6 +187,6 @@ export function recordEvent(linkId: string, type: string, meta?: Record<string, 
   const metaStr = meta == null ? null : typeof meta === "string" ? meta.slice(0, 1000) : JSON.stringify(meta).slice(0, 1000);
   getDb()
     .insert(schema.shareEvents)
-    .values({ shareLinkId: linkId, type, meta: metaStr, ipHash: ctx?.ip ? ipHashOf(ctx.ip) : null, userAgent: ctx?.ua?.slice(0, 300) ?? null })
+    .values({ shareLinkId: linkId, type, meta: metaStr, ipHash: ctx?.ip || ctx?.ua ? ipHashOf(ctx?.ip ?? "", ctx?.ua ?? "") : null, userAgent: ctx?.ua?.slice(0, 300) ?? null })
     .run();
 }

@@ -5,13 +5,41 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
 import { ButtonLink, Frame, Index, SectionHeading, Spec, Ticks } from "@/components/ui";
+import { TrackedCta } from "@/components/site/cta";
 import { cn } from "@/lib/utils";
 
-/** Page-only labels that have no dictionary key yet. */
-const LOCAL: Record<Locale, { whyTag: string; viewsTag: string; viewsTitle: string }> = {
-  hy: { whyTag: "Խնդիրը և լուծումը", viewsTag: "Ով ինչ է տեսնում", viewsTitle: "Նույն մոդելի երկու կողմը" },
-  ru: { whyTag: "Проблема и решение", viewsTag: "Кто что видит", viewsTitle: "Две стороны одной модели" },
-  en: { whyTag: "Problem and solution", viewsTag: "Who sees what", viewsTitle: "Two sides of one model" },
+/** Page-only labels that have no dictionary key yet. Product names (Web Viewer) stay literal. */
+const LOCAL: Record<Locale, { whyTag: string; viewsTag: string; viewsTitle: string; renderMark: string; sketchCaption: string; stageMark: string; makerCaption: string; clientCaption: string }> = {
+  hy: {
+    whyTag: "Խնդիրը և լուծումը",
+    viewsTag: "Ով ինչ է տեսնում",
+    viewsTitle: "Նույն մոդելի երկու կողմը",
+    renderMark: "01 / ՊԱՏԿԵՐ",
+    sketchCaption: "Էսքիզ → սենյակի մոդել",
+    stageMark: "ՓՈՒԼ 01",
+    makerCaption: "Արտադրողի աշխատատեղ",
+    clientCaption: "Հաճախորդի էջ · Web Viewer",
+  },
+  ru: {
+    whyTag: "Проблема и решение",
+    viewsTag: "Кто что видит",
+    viewsTitle: "Две стороны одной модели",
+    renderMark: "01 / ИЗОБРАЖЕНИЕ",
+    sketchCaption: "Эскиз → модель комнаты",
+    stageMark: "ЭТАП 01",
+    makerCaption: "Рабочее место производителя",
+    clientCaption: "Страница клиента · Web Viewer",
+  },
+  en: {
+    whyTag: "Problem and solution",
+    viewsTag: "Who sees what",
+    viewsTitle: "Two sides of one model",
+    renderMark: "01 / RENDER",
+    sketchCaption: "Sketch → room model",
+    stageMark: "STAGE 01",
+    makerCaption: "Maker workspace",
+    clientCaption: "Client page · Web Viewer",
+  },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -30,8 +58,8 @@ export default async function PlatformPage({ params }: { params: Promise<{ local
   const t = LOCAL[locale];
 
   const audiences = [
-    { code: "B2B", title: k.b2bTitle, text: k.b2bText, img: "/demo/kitchen-walnut.webp", href: p("/for-business"), cta: d.nav.business, caption: "Maker workspace" },
-    { code: "B2C", title: k.b2cTitle, text: k.b2cText, img: "/demo/render-2.webp", href: p("/for-home"), cta: d.nav.home, caption: "Client page · Web Viewer" },
+    { code: "B2B", title: k.b2bTitle, text: k.b2bText, img: "/demo/kitchen-walnut.webp", href: p("/for-business"), cta: d.nav.business, caption: t.makerCaption },
+    { code: "B2C", title: k.b2cTitle, text: k.b2cText, img: "/demo/render-2.webp", href: p("/for-home"), cta: d.nav.home, caption: t.clientCaption },
   ];
 
   return (
@@ -47,10 +75,10 @@ export default async function PlatformPage({ params }: { params: Promise<{ local
           <div className="lg:col-span-5 lg:pr-4">
             <p className="lead max-w-[34rem]">{k.subtitle}</p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <ButtonLink href={p("/start?segment=b2b")} size="lg">
+              <TrackedCta href={p("/start?segment=b2b")} label="platform-hero" locale={locale} segment="b2b" size="lg">
                 {k.cta}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
               <ButtonLink href={p("/how-it-works")} variant="secondary" size="lg">
                 {d.nav.howItWorks}
               </ButtonLink>
@@ -58,7 +86,7 @@ export default async function PlatformPage({ params }: { params: Promise<{ local
             <p className="caption mt-5">{d.home.heroNote}</p>
           </div>
           <div className="lg:col-span-6 lg:col-start-7">
-            <Frame marks caption={d.nav.kitchenpro} captionRight="01 / RENDER">
+            <Frame marks caption={d.nav.kitchenpro} captionRight={t.renderMark}>
               <div className="relative aspect-[4/3] bg-surface-2 sm:aspect-[16/10]">
                 <Image src="/demo/render-1.webp" alt="" fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
               </div>
@@ -112,7 +140,7 @@ export default async function PlatformPage({ params }: { params: Promise<{ local
           <div className="lg:col-span-5 lg:pr-6">
             <SectionHeading index={4} eyebrow={d.nav.howItWorks} title={k.workflowTitle} />
             <div className="mt-8 lg:sticky lg:top-28">
-              <Frame marks caption="Sketch → room model" captionRight="STAGE 01">
+              <Frame marks caption={t.sketchCaption} captionRight={t.stageMark}>
                 <div className="relative aspect-[4/3] bg-surface-2">
                   <Image src="/demo/sketch-plan.webp" alt="" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
                 </div>
@@ -182,10 +210,10 @@ export default async function PlatformPage({ params }: { params: Promise<{ local
               <p className="mt-4 max-w-md text-[15px] opacity-85">{d.home.finalText}</p>
             </div>
             <div className="lg:col-span-5 lg:justify-self-end">
-              <ButtonLink href={p("/start?segment=b2b")} size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
+              <TrackedCta href={p("/start?segment=b2b")} label="platform-closing" locale={locale} segment="b2b" size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
                 {k.cta}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
             </div>
           </div>
         </div>

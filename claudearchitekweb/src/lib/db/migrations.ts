@@ -256,4 +256,130 @@ CREATE INDEX IF NOT EXISTS analytics_created_idx ON analytics_events(created_at)
 CREATE INDEX IF NOT EXISTS analytics_type_idx ON analytics_events(type);
 `,
   },
+  {
+    // Referential integrity for the columns SQLite cannot cover with a foreign key, plus the
+    // language-independent payload for system timeline entries.
+    //
+    // tasks(entity_type, entity_id) and activities(entity_type, entity_id) are polymorphic, and
+    // projects.lead_id / assets.lead_id point across a boundary that was never declared. Deleting a
+    // company therefore left tasks linked to nothing, orphan activity rows, and contacts that kept
+    // kind='contact' with no company (so they showed up in neither the Contacts nor the Individuals
+    // list). Triggers keep this consistent whichever code path does the delete.
+    id: "0002_integrity_and_activity_meta",
+    sql: `
+ALTER TABLE activities ADD COLUMN meta TEXT;
+
+-- A person inside a company that no longer exists is simply an individual.
+UPDATE clients SET kind = 'individual' WHERE kind = 'contact' AND company_id IS NULL;
+
+CREATE TRIGGER IF NOT EXISTS clients_contact_without_company_ins
+AFTER INSERT ON clients
+WHEN NEW.kind = 'contact' AND NEW.company_id IS NULL
+BEGIN
+  UPDATE clients SET kind = 'individual' WHERE id = NEW.id;
+END;
+
+-- Fires for ON DELETE SET NULL as well, so deleting a company converts its contacts.
+CREATE TRIGGER IF NOT EXISTS clients_contact_without_company_upd
+AFTER UPDATE OF company_id ON clients
+WHEN NEW.kind = 'contact' AND NEW.company_id IS NULL
+BEGIN
+  UPDATE clients SET kind = 'individual' WHERE id = NEW.id;
+END;
+
+-- Unlink tasks and drop the timeline of an entity that no longer has a page to show it.
+CREATE TRIGGER IF NOT EXISTS companies_unlink_after_delete
+AFTER DELETE ON companies
+BEGIN
+  UPDATE tasks SET entity_type = NULL, entity_id = NULL WHERE entity_type = 'company' AND entity_id = OLD.id;
+  DELETE FROM activities WHERE entity_type = 'company' AND entity_id = OLD.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS clients_unlink_after_delete
+AFTER DELETE ON clients
+BEGIN
+  UPDATE tasks SET entity_type = NULL, entity_id = NULL WHERE entity_type = 'client' AND entity_id = OLD.id;
+  DELETE FROM activities WHERE entity_type = 'client' AND entity_id = OLD.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS projects_unlink_after_delete
+AFTER DELETE ON projects
+BEGIN
+  UPDATE tasks SET entity_type = NULL, entity_id = NULL WHERE entity_type = 'project' AND entity_id = OLD.id;
+  DELETE FROM activities WHERE entity_type = 'project' AND entity_id = OLD.id;
+  UPDATE leads SET project_id = NULL WHERE project_id = OLD.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS leads_unlink_after_delete
+AFTER DELETE ON leads
+BEGIN
+  UPDATE tasks SET entity_type = NULL, entity_id = NULL WHERE entity_type = 'lead' AND entity_id = OLD.id;
+  DELETE FROM activities WHERE entity_type = 'lead' AND entity_id = OLD.id;
+  UPDATE projects SET lead_id = NULL WHERE lead_id = OLD.id;
+  UPDATE assets SET lead_id = NULL WHERE lead_id = OLD.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS posts_unlink_after_delete
+AFTER DELETE ON posts
+BEGIN
+  DELETE FROM activities WHERE entity_type = 'post' AND entity_id = OLD.id;
+END;
+
+-- One-off cleanup of what earlier deletes left behind.
+UPDATE tasks SET entity_type = NULL, entity_id = NULL
+WHERE entity_type IS NOT NULL AND entity_id IS NOT NULL AND (
+     (entity_type = 'company' AND entity_id NOT IN (SELECT id FROM companies))
+  OR (entity_type = 'client'  AND entity_id NOT IN (SELECT id FROM clients))
+  OR (entity_type = 'project' AND entity_id NOT IN (SELECT id FROM projects))
+  OR (entity_type = 'lead'    AND entity_id NOT IN (SELECT id FROM leads))
+);
+
+DELETE FROM activities
+WHERE (entity_type = 'company' AND entity_id NOT IN (SELECT id FROM companies))
+   OR (entity_type = 'client'  AND entity_id NOT IN (SELECT id FROM clients))
+   OR (entity_type = 'project' AND entity_id NOT IN (SELECT id FROM projects))
+   OR (entity_type = 'lead'    AND entity_id NOT IN (SELECT id FROM leads))
+   OR (entity_type = 'post'    AND entity_id NOT IN (SELECT id FROM posts));
+
+UPDATE projects SET lead_id = NULL WHERE lead_id IS NOT NULL AND lead_id NOT IN (SELECT id FROM leads);
+UPDATE leads SET project_id = NULL WHERE project_id IS NOT NULL AND project_id NOT IN (SELECT id FROM projects);
+
+-- Attachments uploaded before leads claimed them: give each one the lead that lists it, so a
+-- conversion can only move files that belong to that lead.
+UPDATE assets SET lead_id = (SELECT l.id FROM leads l WHERE l.files IS NOT NULL AND instr(l.files, assets.id) > 0 ORDER BY l.created_at LIMIT 1)
+WHERE lead_id IS NULL
+  AND kind = 'client_upload'
+  AND EXISTS (SELECT 1 FROM leads l WHERE l.files IS NOT NULL AND instr(l.files, assets.id) > 0);
+`,
+  },
+  {
+    // Project codes must never be handed out twice. The sequence lives in its own row instead of
+    // being derived from the projects that happen to exist: deleting AT-2026-0005 used to free that
+    // code again, so two different projects could end up with the same number in quotes and links.
+    id: "0003_project_code_counter",
+    sql: `
+CREATE TABLE IF NOT EXISTS counters (
+  key TEXT PRIMARY KEY,
+  value INTEGER NOT NULL DEFAULT 0
+);
+INSERT OR IGNORE INTO counters (key, value)
+  SELECT 'project_seq:' || substr(code, 4, 4), max(cast(substr(code, 9) as integer))
+  FROM projects WHERE code LIKE 'AT-____-%' GROUP BY substr(code, 4, 4);
+`,
+  },
+  {
+    // Where a post came from. Everything created before this migration was typed in the composer,
+    // so 'manual' is the right value for every existing row and the column can be NOT NULL at once.
+    // source_ref holds the inbox folder name, which is what the editor banner and the trace back to
+    // data/inbox/_imported/… are built on.
+    //
+    // SQLite has no "ADD COLUMN IF NOT EXISTS"; the ledger in db/index.ts is what makes this run
+    // exactly once (inside a transaction, recorded in _migrations), so a second boot is a no-op.
+    id: "0004_post_source",
+    sql: `
+ALTER TABLE posts ADD COLUMN source TEXT NOT NULL DEFAULT 'manual';
+ALTER TABLE posts ADD COLUMN source_ref TEXT;
+CREATE INDEX IF NOT EXISTS posts_source_idx ON posts(source);
+`,
+  },
 ];

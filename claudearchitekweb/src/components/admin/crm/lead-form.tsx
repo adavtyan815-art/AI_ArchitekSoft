@@ -1,17 +1,39 @@
 import { Button, Field, Input, Select, Textarea } from "@/components/ui";
 import { FormActions } from "@/components/admin/shell";
 import { LEAD_SOURCES } from "@/lib/crm";
+import { LEAD_ROOMS, LEAD_SERVICES } from "@/lib/form";
+import { getDb, schema } from "@/lib/db";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
 import type { Lead } from "@/lib/db/schema";
 
-const SERVICES = ["kitchenpro", "showroom", "ar", "cnc", "real_estate", "custom", "other"];
-const ROOMS = ["kitchen", "wardrobe", "living", "bathroom", "office", "apartment", "other"];
 const CURRENCIES = ["AMD", "USD", "EUR", "RUB"];
+
+/** The stored value first, so a value the list does not know (an older key) is still selectable and never nulled on save. */
+function withStored(list: readonly string[], stored: string | null | undefined): string[] {
+  return stored && !list.includes(stored) ? [stored, ...list] : [...list];
+}
+
+/**
+ * The people a lead can be assigned to: the admin users, by name (leads.assigned_to stores the name,
+ * which is what the lead list and the detail page show). Sliced to the 80 characters the action accepts,
+ * so what the picker offers is exactly what a save stores.
+ */
+function assigneeNames(): string[] {
+  return getDb()
+    .select({ name: schema.users.name })
+    .from(schema.users)
+    .orderBy(schema.users.name)
+    .all()
+    .map((u) => u.name.trim().slice(0, 80))
+    .filter(Boolean);
+}
 
 /** Create / edit form for a lead. Server component — pass the server action. */
 export async function LeadForm({ lead, action, submitLabel }: { lead?: Lead | null; action: (fd: FormData) => Promise<void>; submitLabel?: string }) {
   const { t } = await getAdminDict();
   const f = t.crm.form;
+  const services = withStored(LEAD_SERVICES, lead?.service);
+  const rooms = withStored(LEAD_ROOMS, lead?.roomType);
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
       {lead ? <input type="hidden" name="id" value={lead.id} /> : null}
@@ -32,24 +54,33 @@ export async function LeadForm({ lead, action, submitLabel }: { lead?: Lead | nu
           </Select>
         </Field>
       ) : (
-        <Field label={f.assignedTo}>
-          <Input name="assignedTo" defaultValue={lead.assignedTo ?? ""} placeholder={f.assignedToPlaceholder} />
+        <Field label={f.assignedTo} hint={f.assignedToHint}>
+          {/* A picker, not free text: a mistyped name used to make a lead look assigned to nobody in the team. A name
+              stored before (or by an admin user who has since been removed) stays in the list, so a save never drops it. */}
+          <Select name="assignedTo" defaultValue={lead.assignedTo ?? ""}>
+            <option value="">{f.assignedToNobody}</option>
+            {withStored(assigneeNames(), lead.assignedTo).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </Select>
         </Field>
       )}
       <Field label={f.name} required>
-        <Input name="name" required defaultValue={lead?.name ?? ""} placeholder={f.namePlaceholder} />
+        <Input name="name" required maxLength={120} defaultValue={lead?.name ?? ""} placeholder={f.namePlaceholder} />
       </Field>
       <Field label={f.companyName}>
-        <Input name="companyName" defaultValue={lead?.companyName ?? ""} />
+        <Input name="companyName" maxLength={120} defaultValue={lead?.companyName ?? ""} />
       </Field>
       <Field label={f.phone}>
-        <Input name="phone" defaultValue={lead?.phone ?? ""} placeholder="+374 …" />
+        <Input name="phone" type="tel" inputMode="tel" maxLength={40} defaultValue={lead?.phone ?? ""} placeholder="+374 …" />
       </Field>
       <Field label={f.telegram}>
-        <Input name="telegram" defaultValue={lead?.telegram ?? ""} placeholder="@username" />
+        <Input name="telegram" maxLength={60} defaultValue={lead?.telegram ?? ""} placeholder="@username" />
       </Field>
       <Field label={f.email}>
-        <Input name="email" type="email" defaultValue={lead?.email ?? ""} />
+        <Input name="email" type="email" maxLength={120} defaultValue={lead?.email ?? ""} />
       </Field>
       <Field label={f.preferredChannel}>
         <Select name="preferredChannel" defaultValue={lead?.preferredChannel ?? ""}>
@@ -63,7 +94,7 @@ export async function LeadForm({ lead, action, submitLabel }: { lead?: Lead | nu
       <Field label={f.service}>
         <Select name="service" defaultValue={lead?.service ?? ""}>
           <option value="">{f.none}</option>
-          {SERVICES.map((s) => (
+          {services.map((s) => (
             <option key={s} value={s}>
               {labelFor(t, "services", s)}
             </option>
@@ -73,7 +104,7 @@ export async function LeadForm({ lead, action, submitLabel }: { lead?: Lead | nu
       <Field label={f.room}>
         <Select name="roomType" defaultValue={lead?.roomType ?? ""}>
           <option value="">{f.none}</option>
-          {ROOMS.map((s) => (
+          {rooms.map((s) => (
             <option key={s} value={s}>
               {labelFor(t, "rooms", s)}
             </option>
@@ -88,10 +119,10 @@ export async function LeadForm({ lead, action, submitLabel }: { lead?: Lead | nu
         </Select>
       </Field>
       <Field label={f.budget}>
-        <Input name="budget" defaultValue={lead?.budget ?? ""} placeholder={f.budgetPlaceholder} />
+        <Input name="budget" maxLength={80} defaultValue={lead?.budget ?? ""} placeholder={f.budgetPlaceholder} />
       </Field>
       <Field label={f.estimatedValue}>
-        <Input name="estimatedValue" inputMode="numeric" defaultValue={lead?.estimatedValue ?? ""} placeholder="0" />
+        <Input name="estimatedValue" inputMode="decimal" maxLength={20} defaultValue={lead?.estimatedValue ?? ""} placeholder="0" />
       </Field>
       <Field label={f.currency}>
         <Select name="currency" defaultValue={lead?.currency ?? "AMD"}>
@@ -103,7 +134,7 @@ export async function LeadForm({ lead, action, submitLabel }: { lead?: Lead | nu
         </Select>
       </Field>
       <Field label={f.message} className="sm:col-span-2">
-        <Textarea name="message" defaultValue={lead?.message ?? ""} placeholder={f.messagePlaceholder} />
+        <Textarea name="message" maxLength={4000} defaultValue={lead?.message ?? ""} placeholder={f.messagePlaceholder} />
       </Field>
       <FormActions className="sm:col-span-2">
         <Button type="submit">{submitLabel ?? t.common.save}</Button>

@@ -20,19 +20,22 @@ const ViewsByDayImpl = dynamic(() => import("@/components/admin/analytics/chart-
 const RevenueImpl = dynamic(() => import("@/components/admin/analytics/chart-impl").then((m) => m.RevenueImpl), { ssr: false, loading: () => <ChartSkeleton /> });
 const PostsImpl = dynamic(() => import("@/components/admin/analytics/chart-impl").then((m) => m.PostsImpl), { ssr: false, loading: () => <ChartSkeleton /> });
 
+/** `w-full min-w-0` so the chart fills its panel instead of being floored by a sibling's min-content. */
+const BOX = "w-full min-w-0";
+
 /** Page views / unique visitors / form submits per day. */
 export function ViewsByDayChart({ data, labels }: { data: ViewsRow[]; labels: { views: string; visitors: string; submits: string; empty: string } }) {
-  return <div className="h-64">{data.length === 0 ? <EmptyBox text={labels.empty} /> : <ViewsByDayImpl data={data} labels={labels} />}</div>;
+  return <div className={`h-64 ${BOX}`}>{data.length === 0 ? <EmptyBox text={labels.empty} /> : <ViewsByDayImpl data={data} labels={labels} />}</div>;
 }
 
 /** Quoted vs paid amounts per month (last 6 months). */
 export function RevenueChart({ data, labels }: { data: RevenueRow[]; labels: { quoted: string; paid: string; empty: string } }) {
   const empty = data.every((r) => r.quoted === 0 && r.paid === 0);
-  return <div className="h-56">{empty ? <EmptyBox text={labels.empty} /> : <RevenueImpl data={data} labels={labels} />}</div>;
+  return <div className={`h-56 ${BOX}`}>{empty ? <EmptyBox text={labels.empty} /> : <RevenueImpl data={data} labels={labels} />}</div>;
 }
 
 /** Posts created vs published per month. */
 export function PostsChart({ data, labels }: { data: PostsRow[]; labels: { created: string; published: string; empty: string } }) {
   const empty = data.every((r) => r.created === 0 && r.published === 0);
-  return <div className="h-56">{empty ? <EmptyBox text={labels.empty} /> : <PostsImpl data={data} labels={labels} />}</div>;
+  return <div className={`h-56 ${BOX}`}>{empty ? <EmptyBox text={labels.empty} /> : <PostsImpl data={data} labels={labels} />}</div>;
 }

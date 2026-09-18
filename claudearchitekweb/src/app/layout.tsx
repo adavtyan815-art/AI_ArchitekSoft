@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Noto_Sans_Armenian, Noto_Serif_Armenian, Source_Serif_4 } from "next/font/google";
 import { cookies, headers } from "next/headers";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
+import { ADMIN_LANG_COOKIE, isAdminLocale } from "@/lib/i18n/admin";
+import { THEME_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
 /**
@@ -31,18 +34,33 @@ export const viewport: Viewport = {
   ],
 };
 
-/** Applies the saved theme before first paint (no flash) and marks the document as JS-capable (scroll reveals). */
-const THEME_SCRIPT = `(function(){try{document.documentElement.setAttribute("data-js","1");var c=document.cookie.match(/(?:^|; )theme=(light|dark)/);var t=c?c[1]:localStorage.getItem("theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();`;
+/**
+ * Language of the document on a full page load.
+ * - Public site: the locale the middleware resolved from the URL (`x-locale`).
+ * - Admin: the interface language the user chose (`admin_lang` cookie); the URL carries no locale there.
+ * Both values are checked against the known locales, so a forged header can never reach the markup.
+ * Layouts below keep `<html lang>` in step after client-side navigation (see components/site/html-lang.tsx).
+ */
+function documentLang(h: Headers, adminLang: string | undefined): string {
+  const siteLocale = h.get("x-locale");
+  if (isLocale(siteLocale)) return siteLocale;
+  const pathname = h.get("x-pathname") ?? "";
+  if ((pathname === "/admin" || pathname.startsWith("/admin/")) && isAdminLocale(adminLang)) return adminLang;
+  return DEFAULT_LOCALE;
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
-  const lang = h.get("x-locale") || "hy";
-  const theme = (await cookies()).get("theme")?.value;
+  const jar = await cookies();
+  const lang = documentLang(h, jar.get(ADMIN_LANG_COOKIE)?.value);
+  const theme = jar.get("theme")?.value;
   const dataTheme = theme === "light" || theme === "dark" ? theme : undefined;
   return (
     <html lang={lang} data-theme={dataTheme} className={`${inter.variable} ${serif.variable} ${serifArmenian.variable} ${armenian.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preload" as="image" href="/brand/logo.png" />
+        {/* No nonce on purpose: the CSP allows this one by hash, so nothing on the tag changes
+            between the server render and the browser. See src/lib/theme-script.ts. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>{children}</body>

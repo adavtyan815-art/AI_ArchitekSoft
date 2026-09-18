@@ -20,7 +20,10 @@ export function ViewsByDayImpl({ data, labels }: { data: ViewsRow[]; labels: { v
   const rows = data.map((d) => ({ ...d, day: d.day.slice(5) }));
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={rows} margin={{ top: 6, right: 6, left: -6, bottom: 0 }}>
+      {/* Two scales on purpose: page views run in the hundreds while visitors and form submits run in
+          single digits, so on one shared 0-1600 axis the two lines lay flat on the baseline and told
+          the owner nothing. Views keep the left axis, the two people-counts share the right one. */}
+      <ComposedChart data={rows} margin={{ top: 6, right: 0, left: -6, bottom: 0 }}>
         <defs>
           <linearGradient id="gViews" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.28} />
@@ -29,15 +32,28 @@ export function ViewsByDayImpl({ data, labels }: { data: ViewsRow[]; labels: { v
         </defs>
         <CartesianGrid vertical={false} stroke={GRID} />
         <XAxis dataKey="day" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} minTickGap={16} />
-        <YAxis allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} width={46} />
+        <YAxis yAxisId="views" allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} width={46} />
+        <YAxis yAxisId="people" orientation="right" allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} width={38} />
         <Tooltip contentStyle={TOOLTIP} cursor={{ fill: "var(--surface-2)" }} />
         <Legend wrapperStyle={LEGEND} />
-        <Area type="monotone" dataKey="views" name={labels.views} stroke="var(--accent)" fill="url(#gViews)" strokeWidth={1.5} />
-        <Line type="monotone" dataKey="visitors" name={labels.visitors} stroke="var(--fg)" strokeWidth={1.25} dot={false} />
-        <Line type="monotone" dataKey="leads" name={labels.submits} stroke="var(--muted)" strokeWidth={1.25} strokeDasharray="3 3" dot={false} />
+        <Area yAxisId="views" type="monotone" dataKey="views" name={labels.views} stroke="var(--accent)" fill="url(#gViews)" strokeWidth={1.5} />
+        <Line yAxisId="people" type="monotone" dataKey="visitors" name={labels.visitors} stroke="var(--fg)" strokeWidth={1.25} dot={false} />
+        <Line yAxisId="people" type="monotone" dataKey="leads" name={labels.submits} stroke="var(--muted)" strokeWidth={1.25} strokeDasharray="3 3" dot={false} />
       </ComposedChart>
     </ResponsiveContainer>
   );
+}
+
+/**
+ * Compact money ticks: 10 000 000 -> "10M", 2 500 000 -> "2.5M", 750 000 -> "750k".
+ * Rounding everything to thousands turned the AMD axis into "2500k / 5000k / 7500k / 10000k".
+ * The suffixes stay Latin, exactly like the "k" that was there before.
+ */
+function moneyTick(v: number): string {
+  const abs = Math.abs(v);
+  if (abs >= 1_000_000) return `${Number((v / 1_000_000).toFixed(1))}M`;
+  if (abs >= 1_000) return `${Number((v / 1_000).toFixed(1))}k`;
+  return String(v);
 }
 
 export function RevenueImpl({ data, labels }: { data: RevenueRow[]; labels: { quoted: string; paid: string } }) {
@@ -47,7 +63,7 @@ export function RevenueImpl({ data, labels }: { data: RevenueRow[]; labels: { qu
       <BarChart data={rows} margin={{ top: 6, right: 6, left: -10, bottom: 0 }} barCategoryGap="26%">
         <CartesianGrid vertical={false} stroke={GRID} />
         <XAxis dataKey="month" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} />
-        <YAxis tick={AXIS} tickLine={false} axisLine={false} width={56} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+        <YAxis tick={AXIS} tickLine={false} axisLine={false} width={46} tickFormatter={moneyTick} />
         <Tooltip contentStyle={TOOLTIP} cursor={{ fill: "var(--surface-2)" }} formatter={(v) => new Intl.NumberFormat("en-US").format(Number(v ?? 0))} />
         <Legend wrapperStyle={LEGEND} />
         <Bar dataKey="quoted" name={labels.quoted} fill="var(--muted)" fillOpacity={0.45} />
@@ -61,10 +77,12 @@ export function PostsImpl({ data, labels }: { data: PostsRow[]; labels: { create
   const rows = data.map((d) => ({ ...d, month: d.month.slice(2) }));
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={rows} margin={{ top: 6, right: 6, left: -22, bottom: 0 }} barCategoryGap="26%">
+      {/* A negative left margin bigger than the axis width pushes the tick labels outside the SVG
+          and clips them; -6 / 40 matches the other two charts. */}
+      <BarChart data={rows} margin={{ top: 6, right: 6, left: -6, bottom: 0 }} barCategoryGap="26%">
         <CartesianGrid vertical={false} stroke={GRID} />
         <XAxis dataKey="month" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} />
-        <YAxis allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} width={34} />
+        <YAxis allowDecimals={false} tick={AXIS} tickLine={false} axisLine={false} width={40} />
         <Tooltip contentStyle={TOOLTIP} cursor={{ fill: "var(--surface-2)" }} />
         <Legend wrapperStyle={LEGEND} />
         <Bar dataKey="created" name={labels.created} fill="var(--muted)" fillOpacity={0.45} />

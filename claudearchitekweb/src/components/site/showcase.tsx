@@ -6,7 +6,7 @@ import { ArrowRight, Maximize2, Minimize2, X } from "lucide-react";
 import { localePath, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { BeforeAfter } from "./before-after";
-import { ViewerDemo } from "./viewer-demo";
+import { ViewerDemo, type ViewerLabels } from "./viewer-demo";
 
 /**
  * Interactive showcase — the first screen of the homepage.
@@ -49,7 +49,7 @@ export function Showcase({
 }: {
   locale: Locale;
   s: ShowcaseStrings;
-  viewerLabels: { hint: string; swatches: string; ar: string; reset?: string; load?: string };
+  viewerLabels: ViewerLabels;
   compareLabels: [string, string];
   media: { before: string; after: string; video: string; videoPoster: string; viewerPoster?: string };
   /** Eyebrow + H1 (page-owned). */
@@ -146,6 +146,13 @@ export function Showcase({
   };
 
   const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" && document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+      return;
+    }
+    // Arrow keys switch modes only when the stage itself (or a mode tab) has focus. Keys pressed inside
+    // the stage — the comparison slider, the 3D viewer and its buttons — belong to those controls.
+    if (e.target !== e.currentTarget) return;
     if (e.key === "ArrowRight") {
       e.preventDefault();
       select(i + 1);
@@ -154,8 +161,6 @@ export function Showcase({
       e.preventDefault();
       select(i - 1);
       segs.current[(i - 1 + n) % n]?.focus();
-    } else if (e.key === "Escape" && document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
     }
   };
 
@@ -173,18 +178,18 @@ export function Showcase({
       aria-label={s.title}
     >
       {/* 01 — sketch → picture */}
-      <div className={cn("absolute inset-0 transition-opacity duration-500", i === 0 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 0}>
+      <div className={cn("absolute inset-0 transition-opacity duration-500", i === 0 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 0} inert={i !== 0 ? true : undefined}>
         {/* labels at the bottom: the top corners carry the Live chip and the touch fullscreen control */}
         <BeforeAfter before={media.before} after={media.after} labels={compareLabels} aspect="h-full w-full" labelsAt="bottom" />
       </div>
 
       {/* 02 — Web Viewer (mounted on first open; phones get tap-to-load) */}
-      <div className={cn("absolute inset-0 transition-opacity duration-500", i === 1 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 1}>
+      <div className={cn("absolute inset-0 transition-opacity duration-500", i === 1 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 1} inert={i !== 1 ? true : undefined}>
         {opened[1] ? <ViewerDemo labels={viewerLabels} poster={media.viewerPoster} className="flex h-full flex-col rounded-none border-0" height="min-h-0 flex-1" /> : null}
       </div>
 
       {/* 03 — Live 3D walkthrough (clip loaded on first open) */}
-      <div className={cn("absolute inset-0 transition-opacity duration-500", i === 2 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 2}>
+      <div className={cn("absolute inset-0 transition-opacity duration-500", i === 2 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 2} inert={i !== 2 ? true : undefined}>
         {opened[2] ? (
           <video ref={video} src={media.video} poster={media.videoPoster} muted loop playsInline preload="metadata" className="h-full w-full object-cover" aria-label={s.items[2]?.title} />
         ) : (

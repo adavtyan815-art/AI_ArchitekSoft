@@ -25,12 +25,14 @@ export function ContactChannels({ brand, dict, compact, className }: { brand: Br
   ].filter((i) => i.value);
   const ext = (href: string) => (href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {});
   if (compact) {
+    // Compact rows are still telephone numbers and chat handles — the things a visitor taps on a
+    // phone. The padding goes on the anchor, as in the full list below; from sm the rhythm returns.
     return (
-      <ul className={cn("space-y-1.5 text-[14px]", className)}>
+      <ul className={cn("space-y-0 text-[14px] sm:space-y-1.5", className)}>
         {items.map((i) => (
-          <li key={i.label} className="contain-w flex items-baseline gap-3">
+          <li key={i.label} className="contain-w flex items-center gap-3 sm:items-baseline">
             <span className="caption w-20 flex-none">{i.label}</span>
-            <a href={i.href} className="text-fg-2 transition-colors hover:text-fg" {...ext(i.href)}>
+            <a href={i.href} className="flex min-h-10 min-w-0 flex-1 items-center text-fg-2 transition-colors hover:text-fg sm:block sm:min-h-0" {...ext(i.href)}>
               {i.value}
             </a>
           </li>

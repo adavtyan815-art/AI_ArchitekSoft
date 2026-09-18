@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { env } from "@/lib/env";
@@ -29,6 +30,11 @@ const COPY = {
     swatches: "Ֆասադի գույն",
     ar: "Տեսնել իմ սենյակում",
     reset: "Վերականգնել դիտումը",
+    alt: "Պահարանի եռաչափ մոդել",
+    loading: "Բեռնվում է…",
+    error: "Չհաջողվեց բացել եռաչափ դիտումը։ Ստուգեք ինտերնետ կապը և փորձեք կրկին։",
+    retry: "Կրկին փորձել",
+    colors: { wood: "Փայտ", white: "Մատ սպիտակ", sand: "Ավազ", sage: "Եղեսպակ", navy: "Մուգ կապույտ", graphite: "Գրաֆիտ" },
     theme: { light: "Բաց ռեժիմ", dark: "Մուգ ռեժիմ" },
   },
   ru: {
@@ -41,6 +47,11 @@ const COPY = {
     swatches: "Цвет фасада",
     ar: "Посмотреть в моей комнате",
     reset: "Сбросить вид",
+    alt: "Трёхмерная модель шкафа",
+    loading: "Загрузка…",
+    error: "Не удалось открыть просмотр в 3D. Проверьте соединение и попробуйте снова.",
+    retry: "Попробовать снова",
+    colors: { wood: "Дерево", white: "Матовый белый", sand: "Песочный", sage: "Шалфей", navy: "Тёмно-синий", graphite: "Графит" },
     theme: { light: "Светлая тема", dark: "Тёмная тема" },
   },
   en: {
@@ -53,13 +64,30 @@ const COPY = {
     swatches: "Front colour",
     ar: "See in my room",
     reset: "Reset the view",
+    alt: "3D model of the wardrobe",
+    loading: "Loading…",
+    error: "The 3D view could not be opened. Check your connection and try again.",
+    retry: "Try again",
+    colors: { wood: "Wood", white: "Matt white", sand: "Sand", sage: "Sage", navy: "Navy", graphite: "Graphite" },
     theme: { light: "Light mode", dark: "Dark mode" },
   },
 } as const;
 
 const MODEL_REL = "demo/closet_wardrobe.glb";
 
-export default async function ArDemoPage() {
+type DemoLang = keyof typeof COPY;
+const LANGS = ["hy", "ru", "en"] as const;
+const isLang = (x: string | undefined): x is DemoLang => !!x && (LANGS as readonly string[]).includes(x);
+
+/**
+ * The page keeps its Armenian-first layout (the paragraphs are shown in all three languages), but the
+ * controls — theme toggle, viewer toolbar, swatch names — follow `?lang=`. The QR carries the same
+ * value, so the phone that scans it lands in the language the visitor is reading.
+ */
+export default async function ArDemoPage({ searchParams }: { searchParams: Promise<{ lang?: string }> }) {
+  const { lang: rawLang } = await searchParams;
+  const lang: DemoLang = isLang(rawLang) ? rawLang : "hy";
+  const c = COPY[lang];
   const h = await headers();
   const proto = h.get("x-forwarded-proto") ?? (env.isProd ? "https" : "http");
   const host = h.get("x-forwarded-host") ?? h.get("host");
@@ -70,7 +98,7 @@ export default async function ArDemoPage() {
   if (modelExists) {
     try {
       // No #ar hash: the inline viewer has its own AR button, which the phone taps after landing here.
-      qr = await QRCode.toDataURL(`${base}/demo/ar`, { margin: 1, width: 360, color: { dark: "#0b1220", light: "#ffffff" } });
+      qr = await QRCode.toDataURL(`${base}/demo/ar?lang=${lang}`, { margin: 1, width: 360, color: { dark: "#0b1220", light: "#ffffff" } });
     } catch {
       qr = null;
     }
@@ -80,19 +108,21 @@ export default async function ArDemoPage() {
     <div className="flex min-h-dvh flex-col bg-bg">
       <header className="h-16 flex-none border-b border-line bg-surface">
         <div className="mx-auto flex h-full w-full max-w-5xl items-center justify-between gap-3 px-5 sm:px-8">
-          <a href="/" className="flex shrink-0 items-center gap-3" aria-label="ArchiTek Soft">
+          <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="ArchiTek Soft">
             <BrandLogo className="h-7" />
-          </a>
+          </Link>
           <div className="flex items-center gap-3">
             <span className="tag">AR</span>
-            <ThemeToggle labels={COPY.hy.theme} />
+            <ThemeToggle labels={c.theme} />
           </div>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
-        <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
-          <div className="lg:col-span-5">
+        {/* grid-cols-1 (= minmax(0,1fr)), not the implicit auto column: an auto track floors at the
+            min-content width of its widest child, which pushed this page to 465px on a 390px phone. */}
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8">
+          <div className="min-w-0 lg:col-span-5">
             <div className="mb-5 flex items-center gap-3">
               <Index n={1} />
               <span className="eyebrow">{COPY.hy.tag}</span>
@@ -110,15 +140,19 @@ export default async function ArDemoPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="min-w-0 lg:col-span-7">
             {modelUrl ? (
               <>
                 {/* Same stage treatment as the project viewer (ViewerDemo owns the dark
                     ground, dot-grid floor, corner marks, mono toolbar and swatch bar). */}
-                <ViewerDemo src={modelUrl} labels={{ hint: COPY.hy.hint, swatches: COPY.hy.swatches, ar: COPY.hy.ar, reset: COPY.hy.reset }} height="h-[380px] sm:h-[520px]" />
+                <ViewerDemo
+                  src={modelUrl}
+                  labels={{ hint: c.hint, swatches: c.swatches, ar: c.ar, reset: c.reset, alt: c.alt, loading: c.loading, error: c.error, retry: c.retry, swatchNames: c.colors }}
+                  height="h-[380px] sm:h-[520px]"
+                />
                 {qr ? (
                   <div className="mt-6 flex justify-center">
-                    <QrPanel qrDataUrl={qr} note={COPY.hy.note} />
+                    <QrPanel qrDataUrl={qr} note={c.note} />
                   </div>
                 ) : null}
                 <div className="mt-6 divide-y divide-line border-y border-line">

@@ -4,24 +4,30 @@ import { and, desc, eq } from "drizzle-orm";
 import { Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { clientLabel, companyOptions, relTime } from "@/lib/admin-helpers";
+import { clientLabel, companyOptions, fmtAdminDate, formatMoneyTotals, relTime, sumByCurrency } from "@/lib/admin-helpers";
+import { RelTime } from "@/components/admin/rel-time";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
-import { formatDate, formatMoney, parseJson } from "@/lib/utils";
+import { formatMoney, parseJson } from "@/lib/utils";
 import { KV, PageHeader, Panel, StatusBadge } from "@/components/admin/shell";
 import { Badge } from "@/components/ui";
+import { Notice, noticeFrom } from "@/components/admin/notice";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { ContactLinks } from "@/components/admin/crm/contact-links";
 import { ActivityTimeline } from "@/components/admin/crm/activity-timeline";
 import { ClientForm } from "@/components/admin/crm/client-form";
+import { OpenTasksPanel, openTasksFor } from "@/app/admin/(shell)/tasks/open-tasks-panel";
 import { deleteClientAction, updateClientAction } from "@/app/admin/actions/crm-actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+type SP = Record<string, string | string[] | undefined>;
+
+export default async function ClientDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SP> }) {
   await requireUser();
   const { t, locale } = await getAdminDict();
   const C = t.crm.clients;
   const { id } = await params;
+  const sp = await searchParams;
   const db = getDb();
   const client = db.select().from(schema.clients).where(eq(schema.clients.id, id)).get();
   if (!client) notFound();
@@ -36,15 +42,19 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       .all()
       .map((u) => [u.id, u.name])
   );
+  // Tasks linked to this client are otherwise visible only on /admin/tasks.
+  const openTasks = openTasksFor("client", id);
   const tags = parseJson<string[]>(client.tags, []);
   const name = clientLabel(client);
-  const quoted = projects.reduce((s, p) => s + (p.quoteAmount ?? 0), 0);
-  const paid = projects.reduce((s, p) => s + (p.paidAmount ?? 0), 0);
+  // One figure per currency: a USD quote is never added to an AMD one.
+  const quoted = formatMoneyTotals(sumByCurrency(projects, (p) => p.quoteAmount, (p) => p.currency));
+  const paid = formatMoneyTotals(sumByCurrency(projects, (p) => p.paidAmount, (p) => p.currency));
 
   const subtitle = [company?.name ?? null, client.position ?? null, t.crm.leads.createdAgo(relTime(client.createdAt, locale))].filter(Boolean).join(" · ");
 
   return (
     <>
+      <Notice {...noticeFrom(sp)} />
       <PageHeader
         crumbs={[{ label: C.title, href: "/admin/clients" }, { label: name }]}
         title={
@@ -101,7 +111,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                           {formatMoney(p.quoteAmount, p.currency)}
                         </td>
                         <td data-label={t.common.updated} className="font-mono text-[12px] whitespace-nowrap text-muted">
-                          {relTime(p.updatedAt, locale)}
+                          <RelTime iso={p.updatedAt} locale={locale} />
                         </td>
                       </tr>
                     ))}
@@ -118,10 +128,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               <ul className="divide-y divide-line">
                 {leads.map((l) => (
                   <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                    <Link href={`/admin/leads/${l.id}`} className="min-w-0 text-sm font-medium text-fg transition-colors hover:text-accent">
+                    <Link href={`/admin/leads/${l.id}`} className="flex min-h-10 min-w-0 flex-wrap items-center gap-x-2 text-sm font-medium [overflow-wrap:anywhere] text-fg transition-colors hover:text-accent sm:min-h-0">
                       {l.name}
-                      <span className="ml-2 text-xs font-normal text-muted">
-                        {labelFor(t, "leadSources", l.source)} · {relTime(l.createdAt, locale)}
+                      <span className="text-xs font-normal text-muted">
+                        {labelFor(t, "leadSources", l.source)} · <RelTime iso={l.createdAt} locale={locale} />
                       </span>
                     </Link>
                     <StatusBadge value={l.status} label={labelFor(t, "leadStatus", l.status)} />
@@ -149,6 +159,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             </div>
           </Panel>
 
+          <OpenTasksPanel tasks={openTasks} t={t} locale={locale} />
+
           <Panel title={C.summary}>
             <KV label={t.crm.form.company}>
               {company ? (
@@ -162,8 +174,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             <KV label={t.common.city}>{client.city ?? "—"}</KV>
             <KV label={t.common.address}>{client.address ?? "—"}</KV>
             <KV label={t.common.source}>{client.source ? labelFor(t, "leadSources", client.source) : "—"}</KV>
-            <KV label={C.quotedTotal}>{formatMoney(quoted)}</KV>
-            <KV label={C.paidTotal}>{formatMoney(paid)}</KV>
+            <KV label={C.quotedTotal}>{quoted}</KV>
+            <KV label={C.paidTotal}>{paid}</KV>
             <KV label={t.common.tags}>
               {tags.length ? (
                 <span className="flex flex-wrap gap-1">
@@ -177,8 +189,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 "—"
               )}
             </KV>
-            <KV label={t.common.created}>{formatDate(client.createdAt, true)}</KV>
-            <KV label={t.common.updated}>{formatDate(client.updatedAt, true)}</KV>
+            <KV label={t.common.created}>{fmtAdminDate(client.createdAt, locale, true)}</KV>
+            <KV label={t.common.updated}>{fmtAdminDate(client.updatedAt, locale, true)}</KV>
           </Panel>
 
           {client.notes ? (

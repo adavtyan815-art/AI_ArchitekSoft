@@ -14,8 +14,8 @@ import { MIGRATIONS } from "./migrations";
 type DB = BetterSQLite3Database<typeof schema>;
 
 declare global {
-  // eslint-disable-next-line no-var
-  var __architek_db: { sqlite: Database.Database; db: DB } | undefined;
+  // `var` is required here: `let`/`const` do not create a property on globalThis.
+  var __architek_db: { sqlite: Database.Database; db: DB; migrations: number } | undefined;
 }
 
 function open() {
@@ -31,7 +31,22 @@ function open() {
   sqlite.pragma("mmap_size = 268435456"); // 256 MB memory-mapped reads
   migrate(sqlite);
   const db = drizzle(sqlite, { schema });
-  return { sqlite, db };
+  return { sqlite, db, migrations: MIGRATIONS.length };
+}
+
+/**
+ * The open connection lives on `globalThis` so hot reloads reuse it. That also means a migration
+ * added while the dev server is running would otherwise wait for a full restart, with the code
+ * already expecting the new columns — so the list is re-checked here (one integer compare).
+ */
+function handle() {
+  const existing = globalThis.__architek_db;
+  if (!existing) return (globalThis.__architek_db = open());
+  if (existing.migrations !== MIGRATIONS.length) {
+    migrate(existing.sqlite);
+    existing.migrations = MIGRATIONS.length;
+  }
+  return existing;
 }
 
 function migrate(sqlite: Database.Database) {
@@ -53,13 +68,11 @@ function migrate(sqlite: Database.Database) {
 }
 
 export function getDb(): DB {
-  if (!globalThis.__architek_db) globalThis.__architek_db = open();
-  return globalThis.__architek_db.db;
+  return handle().db;
 }
 
 export function getSqlite(): Database.Database {
-  if (!globalThis.__architek_db) globalThis.__architek_db = open();
-  return globalThis.__architek_db.sqlite;
+  return handle().sqlite;
 }
 
 export { schema };

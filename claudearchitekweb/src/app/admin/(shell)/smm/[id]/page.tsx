@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getPostFull } from "@/lib/smm";
+import { notesForDisplay, suggestedSlotOf } from "@/lib/inbox";
 import { hashtagsOf, listMediaAssetsLite, telegramThreadsFor, toAssetLite } from "@/lib/smm-admin";
 import { PLATFORM_META, platformStatus } from "@/lib/social";
 import { fmtYerevan, toYerevanInput } from "@/lib/tz";
@@ -20,7 +21,7 @@ type SP = Record<string, string | string[] | undefined>;
 
 export default async function PostEditorPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SP> }) {
   await requireUser();
-  const { t } = await getAdminDict();
+  const { t, locale } = await getAdminDict();
   const L = t.smm.editor;
   const { id } = await params;
   const sp = await searchParams;
@@ -29,12 +30,21 @@ export default async function PostEditorPage({ params, searchParams }: { params:
   const { post, project } = full;
 
   const attached = full.assets.map((a) => toAssetLite(a));
-  const library = listMediaAssetsLite(200).filter((a) => (post.projectId ? a.projectId === post.projectId || a.projectId === null : true));
+  // Filtered by project in SQL (before the limit) and always including what is already attached,
+  // so an older project's media stays pickable and current selections never drop out.
+  const library = listMediaAssetsLite(200, { projectId: post.projectId, includeIds: attached.map((a) => a.id), perProject: 60 });
   const threads = telegramThreadsFor(id);
   const tg = getSetting("telegram");
   const brand = getSetting("brand");
   const tgReady = telegramEnabled() && !!tg.adminChatId;
   const statuses = platformStatus() as Record<string, string>;
+
+  // A post the drop folder prepared: the banner names the folder and offers the slot it proposed.
+  const suggestedSlot = post.source === "inbox" ? suggestedSlotOf(post.notes) : null;
+  const inbox =
+    post.source === "inbox"
+      ? { folder: post.sourceRef ?? "—", suggestedSlot, suggestedLabel: suggestedSlot ? `${fmtYerevan(suggestedSlot, "datetime", locale)} (${L.tz})` : null }
+      : null;
 
   const variants: EditorVariant[] = [...full.variants]
     .sort((a, b) => a.platform.localeCompare(b.platform))
@@ -93,6 +103,7 @@ export default async function PostEditorPage({ params, searchParams }: { params:
           postStatusLabels={t.postStatus}
           platformsWord={t.smm.table.platforms}
           brandName={brand.name}
+          inbox={inbox}
         />
 
         <aside className="min-w-0 space-y-4 lg:sticky lg:top-20 lg:ml-6 lg:self-start lg:border-l lg:border-line lg:pl-6">
@@ -104,7 +115,10 @@ export default async function PostEditorPage({ params, searchParams }: { params:
               <KV label={L.approvedAt}><span className="num">{fmtYerevan(post.approvedAt)}</span></KV>
               <KV label={L.publishedAt}><span className="num">{fmtYerevan(post.publishedAt)}</span></KV>
             </div>
-            {post.notes ? <p className="mt-3 rounded-sm border border-warning/30 bg-warning-soft px-3 py-2 text-[12px] text-warning">{post.notes}</p> : null}
+            {/* whitespace-pre-line: the import writes one warning per line, and they must stay apart. */}
+            {notesForDisplay(post.notes) ? (
+              <p className="mt-3 rounded-sm border border-warning/30 bg-warning-soft px-3 py-2 text-[12px] whitespace-pre-line text-warning">{notesForDisplay(post.notes)}</p>
+            ) : null}
           </Panel>
 
           <Panel title={L.publishLog}>
@@ -136,7 +150,7 @@ export default async function PostEditorPage({ params, searchParams }: { params:
                 </>
               ) : (
                 <>
-                  {L.tgNot} <Link href="/admin/settings?tab=telegram" className="font-medium text-accent hover:underline">{L.tgSettingsLink}</Link>
+                  {L.tgNot} <Link href="/admin/settings?tab=telegram" className="inline-flex min-h-11 items-center font-medium text-accent hover:underline">{L.tgSettingsLink}</Link>
                 </>
               )}
             </p>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,8 @@ export type FeedbackLabels = {
   change: string;
   question: string;
   placeholder: string;
+  /** Label of the message box when approving: the text is a comment, not a change request. */
+  commentOptional: string;
   contact: string;
   send: string;
   sending: string;
@@ -22,16 +25,39 @@ export type FeedbackLabels = {
   error: string;
 };
 
-/** Approve / change / question — the client's decision, sent to /api/portal/[slug]/feedback. */
-export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: string; token: string; labels: FeedbackLabels; defaultContact?: string | null }) {
+/**
+ * The client's decision, sent to /api/portal/[slug]/feedback.
+ *
+ * The options follow the project: "I approve this option" is offered only while the
+ * project is actually waiting for a decision and has not been approved yet, so a client
+ * whose kitchen is already in production is not invited to approve it a second time.
+ * After a successful send the server data is refreshed, so the approved badge and the
+ * stage ruler above update without a manual reload.
+ */
+export function FeedbackForm({
+  slug,
+  token,
+  labels,
+  defaultContact,
+  canApprove = true,
+}: {
+  slug: string;
+  token: string;
+  labels: FeedbackLabels;
+  defaultContact?: string | null;
+  /** False once the project is approved or has moved past the approval stage. */
+  canApprove?: boolean;
+}) {
+  const router = useRouter();
   const [kind, setKind] = useState<Kind | null>(null);
   const [message, setMessage] = useState("");
   const [contact, setContact] = useState(defaultContact ?? "");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [doneKind, setDoneKind] = useState<Kind | null>(null);
+  const [, startRefresh] = useTransition();
 
   const options: { key: Kind; label: string }[] = [
-    { key: "approve", label: labels.approve },
+    ...(canApprove ? [{ key: "approve" as const, label: labels.approve }] : []),
     { key: "change", label: labels.change },
     { key: "question", label: labels.question },
   ];
@@ -47,9 +73,13 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ k: token, type: kind, message: message.trim(), contact: contact.trim() }),
       });
-      if (!res.ok) throw new Error(String(res.status));
+      // 409: the project was already approved (another device, or a double tap).
+      // The decision stands, so the client sees the same confirmation, not an error.
+      if (!res.ok && res.status !== 409) throw new Error(String(res.status));
       setDoneKind(kind);
       setState("done");
+      // Pull the fresh server state: approved badge, stage ruler, the list of earlier messages.
+      startRefresh(() => router.refresh());
     } catch {
       setState("error");
     }
@@ -65,6 +95,7 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
   }
 
   const canSend = !!kind && (kind === "approve" || message.trim().length > 0);
+  const messageLabel = kind === "approve" ? labels.commentOptional : labels.placeholder;
 
   return (
     <form onSubmit={submit}>
@@ -76,8 +107,9 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
               <input type="radio" name="portal-feedback-kind" value={o.key} className="sr-only" checked={kind === o.key} onChange={() => setKind(o.key)} />
               <span className="index flex-none">{String(i + 1).padStart(2, "0")}</span>
               <span className="flex-1 font-display text-[1.15rem] leading-tight text-fg">{o.label}</span>
-              <span aria-hidden className="flex h-5 w-5 flex-none items-center justify-center rounded-sm border border-line-strong text-bg transition-colors group-has-[:checked]:border-fg group-has-[:checked]:bg-fg">
-                <Check size={13} strokeWidth={3} className="opacity-0 transition-opacity group-has-[:checked]:opacity-100" />
+              {/* One choice out of three: a round radio ring, the same indicator the public wizard uses. */}
+              <span aria-hidden className={cn("relative h-[18px] w-[18px] flex-none rounded-full border-[1.5px] transition-colors", kind === o.key ? "border-fg" : "border-line-strong")}>
+                <span className={cn("absolute inset-[3px] rounded-full bg-accent transition-transform", kind === o.key ? "scale-100" : "scale-0")} />
               </span>
             </label>
           ))}
@@ -87,8 +119,12 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
       {kind ? (
         <div className="mt-6 space-y-4">
           <label className="block">
-            <span className="sr-only">{labels.placeholder}</span>
-            <textarea className="input min-h-[120px] text-[15px]" placeholder={labels.placeholder} value={message} onChange={(e) => setMessage(e.target.value)} required={kind !== "approve"} maxLength={4000} />
+            {/* Approving shows the label: a half-written change request must not be sent as an unexplained comment. */}
+            <span className={cn("label", kind !== "approve" && "sr-only")}>
+              {messageLabel}
+              {kind === "approve" ? <span className="font-normal tracking-normal text-faint normal-case"> ({labels.optional})</span> : null}
+            </span>
+            <textarea className="input min-h-[120px] text-[15px]" placeholder={messageLabel} value={message} onChange={(e) => setMessage(e.target.value)} required={kind !== "approve"} maxLength={4000} />
           </label>
           <label className="block">
             <span className="label">
@@ -97,7 +133,7 @@ export function FeedbackForm({ slug, token, labels, defaultContact }: { slug: st
             <input className="input text-[15px]" value={contact} onChange={(e) => setContact(e.target.value)} maxLength={200} autoComplete="tel" />
           </label>
           {state === "error" ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-sm wrap-anywhere text-danger">
               {labels.error}
             </p>
           ) : null}

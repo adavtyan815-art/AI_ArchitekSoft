@@ -15,12 +15,26 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return pageMeta({ locale, path: "/portfolio", title: d.nav.portfolio, description: d.portfolio.subtitle });
 }
 
-/** Page-local strings (the shared dictionary does not carry them). */
-const LOCAL: Record<Locale, { filterLabel: string; projects: string; selected: string }> = {
-  hy: { filterLabel: "Ֆիլտր", projects: "նախագիծ", selected: "Ընտրված" },
-  ru: { filterLabel: "Фильтр", projects: "проектов", selected: "Показано" },
-  en: { filterLabel: "Filter", projects: "projects", selected: "Showing" },
+/**
+ * Page-local strings (the shared dictionary does not carry them).
+ * `projects` holds the plural forms the language really uses: Russian needs three (1 проект,
+ * 2 проекта, 5 проектов), English two, Armenian one.
+ */
+const LOCAL: Record<Locale, { filterLabel: string; projects: Partial<Record<Intl.LDMLPluralRule, string>> & { other: string }; selected: string }> = {
+  hy: { filterLabel: "Ֆիլտր", projects: { other: "նախագիծ" }, selected: "Ընտրված" },
+  ru: { filterLabel: "Фильтр", projects: { one: "проект", few: "проекта", many: "проектов", other: "проектов" }, selected: "Показано" },
+  en: { filterLabel: "Filter", projects: { one: "project", other: "projects" }, selected: "Showing" },
 };
+
+/** The noun that goes with `n` in this locale. */
+function projectNoun(locale: Locale, n: number): string {
+  const forms = LOCAL[locale].projects;
+  try {
+    return forms[new Intl.PluralRules(locale).select(n)] ?? forms.other;
+  } catch {
+    return forms.other;
+  }
+}
 
 export default async function PortfolioPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ c?: string }> }) {
   const { locale: raw } = await params;
@@ -53,7 +67,7 @@ export default async function PortfolioPage({ params, searchParams }: { params: 
           <div className="lg:col-span-3 lg:col-start-10 lg:text-right">
             <div className="border-t border-line-strong pt-4 lg:border-t-0 lg:pt-0">
               <div className="font-display text-[3rem] leading-none font-medium text-fg tabular-nums">{String(all.length).padStart(2, "0")}</div>
-              <div className="caption mt-2">{t.projects}</div>
+              <div className="caption mt-2">{projectNoun(locale, all.length)}</div>
             </div>
           </div>
         </div>
@@ -64,30 +78,32 @@ export default async function PortfolioPage({ params, searchParams }: { params: 
       <section className="container-x pt-10 pb-16 sm:pt-14 sm:pb-24">
         {all.length ? (
           <div className="flex flex-col gap-4 border-b border-line pb-0 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-            {/* Mono underline tabs; the row scrolls sideways on phones instead of wrapping. */}
-            <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0" role="tablist" aria-label={t.filterLabel}>
-              <div className="flex w-max gap-6 sm:w-auto sm:flex-wrap sm:gap-x-7">
+            {/* Mono underline tabs; the row scrolls sideways on phones instead of wrapping.
+                These are links that load a filtered page, not tabs: a list of links inside a nav,
+                with the current one marked, is what a screen reader has to hear. */}
+            <nav className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0" aria-label={t.filterLabel}>
+              <ul className="flex w-max gap-6 sm:w-auto sm:flex-wrap sm:gap-x-7">
                 {chips.map((k) => {
                   const isActive = k === active;
                   const n = k === "all" ? all.length : counts[k];
                   return (
-                    <Link
-                      key={k}
-                      href={k === "all" ? p("/portfolio") : p(`/portfolio?c=${k}`)}
-                      role="tab"
-                      aria-selected={isActive}
-                      className={cn(
-                        "-mb-px inline-flex min-h-[44px] items-baseline gap-1.5 border-b-2 pb-2.5 font-mono text-[12px] tracking-[0.08em] whitespace-nowrap uppercase transition-colors",
-                        isActive ? "border-accent text-fg" : "border-transparent text-muted hover:text-fg"
-                      )}
-                    >
-                      {filters[k]}
-                      <span className={cn("text-[10.5px] tabular-nums", isActive ? "text-accent" : "text-faint")}>{String(n).padStart(2, "0")}</span>
-                    </Link>
+                    <li key={k}>
+                      <Link
+                        href={k === "all" ? p("/portfolio") : p(`/portfolio?c=${k}`)}
+                        aria-current={isActive ? "page" : undefined}
+                        className={cn(
+                          "-mb-px inline-flex min-h-[44px] items-baseline gap-1.5 border-b-2 pb-2.5 font-mono text-[12px] tracking-[0.08em] whitespace-nowrap uppercase transition-colors",
+                          isActive ? "border-accent text-fg" : "border-transparent text-muted hover:text-fg",
+                        )}
+                      >
+                        {filters[k]}
+                        <span className={cn("text-[10.5px] tabular-nums", isActive ? "text-accent" : "text-faint")}>{String(n).padStart(2, "0")}</span>
+                      </Link>
+                    </li>
                   );
                 })}
-              </div>
-            </div>
+              </ul>
+            </nav>
             <span className="caption hidden flex-none pb-3 sm:block">
               {t.selected} {String(items.length).padStart(2, "0")} / {String(all.length).padStart(2, "0")}
             </span>

@@ -1,50 +1,30 @@
 import { cookies, headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
-import { getSetting } from "@/lib/settings";
+import { getSetting, type BrandSettings } from "@/lib/settings";
 import { mediaSrcSet, mediaUrl } from "@/lib/media";
 import { track } from "@/lib/analytics";
 import { env } from "@/lib/env";
-import { checkAccess, getPortalData, getShareLinkBySlug, passcodeCookieName, recordEvent, recordView } from "@/lib/portal";
+import { checkAccess, getPortalData, getShareLinkBySlug, passcodeCookieName, recordView, type AccessResult } from "@/lib/portal";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { HtmlLang } from "@/components/site/html-lang";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BrandLogo } from "@/components/brand-logo";
 import { Index } from "@/components/ui";
+import { PortalChrome, PortalState } from "@/components/portal/chrome";
 import { Gallery } from "@/components/portal/gallery";
+import { OpenViewerBeacon } from "@/components/portal/open-viewer-beacon";
 import { PasscodeForm } from "@/components/portal/passcode-form";
+import { PORTAL_TEXT } from "@/components/portal/strings";
 import { ViewerShell } from "@/components/portal/viewer-shell";
 
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ slug: string }>;
 type Search = Promise<Record<string, string | string[] | undefined>>;
-
-/** Strings specific to this route (the shared dictionary carries the rest). */
-const LOCAL: Record<Locale, { copied: string; reset: string; soonTitle: string; soonText: string; backToProject: string }> = {
-  hy: {
-    copied: "Պատճենվեց",
-    reset: "Վերականգնել դիտումը",
-    soonTitle: "Web Viewer-ը շուտով պատրաստ կլինի",
-    soonText: "3D մոդելը դեռ պատրաստվում է։ Հենց պատրաստ լինի, այս էջը կբացվի ինտերակտիվ 3D-ով՝ նույն հղումով։ Այժմ կարող եք դիտել պատրաստի պատկերները։",
-    backToProject: "Վերադառնալ նախագծին",
-  },
-  ru: {
-    copied: "Скопировано",
-    reset: "Сбросить вид",
-    soonTitle: "Web Viewer скоро будет готов",
-    soonText: "3D-модель ещё готовится. Как только она будет готова, эта страница откроется в интерактивном 3D по той же ссылке. Пока посмотрите готовые изображения.",
-    backToProject: "Вернуться к проекту",
-  },
-  en: {
-    copied: "Copied",
-    reset: "Reset the view",
-    soonTitle: "The Web Viewer will appear here soon",
-    soonText: "The 3D model is still being prepared. As soon as it is ready this page opens in interactive 3D under the same link. In the meantime, here are the finished images.",
-    backToProject: "Back to the project",
-  },
-};
 
 function firstParam(v: string | string[] | undefined) {
   return Array.isArray(v) ? v[0] : v;
@@ -56,35 +36,72 @@ export async function generateMetadata({ params, searchParams }: { params: Param
   // Same rule as /p: never leak the project name to someone who guessed a slug.
   const access = checkAccess(link, firstParam(sp.k) ?? "", link ? cookieStore.get(passcodeCookieName(link.id))?.value : null);
   const title = access === "ok" && link?.title ? `${link.title} — 3D — ArchiTek Soft` : "ArchiTek Soft";
-  return { title, robots: { index: false, follow: false } };
+  // Same as /p: a dead link says so in the preview card instead of unfurling like a working page,
+  // and the two states that answer 404 leave `robots` to Next's own noindex tag so there is exactly
+  // one of them in the document (the X-Robots-Tag header covers /v either way).
+  const gone = access === "not_found" || access === "bad_token";
+  return {
+    title,
+    description: goneDescription(access, link?.language),
+    ...(gone ? {} : { robots: { index: false, follow: false } }),
+  };
+}
+
+/** The one sentence a dead client link should show wherever it is unfurled — otherwise nothing. */
+function goneDescription(access: AccessResult, language: string | null | undefined): string | undefined {
+  if (access !== "expired" && access !== "inactive") return undefined;
+  const locale: Locale = isLocale(language) ? language : "hy";
+  return access === "inactive" ? PORTAL_TEXT[locale].inactive : getDictionary(locale).portal.expired;
 }
 
 export default async function ProjectViewerPage({ params, searchParams }: { params: Params; searchParams: Search }) {
   const [{ slug }, sp, cookieStore, h] = await Promise.all([params, searchParams, cookies(), headers()]);
   const token = firstParam(sp.k) ?? "";
   const link = getShareLinkBySlug(slug);
-  const locale: Locale = isLocale(link?.language) ? link!.language : "hy";
-  const d = getDictionary(locale);
-  const t = LOCAL[locale];
   const brand = getSetting("brand");
 
   const access = checkAccess(link, token, link ? cookieStore.get(passcodeCookieName(link.id))?.value : null);
 
-  if (access === "not_found" || access === "bad_token") return <StateShell locale={locale} title={d.portal.notFound} brand={brand} dict={d} />;
-  if (access === "expired" || access === "inactive") return <StateShell locale={locale} title={d.portal.expired} brand={brand} dict={d} />;
-  if (access === "passcode") {
+  // Same answer for an unknown slug and a wrong key, in the visitor's own language (404).
+  if (access === "not_found" || access === "bad_token") notFound();
+
+  const locale: Locale = isLocale(link?.language) ? link!.language : "hy";
+  const d = getDictionary(locale);
+  const t = PORTAL_TEXT[locale];
+  const backHref = `/p/${encodeURIComponent(slug)}?k=${encodeURIComponent(token)}`;
+
+  if (access === "expired" || access === "inactive") {
     return (
-      <div className="flex min-h-dvh flex-col justify-center bg-bg">
-        <HtmlLang lang={locale} />
-        <div className="flex w-full flex-1 items-center px-5 py-16 sm:px-8">
-          <PasscodeForm slug={slug} token={token} labels={{ title: d.portal.passcodeTitle, text: d.portal.passcodeText, button: d.portal.passcodeButton, wrong: d.portal.passcodeWrong }} />
+      <StateShell locale={locale} dict={d} brand={brand}>
+        <PortalState title={access === "inactive" ? t.inactive : d.portal.expired} dict={d} brand={brand} />
+      </StateShell>
+    );
+  }
+  if (access === "passcode") {
+    // The same gate, the same brand shell as /p: a client who opens the viewer link
+    // first must still see whose page is asking for a code.
+    return (
+      <StateShell locale={locale} dict={d} brand={brand}>
+        <div className="flex flex-1 items-center px-5 py-16 sm:px-8">
+          <PasscodeForm
+            slug={slug}
+            token={token}
+            labels={{ title: d.portal.passcodeTitle, text: d.portal.passcodeText, button: d.portal.passcodeButton, wrong: d.portal.passcodeWrong, error: t.passcodeError, locked: t.passcodeLocked, hint: t.passcodeHint, sending: d.common.sending }}
+          >
+            <div className="kicker mb-3">{t.noCode}</div>
+            <ContactChannels brand={brand} dict={d} />
+          </PasscodeForm>
         </div>
-      </div>
+      </StateShell>
     );
   }
 
   const data = getPortalData(slug);
-  if (!data) return <StateShell locale={locale} title={d.portal.notFound} brand={brand} dict={d} />;
+  if (!data) notFound();
+  // "Show Web Viewer" off hides the cell on /p; a hand-typed or earlier-shared /v
+  // address must respect the same switch instead of serving the model anyway.
+  if (!data.link.showViewer) redirect(backHref);
+
   const { project, renders, glb, usdz } = data;
 
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "";
@@ -99,21 +116,17 @@ export default async function ProjectViewerPage({ params, searchParams }: { para
   const proto = h.get("x-forwarded-proto") ?? (env.isProd ? "https" : "http");
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const base = host ? `${proto}://${host}` : env.appUrl;
-  const backHref = `/p/${encodeURIComponent(slug)}?k=${encodeURIComponent(token)}`;
   const shareUrl = `${base}/v/${encodeURIComponent(slug)}?k=${encodeURIComponent(token)}`;
   const title = data.link.title || project.title;
   const cover = data.assets.find((a) => a.id === project.coverAssetId) ?? renders[0] ?? null;
 
   if (!glb) {
     // No 3D model yet: explain it plainly and show what does exist.
-    try {
-      recordEvent(data.link.id, "open_viewer", { surface: "web_viewer", model: false }, { ip, ua });
-    } catch {
-      /* best effort */
-    }
     return (
       <div className="flex min-h-dvh flex-col bg-bg">
         <HtmlLang lang={locale} />
+        {/* One recorder of "open_viewer" for the whole product; see OpenViewerBeacon. */}
+        <OpenViewerBeacon slug={slug} token={token} model={false} />
         <TopBar title={title} code={project.code} backHref={backHref} backLabel={d.common.back} themeLabels={d.nav.theme} />
         <main className="flex-1">
           <div className="grid-paper border-b border-line">
@@ -159,12 +172,10 @@ export default async function ProjectViewerPage({ params, searchParams }: { para
   return (
     <>
       <HtmlLang lang={locale} />
+      <OpenViewerBeacon slug={slug} token={token} model />
       <ViewerShell
-        slug={slug}
-        token={token}
         title={title}
         code={project.code}
-        logoSrc="/brand/logo.png"
         glbUrl={mediaUrl(glb.relPath)}
         iosSrc={usdz ? mediaUrl(usdz.relPath) : null}
         poster={cover ? mediaUrl(cover.thumbRelPath ?? cover.relPath, 960) : null}
@@ -174,14 +185,29 @@ export default async function ProjectViewerPage({ params, searchParams }: { para
           back: d.common.back,
           share: d.portal.share,
           copied: t.copied,
-          hint: d.home.viewerHint,
+          hint: t.viewerHint,
           swatches: d.home.viewerSwatches,
           ar: d.home.viewerAr,
           reset: t.reset,
+          alt: t.modelAlt,
+          loading: t.viewerLoading,
+          error: t.viewerError,
+          retry: t.viewerRetry,
           theme: d.nav.theme,
         }}
       />
     </>
+  );
+}
+
+/** The minimal brand shell used by every non-3D state of this route (same as /p). */
+function StateShell({ locale, dict, brand, children }: { locale: Locale; dict: ReturnType<typeof getDictionary>; brand: BrandSettings; children: ReactNode }) {
+  return (
+    <div className="flex min-h-dvh flex-col bg-bg">
+      <PortalChrome locale={locale} dict={dict} brand={brand}>
+        {children}
+      </PortalChrome>
+    </div>
   );
 }
 
@@ -201,23 +227,5 @@ function TopBar({ title, code, backHref, backLabel, themeLabels }: { title: stri
         <ThemeToggle labels={themeLabels} className="flex-none" />
       </div>
     </header>
-  );
-}
-
-/** Not found / expired: a centred typographic message on grid paper. */
-function StateShell({ locale, title, brand, dict }: { locale: Locale; title: string; brand: ReturnType<typeof getSetting<"brand">>; dict: ReturnType<typeof getDictionary> }) {
-  return (
-    <div className="grid-paper flex min-h-dvh flex-col justify-center bg-bg">
-      <HtmlLang lang={locale} />
-      <div className="mx-auto w-full max-w-md px-5 py-16 text-center sm:px-8">
-        <div className="kicker">ArchiTek Soft</div>
-        <h1 className="h-sub mt-4 text-balance">{title}</h1>
-        <div className="mx-auto mt-8 h-px w-16 bg-line-strong" aria-hidden />
-        <div className="mt-8 text-left">
-          <div className="kicker mb-3">{dict.portal.contactTitle}</div>
-          <ContactChannels brand={brand} dict={dict} />
-        </div>
-      </div>
-    </div>
   );
 }

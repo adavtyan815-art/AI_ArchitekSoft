@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { ButtonLink, Index, SectionHeading, Ticks } from "@/components/ui";
+import { TrackedCta } from "@/components/site/cta";
 import { ViewerDemo } from "@/components/site/viewer-demo";
 import { pageMeta } from "../meta";
 
@@ -59,7 +60,18 @@ export default async function ViewerPage({ params }: { params: Promise<{ locale:
           <span className="caption">3D · AR · {d.home.viewerSwatches}</span>
         </div>
         <ViewerDemo
-          labels={{ hint: d.home.viewerHint, swatches: d.home.viewerSwatches, ar: d.home.viewerAr, load: d.common.tryDemo }}
+          labels={{
+            hint: d.home.viewerHint,
+            swatches: d.home.viewerSwatches,
+            ar: d.home.viewerAr,
+            reset: d.home.viewerReset,
+            load: d.common.tryDemo,
+            alt: d.home.viewerAlt,
+            loading: d.home.viewerLoading,
+            error: d.home.viewerError,
+            retry: d.home.viewerRetry,
+            swatchNames: d.home.viewerColors,
+          }}
           height="h-[440px] sm:h-[600px]"
           className="mt-6"
           autoload
@@ -136,10 +148,10 @@ export default async function ViewerPage({ params }: { params: Promise<{ locale:
               <p className="mt-4 max-w-lg text-[15px] opacity-85 sm:text-[16px]">{d.home.finalText}</p>
             </div>
             <div className="lg:col-span-4 lg:col-start-9 lg:justify-self-end">
-              <ButtonLink href={p("/start")} size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
+              <TrackedCta href={p("/start")} label="viewer-closing" locale={locale} size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
                 {v.cta}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
             </div>
           </div>
         </div>

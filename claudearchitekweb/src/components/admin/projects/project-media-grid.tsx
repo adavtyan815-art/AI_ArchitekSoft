@@ -50,8 +50,8 @@ export async function ProjectMediaGrid({ project, assets }: { project: Project; 
 
               <form action={updateAssetCaptionAction} className="flex gap-1">
                 <input type="hidden" name="id" value={a.id} />
-                <Input name="caption" defaultValue={a.caption ?? ""} placeholder={M.captionShort} className="h-9 text-[13px]" maxLength={500} />
-                <button type="submit" className="btn-secondary btn-sm">
+                <Input name="caption" defaultValue={a.caption ?? ""} placeholder={M.captionShort} aria-label={M.captionShort} className="h-11 text-[13px] sm:h-9" maxLength={500} />
+                <button type="submit" className="btn-secondary btn-sm h-11 flex-none sm:h-9">
                   {t.common.save}
                 </button>
               </form>
@@ -67,7 +67,12 @@ export async function ProjectMediaGrid({ project, assets }: { project: Project; 
                       <input type="hidden" name="role" value={r.key} />
                       <button
                         type="submit"
-                        className={cn("rounded-sm border px-2 py-0.5 font-mono text-[10px] tracking-[0.06em] uppercase transition-colors", active ? "border-fg bg-fg text-bg" : "border-line text-fg-2 hover:border-line-strong")}
+                        aria-pressed={active}
+                        className={cn(
+                          // 40px tall on a phone; the compact chip stays on wider screens.
+                          "inline-flex min-h-10 items-center rounded-sm border px-3 font-mono text-[10px] tracking-[0.06em] uppercase transition-colors sm:min-h-0 sm:px-2 sm:py-0.5",
+                          active ? "border-fg bg-fg text-bg" : "border-line text-fg-2 hover:border-line-strong"
+                        )}
                         title={active ? M.clearRole(label) : M.setRole(label)}
                       >
                         {label}
@@ -81,27 +86,30 @@ export async function ProjectMediaGrid({ project, assets }: { project: Project; 
                 <form action={moveAssetAction}>
                   <input type="hidden" name="id" value={a.id} />
                   <input type="hidden" name="dir" value="up" />
-                  <button type="submit" disabled={i === 0} className="btn-ghost btn-sm disabled:opacity-30" title={M.moveUp} aria-label={M.moveUp}>
+                  <button type="submit" disabled={i === 0} className="btn-ghost btn-icon disabled:opacity-30" title={M.moveUp} aria-label={M.moveUp}>
                     <ArrowUp size={14} />
                   </button>
                 </form>
                 <form action={moveAssetAction}>
                   <input type="hidden" name="id" value={a.id} />
                   <input type="hidden" name="dir" value="down" />
-                  <button type="submit" disabled={i === assets.length - 1} className="btn-ghost btn-sm disabled:opacity-30" title={M.moveDown} aria-label={M.moveDown}>
+                  <button type="submit" disabled={i === assets.length - 1} className="btn-ghost btn-icon disabled:opacity-30" title={M.moveDown} aria-label={M.moveDown}>
                     <ArrowDown size={14} />
                   </button>
                 </form>
+                {/* This flag decides whether the file may appear on the public website and in the
+                    portfolio — not whether the client can open it through their own page link, which
+                    is governed by the link itself. The label says so. */}
                 <form action={toggleAssetPublicAction}>
                   <input type="hidden" name="id" value={a.id} />
-                  <button type="submit" className={cn("btn-ghost btn-sm", a.isPublic && "text-success")} title={a.isPublic ? M.makePrivate : M.makePublic} aria-label={a.isPublic ? M.makePrivate : M.makePublic}>
+                  <button type="submit" className={cn("btn-ghost btn-icon", a.isPublic && "text-success")} title={a.isPublic ? M.makePrivateSite : M.makePublicSite} aria-label={a.isPublic ? M.makePrivateSite : M.makePublicSite}>
                     {a.isPublic ? <Eye size={14} /> : <EyeOff size={14} />}
                   </button>
                 </form>
                 <span className="flex-1" />
                 <form action={deleteAssetAction}>
                   <input type="hidden" name="id" value={a.id} />
-                  <ConfirmButton message={M.deleteConfirm(a.originalName)} className="btn-ghost btn-sm text-danger" title={t.common.delete} aria-label={t.common.delete}>
+                  <ConfirmButton message={M.deleteConfirm(a.originalName)} className="btn-ghost btn-icon text-danger" title={t.common.delete} aria-label={t.common.delete}>
                     <Trash2 size={14} />
                   </ConfirmButton>
                 </form>

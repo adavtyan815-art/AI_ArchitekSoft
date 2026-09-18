@@ -1,5 +1,10 @@
 # Production layout: Caddy (HTTPS) → web (Next.js + in-app worker). Data lives in the named volume.
-# Usage (from claudearchitekweb/):  docker compose -f deploy/docker-compose.yml up -d --build
+#
+# Usage (from claudearchitekweb/, where .env lives):
+#   docker compose -f deploy/docker-compose.yml --env-file .env up -d --build
+# `--env-file .env` lets compose itself read SITE_HOST & co. from the same file the containers use;
+# without it compose looks for deploy/.env. The services below also load ../.env directly, so the
+# containers get the right values either way.
 services:
   web:
     build:
@@ -9,11 +14,19 @@ services:
     env_file: ../.env
     environment:
       NODE_ENV: production
+      TZ: Asia/Yerevan
       DATABASE_PATH: /app/data/architeksoft.db
       UPLOAD_DIR: /app/data/uploads
-      RUN_WORKER_IN_APP: "true"
+      # The drop folder for renders (docs/15_INBOX_WORKFLOW.md). Deliberately NOT under /app/data:
+      # the whole point is that the owner copies folders into it from their desktop, and a named
+      # volume has no path on the host to copy into. It is a bind mount instead — set
+      # INBOX_HOST_DIR in ../.env to put it somewhere else (a synced folder, another disk).
+      INBOX_DIR: /app/inbox
+      # RUN_WORKER_IN_APP is read from ../.env (default true). Set it to false there when you enable
+      # the split-worker profile, otherwise two schedulers and two Telegram pollers run.
     volumes:
       - appdata:/app/data
+      - ${INBOX_HOST_DIR:-../data/inbox}:/app/inbox
     expose:
       - "3100"
 
@@ -23,8 +36,12 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    environment:
-      SITE_HOST: ${SITE_HOST:-new.architeksoft.com}
+    # The Caddyfile reads {$SITE_HOST} from the container environment, so Caddy gets the same file as
+    # the app rather than depending on the shell that ran compose (a missing SITE_HOST would request a
+    # certificate for the wrong domain). One host or a space-separated list at go-live, e.g.
+    #   SITE_HOST=architeksoft.com www.architeksoft.com
+    # Note that this also hands Caddy the other variables in .env; it neither reads nor exposes them.
+    env_file: ../.env
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -32,7 +49,8 @@ services:
     depends_on:
       - web
 
-  # Optional: run the worker as a separate process. Set RUN_WORKER_IN_APP=false on `web` when enabling.
+  # Optional: run the worker as a separate process (`--profile split-worker`).
+  # Set RUN_WORKER_IN_APP=false on `web` when enabling, otherwise two schedulers run.
   worker:
     profiles: ["split-worker"]
     build:
@@ -42,11 +60,19 @@ services:
     env_file: ../.env
     environment:
       NODE_ENV: production
+      TZ: Asia/Yerevan
       DATABASE_PATH: /app/data/architeksoft.db
       UPLOAD_DIR: /app/data/uploads
+      # Same folder as `web`: whichever process runs the scheduler is the one that scans the inbox.
+      INBOX_DIR: /app/inbox
     volumes:
       - appdata:/app/data
-    command: ["node", "--import", "tsx", "scripts/worker.ts"]
+      - ${INBOX_HOST_DIR:-../data/inbox}:/app/inbox
+    # worker.js is bundled from scripts/worker.ts in the build stage (npm run build:worker)
+    command: ["node", "worker.js"]
+    # the image health check probes the web server; the worker serves no HTTP
+    healthcheck:
+      disable: true
 
   # Optional: continuous SQLite backup to S3-compatible storage (Cloudflare R2). Fill litestream.yml first.
   litestream:

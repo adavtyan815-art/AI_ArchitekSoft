@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Send } from "lucide-react";
+import { trackEvent } from "@/components/site/track";
 
 /**
  * Sticky bottom action bar on phones: start a project + Telegram.
@@ -14,6 +15,8 @@ import { ArrowUpRight, Send } from "lucide-react";
 export function MobileCta({ startHref, startLabel, telegramUrl, telegramLabel }: { startHref: string; startLabel: string; telegramUrl: string; telegramLabel: string }) {
   const pathname = usePathname();
   const off = /\/(start|contact)(\/|$)/.test(pathname);
+  // The bar lives in the layout, which passes no locale; the URL already carries it (hy has no prefix).
+  const locale = /^\/(ru|en)(\/|$)/.exec(pathname)?.[1] ?? "hy";
   const [past, setPast] = useState(false);
   const [footer, setFooter] = useState(false);
 
@@ -36,7 +39,12 @@ export function MobileCta({ startHref, startLabel, telegramUrl, telegramLabel }:
   return (
     <div className="mobile-bar fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg pb-safe md:hidden" data-hidden={hidden} aria-hidden={hidden}>
       <div className="flex items-center gap-2 px-4 py-2">
-        <Link href={startHref} className="btn-primary h-10 flex-1 max-sm:min-h-10 max-sm:py-2" tabIndex={hidden ? -1 : 0}>
+        <Link
+          href={startHref}
+          className="btn-primary h-10 flex-1 max-sm:min-h-10 max-sm:py-2"
+          tabIndex={hidden ? -1 : 0}
+          onClick={() => trackEvent("cta_click", { locale, meta: { label: "mobile-bar", href: startHref } })}
+        >
           {startLabel}
           <ArrowUpRight size={16} />
         </Link>

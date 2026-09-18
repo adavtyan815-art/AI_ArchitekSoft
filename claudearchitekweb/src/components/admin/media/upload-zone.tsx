@@ -18,6 +18,8 @@ export type UploadLabels = {
   uploaded: string;
   /** Prefix used for a failed request. */
   failed: string;
+  /** Shown when the server (or the proxy in front of it) rejects the request as too large. */
+  tooLarge?: string;
 };
 
 /** Drag & drop / click upload zone. Posts multipart "files" to /api/admin/upload, then refreshes the page. */
@@ -41,11 +43,18 @@ export function UploadZone({ projectId, kindHint, labels, className }: { project
     if (kindHint) fd.append("kindHint", kindHint);
     try {
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-      const json = (await res.json()) as { assets?: unknown[]; errors?: UploadError[]; error?: string };
-      if (!res.ok && json.error) {
-        setErrors([{ name: labels.failed, error: json.error }]);
+      // A proxy that rejects an oversized body answers with HTML, not JSON, so the body is only
+      // parsed when the server says it is JSON.
+      const isJson = (res.headers.get("content-type") ?? "").includes("application/json");
+      const json = isJson ? ((await res.json()) as { assets?: unknown[]; errors?: UploadError[]; error?: string }) : {};
+      const saved = json.assets?.length ?? 0;
+      if (!res.ok || !saved) {
+        // Nothing was stored: show why, and never the green "uploaded 0 file(s)" line.
+        const tooLarge = res.status === 413 ? (labels.tooLarge ?? labels.hint) : null;
+        setMsg(null);
+        setErrors(json.errors?.length ? json.errors : [{ name: labels.failed, error: tooLarge ?? json.error ?? `HTTP ${res.status}` }]);
       } else {
-        setMsg(labels.uploaded.replace("{n}", String(json.assets?.length ?? 0)));
+        setMsg(labels.uploaded.replace("{n}", String(saved)));
         setErrors(json.errors ?? []);
         router.refresh();
       }

@@ -5,16 +5,16 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { createLiveInstance, stopLiveInstance } from "@/lib/live";
-import { getAdminLocale, local } from "@/lib/i18n/admin";
+import { adminDict, getAdminLocale, local } from "@/lib/i18n/admin";
+import { issueMessage, parseNumber, withNotice } from "@/lib/form";
 
 /** Notice wording for this action file. */
 async function M() {
   const locale = await getAdminLocale();
-  return local(
+  const words = local(
     {
       hy: {
-        invalidForm: "Ձևը սխալ է լրացված՝",
-        dryRun: "Փորձնական ռեժիմ (LIVE_ADMIN_USERNAME/PASSWORD չկա). հղումը կունենար այս տեսքը՝",
+        dryRun: "Փորձնական ռեժիմ (LIVE_ADMIN_USERNAME/PASSWORD չկա). սեսիա չի ստեղծվել, հղումը կունենար այս տեսքը՝",
         created: "Սեսիան ստեղծված է",
         forWhom: "ում համար՝",
         linkWord: "Հղում՝",
@@ -25,8 +25,7 @@ async function M() {
         backendError: "Live սերվերի սխալ՝",
       },
       en: {
-        invalidForm: "Invalid form:",
-        dryRun: "Dry run (no LIVE_ADMIN_USERNAME/PASSWORD): the link would look like",
+        dryRun: "Dry run (no LIVE_ADMIN_USERNAME/PASSWORD): no session was created, the link would look like",
         created: "Session created",
         forWhom: "for",
         linkWord: "Link:",
@@ -39,50 +38,70 @@ async function M() {
     },
     locale,
   );
+  return { ...words, locale, form: adminDict(locale).live.form };
 }
 
 function back(text: string, tone: "ok" | "error" = "ok"): never {
   revalidatePath("/admin/live");
-  redirect(`/admin/live?notice=${encodeURIComponent(text)}&tone=${tone}`);
+  redirect(withNotice("/admin/live", text, tone));
 }
+
+/** "4,5" and "4.5" are both hours; anything that is not a number becomes NaN so zod reports the field. */
+const hours = (fd: FormData, key: string) => {
+  const raw = String(fd.get(key) ?? "").trim();
+  return raw ? (parseNumber(raw) ?? Number.NaN) : Number.NaN;
+};
 
 export async function createLiveInstanceForm(formData: FormData) {
   await requireUser();
   const parsed = z
     .object({
       assignedTo: z.string().min(1).max(120),
-      displayLimitHours: z.coerce.number().min(0.5).max(1000),
-      realLimitHours: z.coerce.number().min(0.5).max(1000),
-      days: z.coerce.number().int().min(1).max(3650),
+      displayLimitHours: z.number().min(0.5).max(1000),
+      realLimitHours: z.number().min(0.5).max(1000),
+      days: z.number().int().min(1).max(3650),
       explicitInstanceId: z.string().max(80).optional(),
     })
     .safeParse({
       assignedTo: String(formData.get("assignedTo") ?? "").trim(),
-      displayLimitHours: String(formData.get("displayLimitHours") ?? ""),
-      realLimitHours: String(formData.get("realLimitHours") ?? ""),
-      days: String(formData.get("days") ?? ""),
+      displayLimitHours: hours(formData, "displayLimitHours"),
+      realLimitHours: hours(formData, "realLimitHours"),
+      days: hours(formData, "days"),
       explicitInstanceId: String(formData.get("explicitInstanceId") ?? "").trim() || undefined,
     });
   const m = await M();
-  if (!parsed.success) back(`${m.invalidForm} ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`, "error");
-  try {
-    const r = await createLiveInstance(parsed.data);
-    if (r.dryRun) back(`${m.dryRun} ${r.url}`, "error");
-    back(`${m.created} (${r.uuid}) ${m.forWhom} ${parsed.data.assignedTo}. ${m.linkWord} ${r.url}`);
-  } catch (e) {
-    back(`${m.backendError} ${(e as Error).message}`, "error");
+  if (!parsed.success) {
+    const labels = { assignedTo: m.form.assignedTo, displayLimitHours: m.form.displayLimit, realLimitHours: m.form.realLimit, days: m.form.days, explicitInstanceId: m.form.instanceId };
+    back(issueMessage(parsed.error.issues[0], labels, m.locale), "error");
   }
+
+  // Only the backend call sits inside try/catch: back() redirects by throwing NEXT_REDIRECT, which must never be caught here.
+  let result: Awaited<ReturnType<typeof createLiveInstance>> | null = null;
+  let failure = "";
+  try {
+    result = await createLiveInstance(parsed.data);
+  } catch (e) {
+    failure = (e as Error).message || "unknown";
+  }
+  if (!result) back(`${m.backendError} ${failure}`, "error");
+  if (result.dryRun) back(`${m.dryRun} ${result.url}`, "error");
+  back(`${m.created} (${result.uuid}) ${m.forWhom} ${parsed.data.assignedTo}. ${m.linkWord} ${result.url}`);
 }
 
 export async function stopLiveInstanceForm(formData: FormData) {
   await requireUser();
-  const uuid = String(formData.get("uuid") ?? "");
+  const uuid = String(formData.get("uuid") ?? "").trim().slice(0, 120);
   const m = await M();
   if (!uuid) back(m.missingUuid, "error");
+
+  let result: Awaited<ReturnType<typeof stopLiveInstance>> | null = null;
+  let failure = "";
   try {
-    const r = await stopLiveInstance(uuid);
-    back(r.ok ? `${m.stopRequested} ${uuid}.` : `${m.cannotStop} ${uuid}: ${"error" in r ? r.error : m.refused}`, r.ok ? "ok" : "error");
+    result = await stopLiveInstance(uuid);
   } catch (e) {
-    back(`${m.backendError} ${(e as Error).message}`, "error");
+    failure = (e as Error).message || "unknown";
   }
+  if (!result) back(`${m.backendError} ${failure}`, "error");
+  if (result.ok) back(`${m.stopRequested} ${uuid}.`);
+  back(`${m.cannotStop} ${uuid}: ${"error" in result && result.error ? result.error : m.refused}`, "error");
 }

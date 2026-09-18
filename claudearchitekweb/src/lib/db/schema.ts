@@ -42,6 +42,15 @@ export const settings = sqliteTable("settings", {
   updatedAt: text("updated_at").notNull().default(now()),
 });
 
+/**
+ * Monotonic sequences that must not go backwards when rows are deleted — today only
+ * `project_seq:<year>`, which hands out project codes (AT-2026-0042).
+ */
+export const counters = sqliteTable("counters", {
+  key: text("key").primaryKey(),
+  value: integer("value").notNull().default(0),
+});
+
 export const auditLog = sqliteTable("audit_log", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: text("user_id"),
@@ -142,10 +151,15 @@ export const activities = sqliteTable(
     entityType: text("entity_type").notNull(), // lead | client | company | project | post
     entityId: text("entity_id").notNull(),
     type: text("type").notNull().default("note"), // note | call | meeting | email | message | status | system
-    content: text("content").notNull(),
+    content: text("content").notNull(), // plain-text fallback, in the language of whoever wrote it
+    // JSON ActivityEvent (see lib/crm.ts) for system entries: the event and its parameters, so the
+    // timeline can be rendered in the reader's language instead of the writer's.
+    meta: text("meta"),
     userId: text("user_id"),
     createdAt: text("created_at").notNull().default(now()),
   },
+  // entity_type/entity_id are polymorphic and cannot carry a foreign key; migration 0002 adds
+  // ON DELETE triggers that remove these rows when the entity they describe is deleted.
   (t) => [index("activities_entity_idx").on(t.entityType, t.entityId)]
 );
 
@@ -155,6 +169,8 @@ export const tasks = sqliteTable("tasks", {
   dueAt: text("due_at"),
   done: integer("done", { mode: "boolean" }).notNull().default(false),
   priority: text("priority").notNull().default("normal"), // low | normal | high
+  // lead | client | company | project. Polymorphic, so no foreign key: migration 0002 adds
+  // ON DELETE triggers that clear both columns when the linked entity is deleted.
   entityType: text("entity_type"),
   entityId: text("entity_id"),
   createdAt: text("created_at").notNull().default(now()),
@@ -176,6 +192,8 @@ export const projects = sqliteTable(
     status: text("status").notNull().default("active"), // active | on_hold | done | cancelled
     clientId: text("client_id").references(() => clients.id, { onDelete: "set null" }),
     companyId: text("company_id").references(() => companies.id, { onDelete: "set null" }),
+    // The lead this project was converted from. Cleared by a migration-0002 trigger when that lead
+    // is deleted, so a "from lead" link never points at a row that is gone.
     leadId: text("lead_id"),
     description: text("description"),
     room: text("room"), // JSON: {width,depth,height,notes}
@@ -207,6 +225,8 @@ export const assets = sqliteTable(
     id: text("id").primaryKey(),
     kind: text("kind").notNull().default("render"), // render | video | sketch | pdf | model_glb | model_usdz | poster | client_upload | other
     projectId: text("project_id").references(() => projects.id, { onDelete: "set null" }),
+    // The lead that claimed this upload. It is what makes an attachment belong to one lead, so
+    // converting a lead can only move the files that lead actually uploaded.
     leadId: text("lead_id"),
     originalName: text("original_name").notNull(),
     fileName: text("file_name").notNull(), // stored name (uuid.ext)
@@ -301,10 +321,14 @@ export const posts = sqliteTable(
     publishedAt: text("published_at"),
     createdBy: text("created_by"),
     notes: text("notes"),
+    /** How the post came into being: 'manual' (composer / duplicate) or 'inbox' (local drop folder). */
+    source: text("source").notNull().default("manual"),
+    /** What it was made from — for 'inbox' the folder name, so the owner can trace it back. */
+    sourceRef: text("source_ref"),
     createdAt: text("created_at").notNull().default(now()),
     updatedAt: text("updated_at").notNull().default(now()),
   },
-  (t) => [index("posts_status_idx").on(t.status), index("posts_scheduled_idx").on(t.scheduledAt)]
+  (t) => [index("posts_status_idx").on(t.status), index("posts_scheduled_idx").on(t.scheduledAt), index("posts_source_idx").on(t.source)]
 );
 
 export const postVariants = sqliteTable(
@@ -319,7 +343,7 @@ export const postVariants = sqliteTable(
     hashtags: text("hashtags"), // JSON string[]
     cta: text("cta"),
     format: text("format").notNull().default("image"), // image | carousel | video | reel | short | text
-    status: text("status").notNull().default("pending"), // pending | published | failed | skipped | simulated
+    status: text("status").notNull().default("pending"), // pending | publishing | published | failed | skipped | simulated
     externalId: text("external_id"),
     externalUrl: text("external_url"),
     error: text("error"),
@@ -346,7 +370,7 @@ export const socialAccounts = sqliteTable("social_accounts", {
   displayName: text("display_name"),
   externalId: text("external_id"),
   profileUrl: text("profile_url"),
-  credentials: text("credentials"), // JSON (encrypted at rest with APP_SECRET)
+  credentials: text("credentials"), // plain JSON — NOT encrypted. APP_SECRET only salts the analytics/portal visitor hashes and keys the passcode cookie (src/lib/env.ts).
   status: text("status").notNull().default("not_connected"), // not_connected | connected | error | dry_run
   lastCheckedAt: text("last_checked_at"),
   lastError: text("last_error"),

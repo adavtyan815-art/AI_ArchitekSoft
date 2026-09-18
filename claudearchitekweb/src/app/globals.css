@@ -339,6 +339,17 @@ strong { font-weight: 600; }
 @utility num {
   @apply font-mono tabular-nums;
 }
+/* Armenian has no monospaced face, so every mono label (eyebrows, table headers, tab strips, stat
+   labels) falls back to the Armenian grotesk and renders visibly larger and wider than the Latin
+   tokens beside it — a strip like "Telegram · Live 3D · ՆՈՐ ԳԱՂՏՆԱԲԱՌ" reads as two type styles.
+   In an Armenian document the fallback is matched to the x-height of the mono face, so both scripts
+   sit on the same optical size; Latin glyphs keep exactly the size they had.
+   `from-font` is ignored by browsers that do not know it, which simply leaves today's rendering. */
+html:lang(hy) :is(.font-mono, .eyebrow, .index, .kicker, .caption, .label, .tag, .num, .spec > div > dt),
+html:lang(hy) .table-admin thead th,
+html:lang(hy) .table-responsive td::before {
+  font-size-adjust: from-font;
+}
 
 /* --------------------------------------------------------------------------
    Structure: rules, ticks, frames, grids
@@ -532,14 +543,20 @@ strong { font-weight: 600; }
 textarea.input {
   @apply h-auto py-2.5;
 }
+/* A field the form rejected: visible before the message is read, and it survives focus. */
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
 @utility label {
   @apply mb-1.5 block font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-muted;
 }
 @utility field-hint {
   @apply mt-1.5 block text-xs text-faint;
 }
+/* Choice card. The real radio/checkbox inside is visually hidden, so the card itself has to show
+   the keyboard focus ring — otherwise arrow keys move focus through the group invisibly. */
 @utility choice {
-  @apply flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface p-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-surface-2;
+  @apply flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface p-4 transition-colors hover:border-line-strong has-[:checked]:border-fg has-[:checked]:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent;
 }
 
 /* --------------------------------------------------------------------------
@@ -560,9 +577,16 @@ textarea.input {
 @utility swatch {
   @apply relative inline-flex h-9 w-9 flex-none items-center justify-center rounded-md border border-line transition-[transform,border-color] duration-150 hover:border-fg;
 }
-.swatch[aria-pressed="true"] {
+/* The pressed state lives on the <button>; the chip inside it carries the ring. */
+.swatch[aria-pressed="true"],
+button[aria-pressed="true"] > .swatch {
   border-color: var(--fg);
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--fg);
+}
+/* On the dark viewer stage the gap of the ring is the stage colour, not the page colour. */
+.stage button[aria-pressed="true"] > .swatch,
+.frame button[aria-pressed="true"] > .swatch {
+  box-shadow: 0 0 0 2px var(--surface-2), 0 0 0 3px var(--fg);
 }
 
 /* --------------------------------------------------------------------------
@@ -586,6 +610,17 @@ textarea.input {
 .table-admin td.num, .table-admin th.num {
   @apply text-right font-mono tabular-nums;
 }
+/* A card that scrolls a wide table sideways must also CONTAIN that overflow. `overflow-x: auto`
+   alone is not enough: the table's `position: sticky` header cells still count towards the
+   document's scrollable area, so a table wider than its card (easy in Armenian, where the column
+   labels are long) gave the whole admin page its own horizontal scrollbar behind a table that was
+   already scrolling itself. Paint containment is scoped to md and up, because below that the
+   .table-responsive rows become full-width stacked cards that need no clipping. */
+@media (min-width: 768px) {
+  .card.overflow-x-auto:has(> .table-admin) {
+    contain: paint;
+  }
+}
 @media (max-width: 767px) {
   .table-responsive thead {
     display: none;
@@ -598,17 +633,31 @@ textarea.input {
     width: 100%;
   }
   .table-responsive tr {
-    @apply mb-3 rounded-lg border border-line bg-surface p-3;
+    @apply mb-2 rounded-lg border border-line bg-surface px-3 py-1.5;
   }
   .table-responsive td {
-    @apply flex items-start justify-between gap-3 border-0 px-0 py-1.5 text-right;
+    @apply flex items-baseline justify-between gap-3 border-0 px-0 py-1 text-right;
   }
   .table-responsive td::before {
     content: attr(data-label);
-    @apply shrink-0 text-left font-mono text-[10.5px] font-medium tracking-[0.1em] text-muted uppercase;
+    @apply shrink-0 text-left font-mono text-[10.5px] font-medium leading-5 tracking-[0.1em] text-muted uppercase;
   }
   .table-responsive td[data-label=""]::before {
     display: none;
+  }
+  /* Long values (paths, names) must be able to shrink inside the row instead of pushing it wider. */
+  .table-responsive td > * {
+    min-width: 0;
+  }
+  /* A cell that carries several blocks of its own — title, translations, slug — must not be squeezed
+     into that many narrow columns. The label keeps its line and each block goes full width under it.
+     Two blocks is the common case (name + company, slug + title) and has to stack as well: at
+     `:nth-child(3)` those cells stayed side by side in two ~130px columns and broke mid-phrase. */
+  .table-responsive td:has(> :nth-child(2)) {
+    @apply flex-wrap text-left;
+  }
+  .table-responsive td:has(> :nth-child(2)) > * {
+    flex: 0 0 100%;
   }
 }
 

@@ -6,6 +6,8 @@ data/*.db
 data/*.db-*
 data/uploads/
 data/tmp/
+# the owner's local drop folder (their own files, plus _imported/ and _failed/)
+data/inbox/
 .env
 .env.local
 .env.production
@@ -14,3 +16,9 @@ data/tmp/
 Thumbs.db
 tsconfig.tsbuildinfo
 next-env.d.ts
+
+# The repository-root .gitignore ignores package-lock.json; this project commits its lockfile
+# so that `npm ci` (Docker build, CI) is reproducible.
+!package-lock.json
+# output of `npm run build:worker` (bundled standalone worker for the Docker image)
+/worker.js

@@ -107,31 +107,73 @@ export function getSetting<K extends SettingsKey>(key: K): SettingsMap[K] {
   return cached(`settings:${key}`, 30_000, () => readSetting(key));
 }
 
-function readSetting<K extends SettingsKey>(key: K): SettingsMap[K] {
+/**
+ * Fields whose default comes from the environment. They are resolved on every read and are
+ * never written to the settings row, so a later change in .env is picked up. A value saved
+ * from Admin → Settings overrides the environment only while it is non-empty.
+ */
+function envBacked<K extends SettingsKey>(key: K): Partial<Record<keyof SettingsMap[K], string>> {
+  if (key === "telegram") return { adminChatId: env.telegram.adminChatId, channelId: env.telegram.channelId } as Partial<Record<keyof SettingsMap[K], string>>;
+  if (key === "live") return { backendUrl: env.live.backendUrl } as Partial<Record<keyof SettingsMap[K], string>>;
+  return {};
+}
+
+/** The raw JSON object saved for a key: only what the admin stored, without defaults or environment values. */
+function readStored(key: SettingsKey): Record<string, unknown> {
   const row = getDb().select().from(schema.settings).where(eq(schema.settings.key, key)).get();
-  const base = { ...DEFAULTS[key] } as SettingsMap[K];
-  if (key === "telegram") {
-    (base as TelegramSettings).adminChatId ||= env.telegram.adminChatId;
-    (base as TelegramSettings).channelId ||= env.telegram.channelId;
-  }
-  if (key === "live") (base as LiveSettings).backendUrl = env.live.backendUrl || (base as LiveSettings).backendUrl;
-  if (!row) return base;
+  if (!row) return {};
   try {
-    return { ...base, ...(JSON.parse(row.value) as object) } as SettingsMap[K];
+    const parsed: unknown = JSON.parse(row.value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
   } catch {
-    return base;
+    return {};
   }
 }
 
-export function saveSetting<K extends SettingsKey>(key: K, value: Partial<SettingsMap[K]>) {
-  const merged = { ...getSetting(key), ...value };
+function resolve<K extends SettingsKey>(key: K, stored: Record<string, unknown>): SettingsMap[K] {
+  const merged = { ...DEFAULTS[key], ...stored } as Record<string, unknown>;
+  const defaults = DEFAULTS[key] as Record<string, unknown>;
+  for (const [field, envValue] of Object.entries(envBacked(key))) {
+    const own = stored[field];
+    // stored override → environment → built-in default
+    merged[field] = typeof own === "string" && own.trim() ? own : envValue || defaults[field];
+  }
+  return merged as SettingsMap[K];
+}
+
+function readSetting<K extends SettingsKey>(key: K): SettingsMap[K] {
+  return resolve(key, readStored(key));
+}
+
+/**
+ * What the environment (or the built-in default) provides for a key's env-backed fields.
+ * The Settings page can show these as placeholders instead of pre-filling the inputs.
+ */
+export function envSettingDefaults<K extends SettingsKey>(key: K): Partial<SettingsMap[K]> {
+  const defaults = DEFAULTS[key] as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [field, envValue] of Object.entries(envBacked(key))) out[field] = envValue || defaults[field];
+  return out as Partial<SettingsMap[K]>;
+}
+
+export function saveSetting<K extends SettingsKey>(key: K, value: Partial<SettingsMap[K]>): SettingsMap[K] {
+  // Merge onto the raw stored row, never onto the resolved setting: defaults and values that
+  // come from the environment must not be frozen into the database.
+  const stored: Record<string, unknown> = { ...readStored(key), ...(value as Record<string, unknown>) };
+  const fallbacks = envSettingDefaults(key) as Record<string, unknown>;
+  for (const field of Object.keys(fallbacks)) {
+    const v = stored[field];
+    // Empty, or identical to what the environment already provides → not an override.
+    if (typeof v !== "string" || !v.trim() || v === fallbacks[field]) delete stored[field];
+  }
+  const json = JSON.stringify(stored);
   getDb()
     .insert(schema.settings)
-    .values({ key, value: JSON.stringify(merged), updatedAt: nowIso() })
-    .onConflictDoUpdate({ target: schema.settings.key, set: { value: JSON.stringify(merged), updatedAt: nowIso() } })
+    .values({ key, value: json, updatedAt: nowIso() })
+    .onConflictDoUpdate({ target: schema.settings.key, set: { value: json, updatedAt: nowIso() } })
     .run();
   bust("settings:");
-  return merged;
+  return resolve(key, stored);
 }
 
 export function getAllSettings(): SettingsMap {

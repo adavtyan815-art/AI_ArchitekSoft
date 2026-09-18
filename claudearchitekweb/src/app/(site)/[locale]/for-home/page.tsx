@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { pageMeta } from "../meta";
 import { ButtonLink, CheckList, Frame, Index, SectionHeading, Spec, Ticks } from "@/components/ui";
+import { TrackedCta } from "@/components/site/cta";
 import { BeforeAfter } from "@/components/site/before-after";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -34,10 +35,10 @@ export default async function ForHomePage({ params }: { params: Promise<{ locale
             <h1 className="h-display max-sm:break-words">{h.title}</h1>
             <p className="lead mt-7 max-w-[34rem]">{h.subtitle}</p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <ButtonLink href={startB2c} size="lg">
+              <TrackedCta href={startB2c} label="b2c-hero" locale={locale} segment="b2c" size="lg">
                 {h.cta}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
               <ButtonLink href={p("/portfolio")} variant="secondary" size="lg">
                 {d.common.seeWork}
               </ButtonLink>
@@ -142,10 +143,10 @@ export default async function ForHomePage({ params }: { params: Promise<{ locale
               <p className="mt-4 max-w-lg text-[15px] opacity-85 sm:text-[16px]">{d.home.finalText}</p>
             </div>
             <div className="lg:col-span-4 lg:col-start-9 lg:justify-self-end">
-              <ButtonLink href={startB2c} size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
+              <TrackedCta href={startB2c} label="b2c-closing" locale={locale} segment="b2c" size="lg" className="w-full bg-[#17150f] text-[#f4f2ed] hover:bg-[#2a2620] sm:w-fit">
                 {h.cta}
                 <ArrowUpRight size={18} />
-              </ButtonLink>
+              </TrackedCta>
             </div>
           </div>
         </div>

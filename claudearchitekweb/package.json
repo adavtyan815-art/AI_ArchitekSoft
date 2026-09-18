@@ -8,15 +8,17 @@
     "build": "next build",
     "start": "next start -p 3100",
     "worker": "tsx scripts/worker.ts",
+    "inbox": "tsx scripts/inbox.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:reset": "tsx scripts/reset.ts",
     "db:generate": "drizzle-kit generate",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "dev:webpack": "next dev -p 3100",
-    "build:standalone": "cross-env-shell \"NEXT_STANDALONE=1 next build\" 2>/dev/null || set NEXT_STANDALONE=1&& next build",
-    "perf": "node scripts/perf.mjs"
+    "build:standalone": "cross-env NEXT_STANDALONE=1 next build",
+    "perf": "node scripts/perf.mjs",
+    "build:worker": "esbuild scripts/worker.ts --bundle --platform=node --target=node22 --format=cjs --tsconfig=tsconfig.json --external:better-sqlite3 --external:sharp --external:ffmpeg-static --outfile=worker.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
@@ -35,13 +37,18 @@
     "zod": "^4.1.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.0",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.10",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "15.5.25",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"

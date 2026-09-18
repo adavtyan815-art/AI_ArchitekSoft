@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { liveConfigured, liveLinkFor, listLiveInstances } from "@/lib/live";
 import { getSetting } from "@/lib/settings";
 import { fmtYerevan } from "@/lib/tz";
-import { getAdminDict } from "@/lib/i18n/admin";
+import { getAdminDict, local } from "@/lib/i18n/admin";
 import { PageHeader, Panel, SpecStrip, StatCard, StatusBadge } from "@/components/admin/shell";
 import { Notice } from "@/components/admin/notice";
 import { CopyButton } from "@/components/admin/copy-button";
@@ -24,13 +24,22 @@ function hours(sec: number | undefined) {
 
 export default async function LivePage({ searchParams }: { searchParams: Promise<SP> }) {
   await requireUser();
-  const { t } = await getAdminDict();
+  const { t, locale } = await getAdminDict();
   const L = t.live;
   const sp = await searchParams;
+  const X = local(
+    {
+      hy: { notConfiguredHint: "Մուտքի տվյալները նշված չեն" },
+      en: { notConfiguredHint: "Credentials not set" },
+    },
+    locale
+  );
   const live = getSetting("live");
   const configured = liveConfigured();
   const r = await listLiveInstances();
   const running = r.instances.filter((i) => i.status === "running" || i.status === "starting").length;
+  // "Backend not reachable" is wrong when the credentials were simply never set — name the real reason.
+  const instancesHint = r.ok ? L.fromBackend : r.errorCode === "not_configured" || !configured ? X.notConfiguredHint : L.unreachable;
 
   return (
     <>
@@ -46,7 +55,7 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
       <Notice text={sp.notice} tone={sp.tone} />
 
       <SpecStrip cols={3}>
-        <StatCard label={L.stats.instances} value={r.instances.length} hint={configured ? L.fromBackend : L.unreachable} />
+        <StatCard label={L.stats.instances} value={r.instances.length} hint={instancesHint} />
         <StatCard label={L.stats.running} value={running} tone={running ? "brand" : undefined} />
         <StatCard label={L.stats.backend} value={configured ? L.connected : L.dryRun} tone={configured ? "success" : "warning"} hint={live.backendUrl.replace(/^https?:\/\//, "")} />
       </SpecStrip>
@@ -54,11 +63,11 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
       {!r.ok ? (
         <div className="mt-5">
           <Panel title={L.notConfigured}>
-            <p className="text-sm text-fg-2">{r.error}</p>
+            <p className="text-sm [overflow-wrap:anywhere] text-fg-2">{r.error}</p>
             <ul className="mt-3 space-y-1.5 text-sm text-fg-2">
               <li>
-                <code className="font-mono text-xs">LIVE_BACKEND_URL</code> — {L.envBackend} <b>{live.backendUrl}</b> ({L.envBackend2}{" "}
-                <Link href="/admin/settings?tab=live" className="font-medium text-accent hover:underline">{L.settingsLink}</Link>).
+                <code className="font-mono text-xs [overflow-wrap:anywhere]">LIVE_BACKEND_URL</code> — {L.envBackend} <b className="[overflow-wrap:anywhere]">{live.backendUrl}</b> ({L.envBackend2}{" "}
+                <Link href="/admin/settings?tab=live" className="inline-flex min-h-10 items-center font-medium text-accent hover:underline">{L.settingsLink}</Link>).
               </li>
               <li>
                 <code className="font-mono text-xs">LIVE_ADMIN_USERNAME</code> / <code className="font-mono text-xs">LIVE_ADMIN_PASSWORD</code> — {L.envCreds}
@@ -132,7 +141,7 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
             </Field>
             <Field label={L.form.days}><Input name="days" type="number" min={1} defaultValue={live.defaultDays} /></Field>
             <Field label={L.form.instanceId} hint={L.form.instanceIdHint}><Input name="explicitInstanceId" placeholder="i-0abc…" /></Field>
-            <div className="sm:col-span-2"><SubmitButton variant="brand" pendingText={L.creating}>{L.create}</SubmitButton></div>
+            <div className="sm:col-span-2"><SubmitButton pendingText={L.creating}>{L.create}</SubmitButton></div>
           </form>
         </Panel>
 
@@ -142,8 +151,8 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
             <li><b className="text-fg">{L.howItems.onDemand}:</b> {L.howItems.onDemandText}</li>
             <li><b className="text-fg">{L.howItems.quotas}:</b> {L.howItems.quotasText}</li>
             <li>
-              <b className="text-fg">{L.howItems.link}:</b> <code className="font-mono text-xs">{live.backendUrl}/?instanceUuid=…</code> — {L.howItems.linkText}{" "}
-              <Link href="/admin/pages" className="font-medium text-accent hover:underline">{L.howItems.linkPages}</Link>.
+              <b className="text-fg">{L.howItems.link}:</b> <code className="font-mono text-xs [overflow-wrap:anywhere]">{live.backendUrl}/?instanceUuid=…</code> — {L.howItems.linkText}{" "}
+              <Link href="/admin/pages" className="inline-flex min-h-10 items-center font-medium text-accent hover:underline">{L.howItems.linkPages}</Link>.
             </li>
             <li><b className="text-fg">{L.howItems.cost}:</b> {L.howItems.costText}</li>
           </ul>

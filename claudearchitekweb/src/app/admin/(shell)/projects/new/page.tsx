@@ -3,6 +3,7 @@ import { PROJECT_TYPES } from "@/lib/crm";
 import { clientLabel, clientOptions, companyOptions } from "@/lib/admin-helpers";
 import { getAdminDict, labelFor } from "@/lib/i18n/admin";
 import { FormActions, PageHeader, Panel } from "@/components/admin/shell";
+import { Notice } from "@/components/admin/notice";
 import { Button, Field, Input, Select, Textarea } from "@/components/ui";
 import { createProjectAction } from "@/app/admin/actions/project-actions";
 
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 const CURRENCIES = ["AMD", "USD", "EUR", "RUB"];
 
-export default async function NewProjectPage({ searchParams }: { searchParams: Promise<{ clientId?: string; companyId?: string }> }) {
+export default async function NewProjectPage({ searchParams }: { searchParams: Promise<{ clientId?: string; companyId?: string; notice?: string; tone?: string }> }) {
   await requireUser();
   const { t } = await getAdminDict();
   const P = t.projects;
@@ -20,6 +21,8 @@ export default async function NewProjectPage({ searchParams }: { searchParams: P
   const companies = companyOptions();
   return (
     <>
+      {/* createProjectAction redirects back here with ?notice=… when the form does not validate */}
+      <Notice text={sp.notice} tone={sp.tone} />
       <PageHeader title={P.new} subtitle={P.newSubtitle} crumbs={[{ label: P.title, href: "/admin/projects" }, { label: t.common.new }]} />
       <Panel className="max-w-3xl">
         <form action={createProjectAction} className="grid gap-4 sm:grid-cols-2">

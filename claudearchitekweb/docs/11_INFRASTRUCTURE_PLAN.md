@@ -24,7 +24,7 @@ Run **one small server with one process and one database file** until a measurab
 | Monitoring/logging | UptimeRobot free (uptime), Docker logs + `journalctl`, Better Stack free tier (logs) | Enough to know it is down and why | $0 | Grafana Cloud free / Sentry Developer ($26) when several people ship code |
 | Domain/SSL | architeksoft.com at your registrar; DNS on Cloudflare; TLS by Caddy (Let's Encrypt) and Cloudflare edge | Automatic renewals (fixes the expired `live.` cert class of problem) | ~$15/yr | Same |
 | Pixel Streaming | Keep your AWS `live.architeksoft.com` backend, on-demand g4dn.2xlarge ($0.75/h + egress), quotas per link | Already built; pay only while a session runs | $0 idle; ≈$1/h used | Vagon Streams ($1.5–2.8/h, REST API, no ops) when demand is irregular; Streampixel €99/mo flat at >60 h/month steady; auto-scaling AWS group only with dedicated ops |
-| Workers / scheduled jobs | In-process worker (scheduler + Telegram) | One process, no queue needed at this volume | $0 | Separate `worker` container (compose profile exists) at heavy media processing; a queue (BullMQ + Redis $5) only if jobs exceed minutes |
+| Workers / scheduled jobs | In-process worker (60-second scheduler, inbox scan, Telegram polling) | One process, no queue needed at this volume | $0 | Separate `worker` container (`split-worker` compose profile, `RUN_WORKER_IN_APP=false`) at heavy media processing; a queue (BullMQ + Redis $5) only if jobs exceed minutes |
 | Image/video processing | sharp (images) + bundled ffmpeg (thumbnails) on the VPS | Free, already integrated | $0 | Offload video transcoding to the worker container or Cloudflare Stream ($1/1000 min stored + $1/1000 min delivered) when you host many client videos |
 | Object storage for models (GLB/USDZ) | Same as media | Small files | $0 | R2 + CDN domain when partners embed viewers on their sites |
 | Payments (optional, later) | — | Not needed for local testing | $0 | Idram/ArCa gateway or Stripe when deposits are collected online |
@@ -42,11 +42,11 @@ Run **one small server with one process and one database file** until a measurab
 - **Switch when:** you run more than one app instance, need concurrent admins across offices, or analytics tables pass ~5–10 million rows. Then: managed Postgres (Hetzner €15 / DO $15 / Neon serverless free–$19). The Drizzle schema is portable; migration = export/import script + connection string.
 
 ### Media storage and CDN
-- **Now:** local disk; `/media/...?w=` serves resized AVIF/WebP with immutable caching; Cloudflare caches them at the edge.
+- **Now:** local disk; `/media/...?w=` serves resized AVIF/WebP with immutable caching (gated files get `private` caching and Range support for video); Cloudflare caches the public ones at the edge. Per-file ceiling today: 100 MB in the admin, 50 MB on the public intake form — the Cloudflare proxy cap is the binding constraint (`docs/08_DEPLOYMENT.md`, "Upload size").
 - **Switch when:** uploads > ~50 GB, or partners embed viewers/videos on their own sites (traffic you do not control). Then: R2 bucket + `cdn.architeksoft.com`; presigned direct uploads from the browser (bypasses the 100 MB Cloudflare proxy limit). Cost: 100 GB ≈ $1.5/month, egress free.
 
 ### Backups
-- **Now:** Litestream to R2 (or Backblaze B2) + nightly `rclone sync` of uploads. Test a restore once a quarter.
+- **Now:** Litestream to R2 (or Backblaze B2) + the nightly `deploy/backup.sh` on the host: a `.backup` snapshot of the database plus an `rclone sync` of uploads that moves anything it would delete into a dated `uploads-deleted/` folder (expire it with a bucket lifecycle rule). Test a restore once a quarter.
 - **Later:** Postgres `pg_dump` nightly + WAL archiving; media replicated to a second provider if renders are irreplaceable.
 
 ### Email
@@ -63,11 +63,11 @@ Run **one small server with one process and one database file** until a measurab
 - **Later / alternative:** a unified API (Zernio: first 2 accounts free, then $6/account; Upload-Post free 10 posts/month, $24; Post Bridge ~$29–34) when you want TikTok, public YouTube without audit, or to publish for partners' pages. Ayrshare ($149+) only if you become an agency.
 
 ### AI
-- **Now:** Claude Opus 5 for post copy and rewrites (a post costs ~$0.03; 100 posts/month ≈ $3). Set `ANTHROPIC_MODEL=claude-sonnet-5` (~$0.006/post) or `claude-haiku-4-5` (~$0.003) to reduce further. Gemini Flash as fallback.
+- **Now:** Claude Opus 5 for post copy and rewrites — $5 / $25 per 1M input / output tokens, so a post costs ~$0.03 and 100 posts/month ≈ $3. Set `ANTHROPIC_MODEL=claude-sonnet-5` ($2 / $10, ~$0.012/post) or `claude-haiku-4-5` ($1 / $5, ~$0.006) to reduce further. Gemini Flash as fallback, built-in templates when neither key is set.
 - **Later:** image generation for creatives (~$0.04/image), AI-assisted lead replies. No infrastructure change.
 
 ### Authentication and security
-- **Now:** email + bcrypt password, hashed session tokens, HttpOnly cookies, share links with 96-bit tokens, expiry, passcodes, rate limits, security headers, Cloudflare in front.
+- **Now:** email + bcrypt password, hashed session tokens, HttpOnly cookies, share links with 96-bit tokens, expiry, passcodes (the cookie is an HMAC bound to the link), rate limits keyed on the `X-Real-IP` Caddy sets, security headers with a per-request CSP nonce, Cloudflare in front.
 - **Later:** passkeys/TOTP for admins (SimpleWebAuthn, free), Cloudflare Access on `/admin` (free for ≤50 users), role-based access when partners log in (KitchenPro self-service).
 
 ### Analytics
@@ -75,11 +75,11 @@ Run **one small server with one process and one database file** until a measurab
 - **Later:** Plausible cloud $9/month or self-hosted Umami on the same VPS if marketing needs funnels/UTM dashboards beyond the admin; keep first-party for portal tracking.
 
 ### Monitoring and logging
-- **Now:** UptimeRobot (free, 5-minute checks on `/api/health` and `/`), Docker logs with rotation, Telegram daily brief acts as a heartbeat.
+- **Now:** UptimeRobot (free, 5-minute checks on `/api/health` and `/`), Docker logs with rotation, Telegram daily brief acts as a heartbeat. `/api/health` runs one query against SQLite and answers 503 when it fails, so it detects a locked or missing database, not only a dead process; the same endpoint is the container's own `HEALTHCHECK`.
 - **Later:** Sentry (errors, $26 Developer) and Grafana Cloud free (metrics/logs) when more than one person deploys.
 
 ### Domain and SSL
-- **Now:** Cloudflare DNS (free), proxied; Caddy auto-TLS on the VPS (Let's Encrypt), Cloudflare "Full (strict)". Renewals are automatic — the `live.architeksoft.com` certificate expiring on 17 July 2026 is exactly the failure this removes. Add an UptimeRobot SSL-expiry alert for every subdomain.
+- **Now:** Cloudflare DNS (free), proxied; Caddy auto-TLS on the VPS (Let's Encrypt), Cloudflare "Full (strict)". Renewals are automatic — the `live.architeksoft.com` certificate that expired on 17 July 2026 is exactly the failure this removes. Add an UptimeRobot SSL-expiry alert for every subdomain, including `live.`, which is still renewed by hand.
 
 ### Pixel Streaming
 - **Now:** keep the existing AWS backend; instances start on demand and stop after inactivity; quotas per link. Idle cost ≈ $0 (stopped instance + EBS ~$8/month). A 1-hour session ≈ $0.75 + egress (~$0.3–0.6/h at 1080p).
@@ -87,8 +87,8 @@ Run **one small server with one process and one database file** until a measurab
 - **Switch when:** you need many parallel sessions or no ops: Vagon Streams (per-minute, REST API creates per-visitor links, $1.5–2.8/h) — ideal for irregular demos; Streampixel (€99/month flat, 2 concurrent) — ideal if a showroom runs it daily; an AWS auto-scaling group only if you have someone to operate it.
 
 ### Background workers and scheduled jobs
-- **Now:** in-process worker (60-second scheduler + Telegram polling). Restart-safe: pending approvals and schedules live in the DB.
-- **Later:** `worker` compose profile (already defined) to move it to its own container; Redis + BullMQ ($5 Redis) only if jobs become long (video transcoding, bulk exports).
+- **Now:** in-process worker (60-second scheduler, the local drop-folder scan, Telegram long polling). Restart-safe: pending approvals and schedules live in the DB; each inbox folder is claimed with an atomic rename, so it is imported exactly once.
+- **Later:** the `split-worker` compose profile (already defined) moves it to its own container — set `RUN_WORKER_IN_APP=false` at the same time, or two schedulers and two Telegram pollers run; Redis + BullMQ ($5 Redis) only if jobs become long (video transcoding, bulk exports).
 
 ### Image and video processing
 - **Now:** sharp for thumbnails/posters/resizes (fast, native), ffmpeg-static for video thumbnails/duration.

@@ -38,11 +38,23 @@ export function StageStepper({ current, labels, statusLabel, nextWord }: { curre
         {STAGES.map((s, i) => {
           const done = i < currentIdx;
           const active = i === currentIdx;
+          // Nine names at once forced a 10.5px type size and wrapped the long ones.
+          // Only the stage the client is on and its two neighbours are drawn; the rest
+          // stay in the accessibility tree, so the ruler still reads as a full list.
+          const near = Math.abs(i - safeIdx) <= 1;
           return (
             <li key={s} className="flex min-w-0 flex-col items-center" aria-current={active ? "step" : undefined}>
               <span aria-hidden className={cn("w-px", active ? "h-5 bg-accent" : done ? "h-3.5 bg-fg" : "h-2.5 bg-line-strong")} />
               <span className={cn("mt-2 font-mono text-[11px] leading-none tabular-nums", active ? "text-accent" : done ? "text-fg" : "text-faint")}>{pad(i + 1)}</span>
-              <span className={cn("mt-2 hidden px-1 text-center text-[10.5px] leading-tight sm:block", active ? "font-semibold text-fg" : done ? "text-fg-2" : "text-muted")}>{labels[s] ?? s}</span>
+              <span
+                className={cn(
+                  "sr-only",
+                  near && "sm:not-sr-only sm:mt-2 sm:block sm:px-1 sm:text-center sm:text-[11.5px] sm:leading-tight",
+                  active ? "font-semibold text-fg" : done ? "text-fg-2" : "text-muted",
+                )}
+              >
+                {labels[s] ?? s}
+              </span>
             </li>
           );
         })}

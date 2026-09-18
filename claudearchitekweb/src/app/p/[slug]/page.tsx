@@ -1,35 +1,39 @@
 import { cookies, headers } from "next/headers";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import QRCode from "qrcode";
-import { Check, ExternalLink } from "lucide-react";
+import { Check, Clock, ExternalLink } from "lucide-react";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { getSetting } from "@/lib/settings";
 import { mediaSrcSet, mediaUrl } from "@/lib/media";
 import { track } from "@/lib/analytics";
 import { env } from "@/lib/env";
-import { checkAccess, getPortalData, getShareLinkBySlug, passcodeCookieName, recordView } from "@/lib/portal";
-import { formatDate } from "@/lib/utils";
+import { checkAccess, getPortalData, getShareLinkBySlug, passcodeCookieName, recordView, type AccessResult } from "@/lib/portal";
+import { formatBytes, formatDate } from "@/lib/utils";
 import { ContactChannels } from "@/components/site/contact-channels";
 import { BeforeAfter } from "@/components/site/before-after";
 import { Index, Spec } from "@/components/ui";
 import { PortalActions, DownloadLink } from "@/components/portal/actions";
+import { PortalChrome, PortalState } from "@/components/portal/chrome";
 import { Gallery } from "@/components/portal/gallery";
 import { FeedbackForm } from "@/components/portal/feedback-form";
 import { PasscodeForm } from "@/components/portal/passcode-form";
 import { StageStepper } from "@/components/portal/stage-stepper";
 import { StickyActions } from "@/components/portal/sticky-actions";
+import { PORTAL_TEXT } from "@/components/portal/strings";
 
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ slug: string }>;
 type Search = Promise<Record<string, string | string[] | undefined>>;
 
-/** A few UI strings the shared dictionary does not carry. */
-const LOCAL: Record<Locale, { view: string; approvedOn: string; error: string; note: string; changeRequested: string; questionAsked: string; premium: string; approveShort: string; deliverables: string; file: string }> = {
-  hy: { view: "Դիտել", approvedOn: "Հաստատված է", error: "Չհաջողվեց ուղարկել։ Փորձեք կրկին կամ գրեք մեզ։", note: "Հաղորդագրություն", changeRequested: "Փոփոխություն է խնդրվել", questionAsked: "Հարց", premium: "Պրեմիում", approveShort: "Հաստատել", deliverables: "Ձեր 3D-ն", file: "Ֆայլ" },
-  ru: { view: "Открыть", approvedOn: "Утверждено", error: "Не удалось отправить. Попробуйте ещё раз или напишите нам.", note: "Сообщение", changeRequested: "Запрошены изменения", questionAsked: "Вопрос", premium: "Премиум", approveShort: "Утвердить", deliverables: "Ваш 3D", file: "Файл" },
-  en: { view: "View", approvedOn: "Approved", error: "Could not send. Please try again or message us.", note: "Message", changeRequested: "Change requested", questionAsked: "Question", premium: "Premium", approveShort: "Approve", deliverables: "Your 3D", file: "File" },
-};
+/** Project stages in order; a decision is only asked for up to and including "approval". */
+const STAGE_ORDER = ["request", "survey", "design", "configuration", "approval", "production_prep", "production", "installation", "handover"] as const;
+
+function awaitsApproval(stage: string): boolean {
+  const i = STAGE_ORDER.indexOf(stage as (typeof STAGE_ORDER)[number]);
+  return i >= 0 && i <= STAGE_ORDER.indexOf("approval");
+}
 
 export async function generateMetadata({ params, searchParams }: { params: Params; searchParams: Search }): Promise<Metadata> {
   const [{ slug }, sp, cookieStore] = await Promise.all([params, searchParams, cookies()]);
@@ -38,7 +42,27 @@ export async function generateMetadata({ params, searchParams }: { params: Param
   // who guesses a slug can read the client's project title from the tab title.
   const access = checkAccess(link, firstParam(sp.k) ?? "", link ? cookieStore.get(passcodeCookieName(link.id))?.value : null);
   const title = access === "ok" && link?.title ? `${link.title} — ArchiTek Soft` : "ArchiTek Soft";
-  return { title, robots: { index: false, follow: false } };
+  // A link that ran out or was switched off must not unfurl in a chat app like a working page:
+  // the holder of the key sees the same sentence in the preview card as on the page itself.
+  // (The key was already checked above, so this leaks nothing to someone who guessed the slug.)
+  //
+  // `robots` is left off for the two states where the page below calls notFound(): Next renders its
+  // own <meta name="robots" content="noindex"> for a not-found, and this one would be added next to
+  // it after hydration — two tags saying nearly the same thing. The X-Robots-Tag header from
+  // next.config.ts covers /p and /v whatever the state, so nothing is lost.
+  const gone = access === "not_found" || access === "bad_token";
+  return {
+    title,
+    description: goneDescription(access, link?.language),
+    ...(gone ? {} : { robots: { index: false, follow: false } }),
+  };
+}
+
+/** The one sentence a dead client link should show wherever it is unfurled — otherwise nothing. */
+function goneDescription(access: AccessResult, language: string | null | undefined): string | undefined {
+  if (access !== "expired" && access !== "inactive") return undefined;
+  const locale: Locale = isLocale(language) ? language : "hy";
+  return access === "inactive" ? PORTAL_TEXT[locale].inactive : getDictionary(locale).portal.expired;
 }
 
 function firstParam(v: string | string[] | undefined) {
@@ -77,29 +101,47 @@ export default async function PortalPage({ params, searchParams }: { params: Par
   const [{ slug }, sp, cookieStore, h] = await Promise.all([params, searchParams, cookies(), headers()]);
   const token = firstParam(sp.k) ?? "";
   const link = getShareLinkBySlug(slug);
-  const locale: Locale = isLocale(link?.language) ? link!.language : "hy";
-  const d = getDictionary(locale);
-  const t = LOCAL[locale];
   const brand = getSetting("brand");
 
   const access = checkAccess(link, token, link ? cookieStore.get(passcodeCookieName(link.id))?.value : null);
 
-  if (access === "not_found" || access === "bad_token") {
-    return <StateCard title={d.portal.notFound} brand={brand} dict={d} />;
-  }
+  // A visitor who does not hold the key learns nothing about the link — not even the
+  // language it is written in. An unknown slug and a wrong key answer identically (404).
+  if (access === "not_found" || access === "bad_token") notFound();
+
+  const locale: Locale = isLocale(link?.language) ? link!.language : "hy";
+  const d = getDictionary(locale);
+  const t = PORTAL_TEXT[locale];
+
   if (access === "expired" || access === "inactive") {
-    return <StateCard title={d.portal.expired} brand={brand} dict={d} />;
+    // A link switched off by the studio has not "expired": saying so sends the client
+    // looking for a date that does not exist.
+    return (
+      <PortalChrome locale={locale} dict={d} brand={brand}>
+        <PortalState title={access === "inactive" ? t.inactive : d.portal.expired} dict={d} brand={brand} />
+      </PortalChrome>
+    );
   }
   if (access === "passcode") {
     return (
-      <div className="flex min-h-[68vh] w-full items-center px-5 py-16 sm:px-8">
-        <PasscodeForm slug={slug} token={token} labels={{ title: d.portal.passcodeTitle, text: d.portal.passcodeText, button: d.portal.passcodeButton, wrong: d.portal.passcodeWrong }} />
-      </div>
+      <PortalChrome locale={locale} dict={d} brand={brand}>
+        <div className="flex flex-1 items-center px-5 py-16 sm:px-8">
+          <PasscodeForm
+            slug={slug}
+            token={token}
+            labels={{ title: d.portal.passcodeTitle, text: d.portal.passcodeText, button: d.portal.passcodeButton, wrong: d.portal.passcodeWrong, error: t.passcodeError, locked: t.passcodeLocked, hint: t.passcodeHint, sending: d.common.sending }}
+          >
+            {/* The gate is the state a real client is most likely to get stuck on: always offer a way to reach us. */}
+            <div className="kicker mb-3">{t.noCode}</div>
+            <ContactChannels brand={brand} dict={d} />
+          </PasscodeForm>
+        </div>
+      </PortalChrome>
     );
   }
 
   const data = getPortalData(slug);
-  if (!data) return <StateCard title={d.portal.notFound} brand={brand} dict={d} />;
+  if (!data) notFound();
   const { project, client, renders, videos, sketch, pdf, glb, usdz, documents, feedback } = data;
 
   // Access granted: record view + analytics (best effort).
@@ -143,8 +185,20 @@ export default async function PortalPage({ params, searchParams }: { params: Par
   const stageLabels = d.portal.stages as Record<string, string>;
   const docs = [...(pdf ? [pdf] : []), ...documents];
   const showFeedback = data.link.allowFeedback;
+  // Approving is offered only while the project is actually waiting for the decision.
+  // Past that point the same block is a way to write to the studio, not to approve again.
+  const canApprove = !lastApproval && awaitsApproval(project.stage);
   const materials = project.materials?.trim() ?? "";
   const materialRows = materials ? parseMaterials(materials) : null;
+
+  const arTexts = {
+    noteDesktop: t.arNoteDesktop,
+    notePhone: t.arNotePhone,
+    unsupported: t.arUnsupported,
+    error: t.viewerError,
+    modelAlt: t.modelAlt,
+    qrAlt: t.qrAlt,
+  };
 
   // Sections are numbered in the order they actually appear on this sheet.
   let n = 0;
@@ -159,230 +213,263 @@ export default async function PortalPage({ params, searchParams }: { params: Par
   const nContact = step();
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-5 pt-8 pb-32 sm:px-8 sm:pt-12 lg:pb-20">
-      {/* PROJECT SHEET HEAD */}
-      <section>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="index">{project.code}</span>
-          <span className="eyebrow">{d.portal.yourProject}</span>
-          {lastApproval ? (
-            <span className="badge ml-auto border-transparent bg-success-soft text-success">
-              <Check size={13} strokeWidth={2.5} aria-hidden />
-              {t.approvedOn} · {formatDate(lastApproval.createdAt)}
-            </span>
-          ) : null}
-        </div>
-        <p className="mt-6 text-[15px] text-muted">
-          {d.portal.greeting}
-          {greetingName ? `, ${greetingName}` : ""}
-          {locale === "hy" ? "։" : "!"}
-        </p>
-        <h1 className="h-display mt-1 text-[2.1rem] sm:text-[2.9rem] lg:text-[3.2rem]">{title}</h1>
-
-        <div className="mt-10">
-          <StageStepper current={project.stage} labels={stageLabels} statusLabel={d.portal.status} nextWord={d.common.next} />
-        </div>
-
-        {data.link.message ? (
-          <div className="mt-10 border-l-2 border-accent bg-accent-soft/45 px-5 py-4">
-            <div className="kicker mb-1.5">{t.note}</div>
-            <p className="text-[15px] leading-relaxed whitespace-pre-line text-fg">{data.link.message}</p>
+    <PortalChrome locale={locale} dict={d} brand={brand} stickyBar={!!webViewerHref || showFeedback}>
+      <div className="mx-auto w-full max-w-5xl px-5 pt-8 pb-20 sm:px-8 sm:pt-12">
+        {/* PROJECT SHEET HEAD */}
+        <section>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="index">{project.code}</span>
+            <span className="eyebrow">{d.portal.yourProject}</span>
+            {lastApproval ? (
+              <span className="badge ml-auto border-transparent bg-success-soft text-success">
+                <Check size={13} strokeWidth={2.5} aria-hidden />
+                {t.approvedOn} · {formatDate(lastApproval.createdAt, false, locale)}
+              </span>
+            ) : null}
           </div>
-        ) : null}
-      </section>
+          <p className="mt-6 text-[15px] text-muted">
+            {d.portal.greeting}
+            {greetingName ? `, ${greetingName}` : ""}
+            {locale === "hy" ? "։" : "!"}
+          </p>
+          <h1 className="h-display mt-1 text-[2.1rem] sm:text-[2.9rem] lg:text-[3.2rem]">{title}</h1>
 
-      {/* DELIVERABLES */}
-      {nDeliverables ? (
-        <section className="mt-14">
-          <Head n={nDeliverables} title={t.deliverables} className="mb-6" />
-          <PortalActions
-            slug={slug}
-            token={token}
-            webViewerHref={webViewerHref}
-            liveUrl={showLive ? project.liveUrl : null}
-            glbUrl={glb ? mediaUrl(glb.relPath) : null}
-            usdzUrl={usdz ? mediaUrl(usdz.relPath) : null}
-            poster={cover ? mediaUrl(cover.thumbRelPath ?? cover.relPath, 960) : null}
-            qrDataUrl={qrDataUrl}
-            labels={{ viewer: d.portal.viewer, viewerNote: d.portal.viewerNote, live: d.portal.live, liveNote: d.portal.liveNote, premium: t.premium, ar: d.portal.ar, arNote: d.portal.arNote, close: d.common.close }}
-          />
-        </section>
-      ) : null}
-
-      {/* BEFORE / AFTER */}
-      {nBeforeAfter ? (
-        <section className="mt-14">
-          <Head n={nBeforeAfter} title={d.portal.beforeAfter} className="mb-6" />
-          <figure className="frame">
-            <BeforeAfter before={mediaUrl(sketch!.relPath, 1280)} after={mediaUrl(firstRender!.relPath, 1280)} labels={[d.portal.before, d.portal.after]} />
-            <figcaption className="flex items-center justify-between gap-4 border-t border-line px-3.5 py-2">
-              <span className="caption truncate">{d.portal.before} → {d.portal.after}</span>
-              <span className="caption flex-none">{project.code}</span>
-            </figcaption>
-          </figure>
-        </section>
-      ) : null}
-
-      {/* GALLERY */}
-      {nGallery ? (
-        <section className="mt-14">
-          <Head n={nGallery} title={d.portal.gallery} className="mb-6" />
-          <Gallery
-            title={d.portal.gallery}
-            labels={{ close: d.common.close, prev: d.common.prevImage, next: d.common.nextImage }}
-            images={renders.map((a) => ({
-              src: mediaUrl(a.relPath, 960),
-              srcSet: mediaSrcSet(a.relPath),
-              thumb: mediaUrl(a.thumbRelPath ?? a.relPath, 480),
-              thumbSrcSet: mediaSrcSet(a.thumbRelPath ?? a.relPath, [320, 480, 960]),
-              caption: a.caption,
-              width: a.width,
-              height: a.height,
-            }))}
-          />
-        </section>
-      ) : null}
-
-      {/* VIDEO */}
-      {nVideo ? (
-        <section className="mt-14">
-          <Head n={nVideo} title={d.portal.video} className="mb-6" />
-          <div className={`grid gap-5 ${videos.length > 1 ? "md:grid-cols-2" : ""}`}>
-            {videos.map((v, i) => (
-              <figure key={v.id} className="frame">
-                <video controls playsInline preload="none" poster={v.thumbRelPath ? mediaUrl(v.thumbRelPath, 960) : undefined} className="aspect-video w-full bg-stage" src={mediaUrl(v.relPath)} aria-label={v.caption || d.portal.video} />
-                <figcaption className="flex items-center justify-between gap-4 border-t border-line px-3.5 py-2">
-                  <span className="caption truncate">
-                    <span className="text-accent">{String(i + 1).padStart(2, "0")}</span>
-                    <span className="mx-2 text-faint">/</span>
-                    {v.caption || d.portal.video}
-                  </span>
-                  <span className="caption flex-none">MP4</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {/* DOCUMENTS */}
-      {nDocs ? (
-        <section className="mt-14">
-          <Head n={nDocs} title={d.portal.documents} className="mb-2" />
-          <ul className="divide-y divide-line border-b border-line">
-            {docs.map((doc) => {
-              const url = mediaUrl(doc.relPath);
-              const ext = (doc.originalName.split(".").pop() || t.file).toUpperCase().slice(0, 4);
-              return (
-                <li key={doc.id} className="flex flex-wrap items-center gap-x-5 gap-y-3 py-4">
-                  <span className="caption w-24 flex-none tabular-nums">
-                    <span className="text-fg-2">{ext}</span>
-                    {doc.sizeBytes ? <span className="ml-2 text-faint">{(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB</span> : null}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[15px] font-medium text-fg">{doc.caption || doc.originalName}</span>
-                    {doc.caption ? <span className="caption block truncate">{doc.originalName}</span> : null}
-                  </span>
-                  <span className="flex flex-none flex-wrap gap-2">
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm min-h-[44px]" aria-label={`${t.view}: ${doc.caption || doc.originalName}`}>
-                      <ExternalLink size={15} aria-hidden />
-                      {t.view}
-                    </a>
-                    {data.link.allowDownload ? <DownloadLink slug={slug} token={token} href={`${url}?download=${encodeURIComponent(doc.originalName)}`} name={doc.originalName} label={d.portal.download} className="btn-primary btn-sm min-h-[44px]" /> : null}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
-
-      {/* MATERIALS */}
-      {nMaterials ? (
-        <section className="mt-14">
-          <Head n={nMaterials} title={d.portal.materials} className="mb-6" />
-          {materialRows ? <Spec rows={materialRows.map((r) => ({ k: r.k, v: r.v }))} /> : <p className="prose-lite border-y border-line py-4 leading-relaxed whitespace-pre-line">{materials}</p>}
-        </section>
-      ) : null}
-
-      {/* DECISION */}
-      {nFeedback ? (
-        <section className="mt-14 scroll-mt-20" id="feedback" aria-labelledby="feedback-title">
-          <Head n={nFeedback} title={d.portal.feedbackTitle} id="feedback-title" className="mb-6" />
-          {lastApproval ? (
-            <div className="mb-5 flex items-start gap-3 border-y border-success/40 bg-success-soft px-4 py-3.5 text-sm">
-              <Check size={18} strokeWidth={2.5} className="mt-0.5 flex-none text-success" aria-hidden />
-              <div>
-                <div className="font-semibold text-fg">
-                  {t.approvedOn} · {formatDate(lastApproval.createdAt, true)}
-                </div>
-                {lastApproval.message ? <p className="mt-1 text-fg-2">{lastApproval.message}</p> : null}
+          {/* The first thing a client wants to see is their furniture, not a list of links. */}
+          {cover ? (
+            <figure className="frame mt-8">
+              <div className="relative aspect-[16/10] w-full bg-surface-2 sm:aspect-[16/9]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={mediaUrl(cover.relPath, 1280)}
+                  srcSet={mediaSrcSet(cover.relPath) ?? undefined}
+                  sizes="(min-width: 64rem) 64rem, 100vw"
+                  alt={cover.caption || title}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                />
               </div>
+              <figcaption className="flex items-center justify-between gap-4 border-t border-line px-3.5 py-2">
+                <span className="caption min-w-0 truncate">{cover.caption || title}</span>
+                <span className="caption flex-none">{project.code}</span>
+              </figcaption>
+            </figure>
+          ) : null}
+
+          <div className="mt-10">
+            <StageStepper current={project.stage} labels={stageLabels} statusLabel={d.portal.status} nextWord={d.common.next} />
+          </div>
+
+          {data.link.message ? (
+            <div className="mt-10 border-l-2 border-accent bg-accent-soft/45 px-5 py-4">
+              <div className="kicker mb-1.5">{t.note}</div>
+              <p className="text-[15px] leading-relaxed whitespace-pre-line wrap-anywhere text-fg">{data.link.message}</p>
             </div>
           ) : null}
-          {recentOther.length ? (
-            <ul className="mb-6 divide-y divide-line border-y border-line">
-              {recentOther.map((f) => (
-                <li key={f.id} className="py-3.5">
-                  <div className="caption">
-                    <span className={f.type === "change_request" ? "text-warning" : "text-accent"}>{f.type === "change_request" ? t.changeRequested : t.questionAsked}</span>
-                    <span className="mx-2 text-faint">/</span>
-                    {formatDate(f.createdAt)}
-                    {f.resolved ? <span className="ml-2 text-success">✓</span> : null}
-                  </div>
-                  {f.message ? <p className="mt-1 text-[15px] text-fg-2">{f.message}</p> : null}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          <FeedbackForm
-            slug={slug}
-            token={token}
-            defaultContact={client?.phone || client?.telegram || client?.email || ""}
-            labels={{
-              title: d.portal.feedbackTitle,
-              variants: d.portal.variants,
-              approve: d.portal.approve,
-              change: d.portal.change,
-              question: d.portal.question,
-              placeholder: d.portal.feedbackPlaceholder,
-              contact: d.portal.feedbackContact,
-              send: d.portal.feedbackSend,
-              sending: d.common.sending,
-              thanks: d.portal.feedbackThanks,
-              approvedThanks: d.portal.approvedThanks,
-              optional: d.common.optional,
-              error: t.error,
-            }}
-          />
         </section>
-      ) : null}
 
-      {/* CONTACT */}
-      <section className="mt-14">
-        <Head n={nContact} title={d.portal.contactTitle} className="mb-4" />
-        <ContactChannels brand={brand} dict={d} />
-      </section>
+        {/* DELIVERABLES */}
+        {nDeliverables ? (
+          <section className="mt-14">
+            <Head n={nDeliverables} title={t.deliverables} className="mb-6" />
+            <PortalActions
+              slug={slug}
+              token={token}
+              webViewerHref={webViewerHref}
+              liveUrl={showLive ? project.liveUrl : null}
+              glbUrl={glb ? mediaUrl(glb.relPath) : null}
+              usdzUrl={usdz ? mediaUrl(usdz.relPath) : null}
+              poster={cover ? mediaUrl(cover.thumbRelPath ?? cover.relPath, 960) : null}
+              qrDataUrl={qrDataUrl}
+              labels={{ viewer: d.portal.viewer, viewerNote: t.viewerNote, live: d.portal.live, liveNote: d.portal.liveNote, premium: t.premium, ar: d.portal.ar, arNote: d.portal.arNote, close: d.common.close, arTexts }}
+            />
+          </section>
+        ) : null}
 
-      {/* PHONE ACTION BAR */}
-      <StickyActions slug={slug} token={token} webViewerHref={webViewerHref} feedbackId={showFeedback ? "feedback" : null} labels={{ viewer: d.portal.viewer, approve: d.portal.approve, approveShort: t.approveShort }} />
-    </div>
-  );
-}
+        {/* BEFORE / AFTER */}
+        {nBeforeAfter ? (
+          <section className="mt-14">
+            <Head n={nBeforeAfter} title={d.portal.beforeAfter} className="mb-6" />
+            <figure className="frame">
+              <BeforeAfter before={mediaUrl(sketch!.relPath, 1280)} after={mediaUrl(firstRender!.relPath, 1280)} labels={[d.portal.before, d.portal.after]} />
+              <figcaption className="flex items-center justify-between gap-4 border-t border-line px-3.5 py-2">
+                <span className="caption truncate">
+                  {d.portal.before} → {d.portal.after}
+                </span>
+                <span className="caption flex-none">{project.code}</span>
+              </figcaption>
+            </figure>
+          </section>
+        ) : null}
 
-/** Not found / expired: a centred typographic message on grid paper. */
-function StateCard({ title, brand, dict }: { title: string; brand: ReturnType<typeof getSetting<"brand">>; dict: ReturnType<typeof getDictionary> }) {
-  return (
-    <div className="grid-paper flex min-h-[70vh] items-center">
-      <div className="mx-auto w-full max-w-md px-5 py-16 text-center sm:px-8">
-        <div className="kicker">ArchiTek Soft</div>
-        <h1 className="h-sub mt-4 text-balance">{title}</h1>
-        <div className="mx-auto mt-8 h-px w-16 bg-line-strong" aria-hidden />
-        <div className="mt-8 text-left">
-          <div className="kicker mb-3">{dict.portal.contactTitle}</div>
-          <ContactChannels brand={brand} dict={dict} />
-        </div>
+        {/* GALLERY */}
+        {nGallery ? (
+          <section className="mt-14">
+            <Head n={nGallery} title={d.portal.gallery} className="mb-6" />
+            <Gallery
+              title={d.portal.gallery}
+              labels={{ close: d.common.close, prev: d.common.prevImage, next: d.common.nextImage }}
+              images={renders.map((a) => ({
+                src: mediaUrl(a.relPath, 960),
+                srcSet: mediaSrcSet(a.relPath),
+                thumb: mediaUrl(a.thumbRelPath ?? a.relPath, 480),
+                thumbSrcSet: mediaSrcSet(a.thumbRelPath ?? a.relPath, [320, 480, 960]),
+                caption: a.caption,
+                width: a.width,
+                height: a.height,
+              }))}
+            />
+          </section>
+        ) : null}
+
+        {/* VIDEO */}
+        {nVideo ? (
+          <section className="mt-14">
+            <Head n={nVideo} title={d.portal.video} className="mb-6" />
+            <div className={`grid gap-5 ${videos.length > 1 ? "md:grid-cols-2" : ""}`}>
+              {videos.map((v, i) => (
+                <figure key={v.id} className="frame">
+                  <video controls playsInline preload="none" poster={v.thumbRelPath ? mediaUrl(v.thumbRelPath, 960) : undefined} className="aspect-video w-full bg-stage" src={mediaUrl(v.relPath)} aria-label={v.caption || d.portal.video} />
+                  <figcaption className="flex items-center justify-between gap-4 border-t border-line px-3.5 py-2">
+                    <span className="caption truncate">
+                      <span className="text-accent">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="mx-2 text-faint">/</span>
+                      {v.caption || d.portal.video}
+                    </span>
+                    <span className="caption flex-none">MP4</span>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {/* DOCUMENTS */}
+        {nDocs ? (
+          <section className="mt-14">
+            <Head n={nDocs} title={d.portal.documents} className="mb-2" />
+            <ul className="divide-y divide-line border-b border-line">
+              {docs.map((doc) => {
+                const url = mediaUrl(doc.relPath);
+                const ext = (doc.originalName.split(".").pop() || t.file).toUpperCase().slice(0, 4);
+                return (
+                  <li key={doc.id} className="flex flex-wrap items-center gap-x-5 gap-y-3 py-4">
+                    <span className="caption w-24 flex-none tabular-nums">
+                      <span className="text-fg-2">{ext}</span>
+                      {doc.sizeBytes ? <span className="ml-2 text-faint">{formatBytes(doc.sizeBytes, locale)}</span> : null}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-medium text-fg">{doc.caption || doc.originalName}</span>
+                      {doc.caption ? <span className="caption block truncate">{doc.originalName}</span> : null}
+                    </span>
+                    <span className="flex flex-none flex-wrap gap-2">
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm min-h-[44px]" aria-label={`${t.view}: ${doc.caption || doc.originalName}`}>
+                        <ExternalLink size={15} aria-hidden />
+                        {t.view}
+                      </a>
+                      {data.link.allowDownload ? <DownloadLink slug={slug} token={token} href={`${url}?download=${encodeURIComponent(doc.originalName)}`} name={doc.originalName} label={d.portal.download} className="btn-primary btn-sm min-h-[44px]" /> : null}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ) : null}
+
+        {/* MATERIALS */}
+        {nMaterials ? (
+          <section className="mt-14">
+            <Head n={nMaterials} title={d.portal.materials} className="mb-6" />
+            {materialRows ? <Spec rows={materialRows.map((r) => ({ k: r.k, v: r.v }))} /> : <p className="prose-lite border-y border-line py-4 leading-relaxed whitespace-pre-line wrap-anywhere">{materials}</p>}
+          </section>
+        ) : null}
+
+        {/* DECISION */}
+        {nFeedback ? (
+          <section className="mt-14 scroll-mt-20" id="feedback" aria-labelledby="feedback-title">
+            <Head n={nFeedback} title={d.portal.feedbackTitle} id="feedback-title" className="mb-6" />
+            {lastApproval ? (
+              <div className="mb-5 flex items-start gap-3 border-y border-success/40 bg-success-soft px-4 py-3.5 text-sm">
+                <Check size={18} strokeWidth={2.5} className="mt-0.5 flex-none text-success" aria-hidden />
+                <div className="min-w-0">
+                  <div className="font-semibold text-fg">
+                    {t.approvedOn} · {formatDate(lastApproval.createdAt, true, locale)}
+                  </div>
+                  {lastApproval.message ? <p className="mt-1 wrap-anywhere text-fg-2">{lastApproval.message}</p> : null}
+                </div>
+              </div>
+            ) : null}
+            {recentOther.length ? (
+              <>
+                <ul className="mb-3 divide-y divide-line border-y border-line">
+                  {recentOther.map((f) => (
+                    <li key={f.id} className="py-3.5">
+                      <div className="caption flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className={f.type === "change_request" ? "text-warning" : "text-accent"}>{f.type === "change_request" ? t.changeRequested : t.questionAsked}</span>
+                        <span className="text-faint">/</span>
+                        <span>{formatDate(f.createdAt, false, locale)}</span>
+                        <span className="text-faint">/</span>
+                        {/* A bare green tick told the client nothing: the state is now a word. */}
+                        {f.resolved ? (
+                          <span className="inline-flex items-center gap-1 text-success">
+                            <Check size={13} strokeWidth={2.5} aria-hidden />
+                            {f.type === "question" ? t.answered : t.resolved}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-muted">
+                            <Clock size={12} strokeWidth={2} aria-hidden />
+                            {t.inProgress}
+                          </span>
+                        )}
+                      </div>
+                      {f.message ? <p className="mt-1 text-[15px] wrap-anywhere text-fg-2">{f.message}</p> : null}
+                    </li>
+                  ))}
+                </ul>
+                <p className="caption mb-6">{t.replyNote}</p>
+              </>
+            ) : null}
+            <FeedbackForm
+              slug={slug}
+              token={token}
+              canApprove={canApprove}
+              defaultContact={client?.phone || client?.telegram || client?.email || ""}
+              labels={{
+                title: d.portal.feedbackTitle,
+                variants: d.portal.variants,
+                approve: d.portal.approve,
+                change: d.portal.change,
+                question: d.portal.question,
+                placeholder: d.portal.feedbackPlaceholder,
+                commentOptional: t.commentOptional,
+                contact: d.portal.feedbackContact,
+                send: d.portal.feedbackSend,
+                sending: d.common.sending,
+                thanks: d.portal.feedbackThanks,
+                approvedThanks: d.portal.approvedThanks,
+                optional: d.common.optional,
+                error: t.error,
+              }}
+            />
+          </section>
+        ) : null}
+
+        {/* CONTACT */}
+        <section className="mt-14">
+          <Head n={nContact} title={d.portal.contactTitle} className="mb-4" />
+          <ContactChannels brand={brand} dict={d} />
+        </section>
+
+        {/* PHONE ACTION BAR */}
+        <StickyActions
+          slug={slug}
+          token={token}
+          webViewerHref={webViewerHref}
+          feedbackId={showFeedback ? "feedback" : null}
+          mode={canApprove ? "approve" : "message"}
+          labels={{ viewer: d.portal.viewer, viewerShort: t.viewerShort, approve: d.portal.approve, approveShort: t.approveShort, message: t.messageLong, messageShort: t.messageShort }}
+        />
       </div>
-    </div>
+    </PortalChrome>
   );
 }

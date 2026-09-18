@@ -1,5 +1,6 @@
 /**
- * Owner notifications (Telegram first, email optional). All best-effort.
+ * Owner notifications (Telegram first, email optional). All best-effort: every outbound call has a
+ * timeout and failures are logged, never thrown to the caller.
  */
 import { env } from "./env";
 import { getSetting } from "./settings";
@@ -65,12 +66,15 @@ export async function notifyText(text: string) {
 export async function sendEmail(subject: string, text: string) {
   if (!env.email.resendKey) return;
   try {
-    await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${env.email.resendKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from: env.email.from, to: [env.email.to], subject, text }),
+      signal: AbortSignal.timeout(10_000),
     });
+    if (!res.ok) console.warn("[notify] email failed", res.status, (await res.text().catch(() => "")).slice(0, 300));
   } catch (e) {
-    console.warn("[notify] email failed", (e as Error).message);
+    const name = (e as { name?: string }).name;
+    console.warn("[notify] email failed", name === "TimeoutError" || name === "AbortError" ? "timed out after 10 s" : (e as Error).message);
   }
 }
