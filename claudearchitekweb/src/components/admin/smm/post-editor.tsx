@@ -13,11 +13,13 @@
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Music, MoreHorizontal, Plus, Send, Sparkles, Star, UploadCloud, Wand2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Grid3x3, Music, MoreHorizontal, Plus, Send, Sparkles, Star, UploadCloud, Wand2, X } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui";
 import { PlatformChip, PlatformDot, type PlatformMeta, type PlatformMetaMap } from "@/components/admin/smm/platform-chip";
 import { VariantPreview, type CanvasMatte, type CanvasMode } from "@/components/admin/smm/post-preview";
 import { StudioVisualsPanel, type StudioVisualsLabels } from "@/components/admin/smm/studio-visuals-panel";
+import { MediaLightbox } from "@/components/admin/smm/media-lightbox";
+import { GridHarmonyModal, type GridHarmonyLabels } from "@/components/admin/smm/grid-harmony-modal";
 import { ABOVE_TAB_BAR, useStickyBarSpace } from "@/components/admin/smm/bar-space";
 import { fromYerevanInput, toYerevanInput } from "@/lib/tz";
 import { cn } from "@/lib/utils";
@@ -117,7 +119,14 @@ export type EditorLabels = {
   audioUploadCta: string; audioUploading: string; audioUploadFailed: string; audioNote: string;
   // "Mode B" (send pack to Telegram).
   sendMobilePack: string; sendingMobilePack: string;
-} & StudioVisualsLabels;
+  // Media strip drag-and-drop + fullscreen lightbox.
+  mediaDragHint: string;
+  lightboxPrev: string;
+  lightboxNext: string;
+  // Instagram 3x3 grid harmony preview.
+  gridHarmonyButton: string;
+} & StudioVisualsLabels &
+  GridHarmonyLabels;
 
 /** Set only for a post the local drop folder prepared (posts.source = 'inbox'). */
 export type InboxOrigin = { folder: string; suggestedSlot: string | null; suggestedLabel: string | null };
@@ -196,6 +205,10 @@ export function PostEditor({
   const [variants, setVariants] = useState(initialVariants);
   const [attached, setAttached] = useState(initialAssets);
   const [showPicker, setShowPicker] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showGridHarmony, setShowGridHarmony] = useState(false);
   const [active, setActive] = useState(initialVariants[0]?.id ?? "");
   const [msg, setMsg] = useState<{ text: string; tone: Tone } | null>(null);
   const [results, setResults] = useState<PublishResult[] | null>(null);
@@ -303,6 +316,25 @@ export function PostEditor({
     });
   };
 
+  /**
+   * Drag-and-drop reorder: unlike the chevron buttons (an adjacent swap, batch-saved with everything
+   * else), a drop is a "move this to exactly here" gesture and persists immediately — the order is
+   * meaningful the instant it changes, and an operator who just dragged a photo should not need to
+   * remember a separate Save for it. `next` is built explicitly and handed to both `setAttached` and
+   * `saveNow` so the save reads the just-dropped order, not attached's stale pre-drop closure value.
+   */
+  const reorderByDrag = (from: number, to: number) => {
+    if (from === to) return;
+    const next = attached.slice();
+    const [picked] = next.splice(from, 1);
+    next.splice(to, 0, picked);
+    setAttached(next);
+    run(async () => {
+      const s = await saveNow(next);
+      if (s.ok) setMsg({ text: [L.saved, ...s.notes].join(" · "), tone: s.notes.length ? "warn" : "ok" });
+    });
+  };
+
   function run(fn: () => Promise<void>) {
     setMsg(null);
     start(async () => {
@@ -322,7 +354,10 @@ export function PostEditor({
    * (hashtags that had to be capped, variants over their platform limit) so the caller can add them
    * to its own message instead of flashing two banners.
    */
-  async function saveNow(): Promise<{ ok: boolean; notes: string[] }> {
+  /** `overrideAttached`, when given, is sent instead of the `attached` state closed over here — the
+   * drag-and-drop reorder calls this in the same tick it calls `setAttached`, before that state
+   * update has actually committed, so relying on the closure would save the pre-drag order. */
+  async function saveNow(overrideAttached?: EditorAsset[]): Promise<{ ok: boolean; notes: string[] }> {
     const capped: string[] = [];
     const payload = variants.map((v) => {
       const tags = splitTags(v.hashtags);
@@ -335,7 +370,7 @@ export function PostEditor({
       notes: post.notes,
       goal,
       language,
-      assetIds: attached.map((a) => a.id),
+      assetIds: (overrideAttached ?? attached).map((a) => a.id),
       variants: payload,
       audioMode,
       audioAssetId: audioMode === "custom" ? audioAssetId : null,
@@ -542,6 +577,11 @@ export function PostEditor({
             {L.media} <span className="text-faint">({attached.length})</span>
           </h2>
           <div className="flex flex-wrap items-center gap-2">
+            {attached.length > 0 ? (
+              <button type="button" onClick={() => setShowGridHarmony(true)} className="btn-secondary btn-sm">
+                <Grid3x3 size={14} aria-hidden /> {L.gridHarmonyButton}
+              </button>
+            ) : null}
             <button type="button" onClick={() => setShowPicker((s) => !s)} aria-expanded={showPicker} className="btn-secondary btn-sm">
               <Plus size={14} aria-hidden /> {showPicker ? L.close : L.addMedia}
             </button>
@@ -553,10 +593,28 @@ export function PostEditor({
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
               {attached.map((a, i) => (
-                <div key={a.id} className="group relative aspect-square overflow-hidden rounded-sm border border-line">
+                <div
+                  key={a.id}
+                  draggable
+                  onDragStart={(e) => { setDragIndex(i); e.dataTransfer.effectAllowed = "move"; }}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; if (dragOverIndex !== i) setDragOverIndex(i); }}
+                  onDragLeave={() => setDragOverIndex((cur) => (cur === i ? null : cur))}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragIndex !== null) reorderByDrag(dragIndex, i);
+                    setDragIndex(null);
+                    setDragOverIndex(null);
+                  }}
+                  onDragEnd={() => { setDragIndex(null); setDragOverIndex(null); }}
+                  className={cn(
+                    "group relative aspect-square cursor-grab overflow-hidden rounded-sm border border-line active:cursor-grabbing",
+                    dragIndex === i && "opacity-40",
+                    dragOverIndex === i && dragIndex !== i && "ring-2 ring-accent ring-offset-1 ring-offset-surface",
+                  )}
+                >
                   {a.thumbUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.thumbUrl} alt={a.name} loading="lazy" className="h-full w-full object-cover" />
+                    <img src={a.thumbUrl} alt={a.name} loading="lazy" onClick={() => setLightboxIndex(i)} className="h-full w-full cursor-zoom-in object-cover" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center bg-surface-2 text-[10px] text-muted">{a.kind}</span>
                   )}
@@ -635,7 +693,8 @@ export function PostEditor({
               )}
             </div>
           ) : null}
-          <p className="mt-3 text-xs text-muted">{L.mediaSaveNote}</p>
+          <p className="mt-3 text-xs text-muted">{L.mediaDragHint}</p>
+          <p className="mt-1 text-xs text-muted">{L.mediaSaveNote}</p>
         </div>
       </section>
 
@@ -817,6 +876,17 @@ export function PostEditor({
           ) : null}
         </div>
       </div>
+
+      {lightboxIndex !== null ? (
+        <MediaLightbox
+          items={attached.map((a) => ({ id: a.id, name: a.name, url: a.url || a.thumbUrl, mime: a.mime }))}
+          index={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          labels={{ close: L.lightboxClose, prev: L.lightboxPrev, next: L.lightboxNext }}
+        />
+      ) : null}
+      {showGridHarmony ? <GridHarmonyModal postId={post.id} labels={L} onClose={() => setShowGridHarmony(false)} /> : null}
     </div>
   );
 }

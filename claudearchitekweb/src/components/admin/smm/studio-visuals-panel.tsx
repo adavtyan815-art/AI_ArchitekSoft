@@ -1,15 +1,16 @@
 "use client";
 
 /**
- * "🎨 Studio Visual Layouts": three static 4:5 graphics (lib/social/studio-visuals.ts) composed from
- * a post's own photos — an Editorial Cover, a Color & Material Palette card, and a Split Detail
- * (overview + close-up) card. Generating one calls the server, then hands the new asset up to
- * PostEditor's own `attached` state via `onGenerated` — it appears in the media strip and every
- * platform preview immediately, exactly like an uploaded photo, and the existing remove (X) button
- * on its media-strip tile is the "discard this layout" control; nothing bespoke is needed for that.
+ * "🎨 Studio Visual Layouts": four static 4:5 graphics (lib/social/studio-visuals.ts) composed from a
+ * post's own photos — an Editorial Cover, a Color & Material Palette card, a Split Detail (overview +
+ * close-up) card, and a Process card (2D technical drawing -> 3D render). Generating one calls the
+ * server, then hands the new asset up to PostEditor's own `attached` state via `onGenerated` — it
+ * appears in the media strip and every platform preview immediately, exactly like an uploaded photo,
+ * and the existing remove (X) button on its media-strip tile is the "discard this layout" control;
+ * nothing bespoke is needed for that.
  */
 import { useState } from "react";
-import { BookImage, Columns2, LayoutTemplate, Palette } from "lucide-react";
+import { BookImage, Columns2, LayoutTemplate, Palette, PenTool } from "lucide-react";
 import { Field, Input, Select } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { generateStudioVisualAction } from "@/app/admin/actions/smm-actions";
@@ -35,6 +36,7 @@ export type StudioVisualsLabels = {
   tabCover: string;
   tabPalette: string;
   tabSplit: string;
+  tabProcess: string;
   coverSourceLabel: string;
   coverTitleLabel: string;
   coverMaterialsLabel: string;
@@ -45,6 +47,8 @@ export type StudioVisualsLabels = {
   splitDetailImageLabel: string;
   splitWideCaption: string;
   splitDetailCaption: string;
+  processDrawingLabel: string;
+  processRenderLabel: string;
   pickImage: string;
   generateVisual: string;
   generatingVisual: string;
@@ -54,8 +58,8 @@ export type StudioVisualsLabels = {
   genericError: string;
 };
 
-type Tab = "cover" | "palette" | "split";
-const TABS: Tab[] = ["cover", "palette", "split"];
+type Tab = "cover" | "palette" | "split" | "process";
+const TABS: Tab[] = ["cover", "palette", "split", "process"];
 
 function ImagePicker({ images, value, onChange, labels, className }: { images: VisualSourceImage[]; value: string; onChange: (id: string) => void; labels: StudioVisualsLabels; className?: string }) {
   const picked = images.find((i) => i.id === value);
@@ -107,12 +111,18 @@ export function StudioVisualsPanel({
   const [splitWideCaption, setSplitWideCaption] = useState("");
   const [splitDetailCaption, setSplitDetailCaption] = useState("");
 
+  const [processDrawing, setProcessDrawing] = useState("");
+  const [processRender, setProcessRender] = useState("");
+  const [processDrawingCaption, setProcessDrawingCaption] = useState("");
+  const [processRenderCaption, setProcessRenderCaption] = useState("");
+
   const tabIcon: Record<Tab, React.ReactNode> = {
     cover: <BookImage size={13} aria-hidden />,
     palette: <Palette size={13} aria-hidden />,
     split: <Columns2 size={13} aria-hidden />,
+    process: <PenTool size={13} aria-hidden />,
   };
-  const tabLabel: Record<Tab, string> = { cover: L.tabCover, palette: L.tabPalette, split: L.tabSplit };
+  const tabLabel: Record<Tab, string> = { cover: L.tabCover, palette: L.tabPalette, split: L.tabSplit, process: L.tabProcess };
 
   async function generate() {
     if (busy) return;
@@ -123,7 +133,7 @@ export function StudioVisualsPanel({
     } else if (tab === "palette") {
       if (!paletteSource) return;
       payload = { template: "palette", postId, sourceAssetId: paletteSource };
-    } else {
+    } else if (tab === "split") {
       if (!splitWide || !splitDetail) return;
       payload = {
         template: "split",
@@ -132,6 +142,16 @@ export function StudioVisualsPanel({
         detailAssetId: splitDetail,
         wideLabel: splitWideCaption.trim() || undefined,
         detailLabel: splitDetailCaption.trim() || undefined,
+      };
+    } else {
+      if (!processDrawing || !processRender) return;
+      payload = {
+        template: "process",
+        postId,
+        drawingAssetId: processDrawing,
+        renderAssetId: processRender,
+        drawingLabel: processDrawingCaption.trim() || undefined,
+        renderLabel: processRenderCaption.trim() || undefined,
       };
     }
     setBusy(true);
@@ -152,7 +172,13 @@ export function StudioVisualsPanel({
 
   const canGenerate =
     !busy &&
-    (tab === "cover" ? !!coverSource && !!coverTitle.trim() : tab === "palette" ? !!paletteSource : !!splitWide && !!splitDetail);
+    (tab === "cover"
+      ? !!coverSource && !!coverTitle.trim()
+      : tab === "palette"
+        ? !!paletteSource
+        : tab === "split"
+          ? !!splitWide && !!splitDetail
+          : !!processDrawing && !!processRender);
 
   return (
     <section className="card">
@@ -204,21 +230,40 @@ export function StudioVisualsPanel({
                 </Field>
                 <p className="text-xs text-faint">{L.paletteHint}</p>
               </div>
+            ) : tab === "split" ? (
+              images.length < 2 ? (
+                <p className="text-xs text-warning">{L.needsTwoImages}</p>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label={L.splitWideImageLabel}>
+                    <ImagePicker images={images} value={splitWide} onChange={setSplitWide} labels={L} />
+                  </Field>
+                  <Field label={L.splitDetailImageLabel}>
+                    <ImagePicker images={images} value={splitDetail} onChange={setSplitDetail} labels={L} />
+                  </Field>
+                  <Field label={L.splitWideCaption}>
+                    <Input value={splitWideCaption} onChange={(e) => setSplitWideCaption(e.target.value)} placeholder="OVERVIEW" maxLength={40} />
+                  </Field>
+                  <Field label={L.splitDetailCaption}>
+                    <Input value={splitDetailCaption} onChange={(e) => setSplitDetailCaption(e.target.value)} placeholder="TEXTURE & JOINERY" maxLength={40} />
+                  </Field>
+                </div>
+              )
             ) : images.length < 2 ? (
               <p className="text-xs text-warning">{L.needsTwoImages}</p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label={L.splitWideImageLabel}>
-                  <ImagePicker images={images} value={splitWide} onChange={setSplitWide} labels={L} />
+                <Field label={L.processDrawingLabel}>
+                  <ImagePicker images={images} value={processDrawing} onChange={setProcessDrawing} labels={L} />
                 </Field>
-                <Field label={L.splitDetailImageLabel}>
-                  <ImagePicker images={images} value={splitDetail} onChange={setSplitDetail} labels={L} />
+                <Field label={L.processRenderLabel}>
+                  <ImagePicker images={images} value={processRender} onChange={setProcessRender} labels={L} />
                 </Field>
                 <Field label={L.splitWideCaption}>
-                  <Input value={splitWideCaption} onChange={(e) => setSplitWideCaption(e.target.value)} placeholder="OVERVIEW" maxLength={40} />
+                  <Input value={processDrawingCaption} onChange={(e) => setProcessDrawingCaption(e.target.value)} placeholder="2D TECHNICAL DRAFT" maxLength={40} />
                 </Field>
                 <Field label={L.splitDetailCaption}>
-                  <Input value={splitDetailCaption} onChange={(e) => setSplitDetailCaption(e.target.value)} placeholder="TEXTURE & JOINERY" maxLength={40} />
+                  <Input value={processRenderCaption} onChange={(e) => setProcessRenderCaption(e.target.value)} placeholder="3D PHOTOREALISM" maxLength={40} />
                 </Field>
               </div>
             )}

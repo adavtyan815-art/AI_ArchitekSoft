@@ -131,6 +131,35 @@ export function listPosts(): PostRow[] {
   return rows.map((r) => ({ ...r.post, projectTitle: r.projectTitle, projectCode: r.projectCode, variants: variants.filter((v) => v.postId === r.post.id) }));
 }
 
+export type GridNeighbor = { id: string; title: string; status: string; coverUrl: string };
+
+/**
+ * The last `limit` posts near "going out" (published, mid-way, or on the calendar), each with its
+ * cover — the first attached image by `sortOrder`, same definition `attached[0]` has everywhere else
+ * (see the comment on `moveAsset` in post-editor.tsx). Posts have no `coverAssetId` column the way
+ * projects do, so the cover is resolved through `post_assets` with a `row_number()` window (same
+ * technique `listMediaAssetsLite`'s per-project top-up already uses) rather than a second round trip
+ * per post. Ordered by whichever of `publishedAt`/`scheduledAt` is the closer thing to "when this
+ * appears in the feed" — a published post by when it actually went out, an upcoming one by its slot.
+ */
+export function listGridNeighbors(excludePostId: string, limit = 8): GridNeighbor[] {
+  const db = getDb();
+  const rows = db.all<{ id: string; title: string; status: string; thumb_rel_path: string | null; rel_path: string }>(sql`
+    select p.id as id, p.title as title, p.status as status, a.thumb_rel_path as thumb_rel_path, a.rel_path as rel_path
+    from posts p
+    join (
+      select post_id, asset_id, row_number() over (partition by post_id order by sort_order asc) as rn
+      from post_assets
+    ) pa on pa.post_id = p.id and pa.rn = 1
+    join assets a on a.id = pa.asset_id
+    where p.status in ('published', 'partially_published', 'scheduled', 'approved')
+      and p.id != ${excludePostId}
+    order by coalesce(p.published_at, p.scheduled_at) desc
+    limit ${limit}
+  `);
+  return rows.map((r) => ({ id: r.id, title: r.title, status: r.status, coverUrl: mediaUrl(r.thumb_rel_path || r.rel_path, 320) }));
+}
+
 export function smmStats() {
   const db = getDb();
   const count = (where: ReturnType<typeof sql>) => db.select({ c: sql<number>`count(*)` }).from(schema.posts).where(where).get()?.c ?? 0;

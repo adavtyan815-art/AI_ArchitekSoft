@@ -6,9 +6,9 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { PLATFORMS, aiStatus, rewriteText } from "@/lib/ai";
 import { createPostPack, getPostFull, publishPost, schedulePost, sendForApproval, sendMobilePack, setPostStatus } from "@/lib/smm";
-import { deletePost, duplicatePost, setPostAssets, toAssetLite, updatePost, updateVariant } from "@/lib/smm-admin";
+import { deletePost, duplicatePost, listGridNeighbors, setPostAssets, toAssetLite, updatePost, updateVariant } from "@/lib/smm-admin";
 import { absPath, generatePoster, saveAsset } from "@/lib/media";
-import { generateEditorialCover, generatePaletteCard, generateSplitDetail } from "@/lib/social/studio-visuals";
+import { generateEditorialCover, generatePaletteCard, generateProcessCard, generateSplitDetail } from "@/lib/social/studio-visuals";
 import { runInbox, suggestSlot, suggestedSlotOf, wasImported } from "@/lib/inbox";
 import { PLATFORM_META } from "@/lib/social";
 import { listAmbientTracks } from "@/lib/audio";
@@ -527,10 +527,19 @@ const StudioVisualSchema = z.discriminatedUnion("template", [
     wideLabel: z.string().trim().max(40).optional(),
     detailLabel: z.string().trim().max(40).optional(),
   }),
+  z.object({
+    template: z.literal("process"),
+    postId: z.string(),
+    drawingAssetId: z.string(),
+    renderAssetId: z.string(),
+    drawingLabel: z.string().trim().max(40).optional(),
+    renderLabel: z.string().trim().max(40).optional(),
+  }),
 ]);
 
-/** "🎨 Studio Visual Layouts": composes one of the three sharp+SVG templates (lib/social/studio-visuals.ts)
- * from the post's own photos and attaches the result as a new image asset, exactly like generatePosterAction. */
+/** "🎨 Studio Visual Layouts": composes one of the four sharp+SVG templates (lib/social/studio-visuals.ts)
+ * from the post's own photos and attaches the result as a new image asset, exactly like generatePosterAction.
+ * The studio signature every template draws comes from Settings → Brand, not a hardcoded string. */
 export async function generateStudioVisualAction(input: z.infer<typeof StudioVisualSchema>) {
   await requireUser();
   const m = await M();
@@ -546,6 +555,7 @@ export async function generateStudioVisualAction(input: z.infer<typeof StudioVis
     const a = db.select().from(schema.assets).where(eq(schema.assets.id, id)).get();
     return a && a.mime.startsWith("image/") ? a : null;
   };
+  const studioName = getSetting("brand").name;
 
   try {
     let buffer: Buffer;
@@ -553,19 +563,25 @@ export async function generateStudioVisualAction(input: z.infer<typeof StudioVis
     if (data.template === "cover") {
       const src = loadImage(data.sourceAssetId);
       if (!src) return { ok: false as const, error: m.sourceImage };
-      buffer = await generateEditorialCover({ sourceAbsPath: absPath(src.relPath), title: data.title, materials: data.materials });
+      buffer = await generateEditorialCover({ sourceAbsPath: absPath(src.relPath), title: data.title, materials: data.materials, studioName });
       originalName = "editorial-cover.jpg";
     } else if (data.template === "palette") {
       const src = loadImage(data.sourceAssetId);
       if (!src) return { ok: false as const, error: m.sourceImage };
-      buffer = await generatePaletteCard({ sourceAbsPath: absPath(src.relPath) });
+      buffer = await generatePaletteCard({ sourceAbsPath: absPath(src.relPath), studioName });
       originalName = "palette-card.jpg";
-    } else {
+    } else if (data.template === "split") {
       const wide = loadImage(data.wideAssetId);
       const detail = loadImage(data.detailAssetId);
       if (!wide || !detail) return { ok: false as const, error: m.sourceImage };
-      buffer = await generateSplitDetail({ wideAbsPath: absPath(wide.relPath), detailAbsPath: absPath(detail.relPath), wideLabel: data.wideLabel, detailLabel: data.detailLabel });
+      buffer = await generateSplitDetail({ wideAbsPath: absPath(wide.relPath), detailAbsPath: absPath(detail.relPath), wideLabel: data.wideLabel, detailLabel: data.detailLabel, studioName });
       originalName = "split-detail.jpg";
+    } else {
+      const drawing = loadImage(data.drawingAssetId);
+      const render = loadImage(data.renderAssetId);
+      if (!drawing || !render) return { ok: false as const, error: m.sourceImage };
+      buffer = await generateProcessCard({ drawingAbsPath: absPath(drawing.relPath), renderAbsPath: absPath(render.relPath), drawingLabel: data.drawingLabel, renderLabel: data.renderLabel, studioName });
+      originalName = "process-card.jpg";
     }
     const saved = await saveAsset({ buffer, originalName, mime: "image/jpeg", kindHint: "poster", projectId: full.post.projectId });
     const asset = db.select().from(schema.assets).where(eq(schema.assets.id, saved.id)).get();
@@ -577,6 +593,21 @@ export async function generateStudioVisualAction(input: z.infer<typeof StudioVis
     console.error("[smm] generateStudioVisual failed", e);
     return { ok: false as const, error: m.studioVisualFailed };
   }
+}
+
+/** "📱 Instagram 3×3 Grid": this post's own cover plus the last 8 posts near going out, for a quick
+ * color-harmony check before publishing. Fetched on demand (only when the operator opens the grid
+ * view), not on every editor page load. */
+export async function gridHarmonyAction(input: { id: string }) {
+  await requireUser();
+  const m = await M();
+  const parsed = z.object({ id: z.string() }).safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: m.invalidInput };
+  const full = getPostFull(parsed.data.id);
+  if (!full) return { ok: false as const, error: m.notFound };
+  const cover = full.assets[0] ? toAssetLite(full.assets[0]) : null;
+  const neighbors = listGridNeighbors(parsed.data.id, 8);
+  return { ok: true as const, current: { id: full.post.id, title: full.post.title, coverUrl: cover?.thumbUrl || "" }, neighbors };
 }
 
 export async function publishNowAction(input: { id: string }) {
