@@ -13,17 +13,17 @@
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Clapperboard, Music, MoreHorizontal, Plus, Send, Sparkles, Star, UploadCloud, Wand2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Music, MoreHorizontal, Plus, Send, Sparkles, Star, UploadCloud, Wand2, X } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui";
 import { PlatformChip, PlatformDot, type PlatformMeta, type PlatformMetaMap } from "@/components/admin/smm/platform-chip";
 import { VariantPreview, type CanvasMatte, type CanvasMode } from "@/components/admin/smm/post-preview";
+import { StudioVisualsPanel, type StudioVisualsLabels } from "@/components/admin/smm/studio-visuals-panel";
 import { ABOVE_TAB_BAR, useStickyBarSpace } from "@/components/admin/smm/bar-space";
 import { fromYerevanInput, toYerevanInput } from "@/lib/tz";
 import { cn } from "@/lib/utils";
 import {
   deletePostAction,
   duplicatePostAction,
-  generateReelAction,
   publishNowAction,
   rewriteVariantAction,
   savePostAction,
@@ -115,10 +115,9 @@ export type EditorLabels = {
   matteBlur: string; matteDark: string;
   audioLabel: string; audioNone: string; audioAuto: string; audioCustom: string; audioTrackLabel: string; audioNoTracks: string;
   audioUploadCta: string; audioUploading: string; audioUploadFailed: string; audioNote: string;
-  // "Mode B" (send pack to Telegram) and the Cinematic Reel generator.
+  // "Mode B" (send pack to Telegram).
   sendMobilePack: string; sendingMobilePack: string;
-  generateReel: string; generatingReel: string; reelNeedsTwoImages: string;
-};
+} & StudioVisualsLabels;
 
 /** Set only for a post the local drop folder prepared (posts.source = 'inbox'). */
 export type InboxOrigin = { folder: string; suggestedSlot: string | null; suggestedLabel: string | null };
@@ -212,7 +211,6 @@ export function PostEditor({
   const [customAudio, setCustomAudio] = useState(initialCustomAudio);
   const [audioUploading, setAudioUploading] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
-  const [reelBusy, setReelBusy] = useState(false);
 
   async function uploadAudio(file: File) {
     setAudioUploading(true);
@@ -248,7 +246,6 @@ export function PostEditor({
   const nameOf = (platform: string) => metaMap[platform]?.label ?? platform;
   const hasMedia = attached.length > 0;
   const imageCount = attached.filter((a) => a.mime.startsWith("image/")).length;
-  const canGenerateReel = imageCount >= 2;
   const canSendMobilePack = imageCount > 0;
   const sent = SENT_STATUSES.includes(post.status);
   const canSendApproval = !sent && post.status !== "cancelled";
@@ -402,25 +399,6 @@ export function PostEditor({
       setMsg(r.ok ? { text: r.message, tone: "ok" } : { text: r.error, tone: "error" });
     });
 
-  /** Renders the Ken Burns / cross-dissolve slideshow and drops it straight into the media strip. */
-  const generateReel = () =>
-    run(async () => {
-      setReelBusy(true);
-      try {
-        const r = await generateReelAction({ id: post.id });
-        if (!r.ok) {
-          setMsg({ text: r.error, tone: "error" });
-          return;
-        }
-        // generateReelForPost already attached the new asset server-side; this just mirrors that
-        // into the client's media strip — it is not an unsaved local edit.
-        setAttached((s) => [...s, { id: r.asset.id, name: r.asset.name, kind: r.asset.kind, mime: r.asset.mime, projectId: r.asset.projectId, thumbUrl: r.asset.thumbUrl, url: r.asset.url, width: r.asset.width, height: r.asset.height, durationSec: r.asset.durationSec }]);
-        setMsg({ text: r.message, tone: "ok" });
-      } finally {
-        setReelBusy(false);
-      }
-    });
-
   const setStatus = (status: "approved" | "cancelled" | "draft" | "scheduled") =>
     run(async () => {
       const r = await setPostStatusAction({ id: post.id, status });
@@ -564,15 +542,6 @@ export function PostEditor({
             {L.media} <span className="text-faint">({attached.length})</span>
           </h2>
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={generateReel}
-              disabled={pending || !canGenerateReel}
-              title={canGenerateReel ? undefined : L.reelNeedsTwoImages}
-              className="btn-secondary btn-sm"
-            >
-              <Clapperboard size={14} aria-hidden /> {reelBusy ? L.generatingReel : L.generateReel}
-            </button>
             <button type="button" onClick={() => setShowPicker((s) => !s)} aria-expanded={showPicker} className="btn-secondary btn-sm">
               <Plus size={14} aria-hidden /> {showPicker ? L.close : L.addMedia}
             </button>
@@ -730,6 +699,15 @@ export function PostEditor({
           <p className="text-xs text-muted">{L.audioNote}</p>
         </div>
       </section>
+
+      <StudioVisualsPanel
+        postId={post.id}
+        images={attached.filter((a) => a.mime.startsWith("image/")).map((a) => ({ id: a.id, name: a.name, thumbUrl: a.thumbUrl }))}
+        defaultTitle={title}
+        labels={L}
+        onGenerated={(asset) => setAttached((s) => [...s, asset])}
+        onMessage={(text, tone) => setMsg({ text, tone })}
+      />
 
       {/* Platform strip — mobile only */}
       {variants.length > 1 ? (

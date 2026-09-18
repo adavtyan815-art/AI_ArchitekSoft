@@ -446,7 +446,7 @@ export function deleteAsset(id: string) {
 }
 
 /** Text for an SVG/XML text node: drops characters XML 1.0 does not allow (control characters, lone surrogates) and escapes & < >. */
-function xmlText(value: string): string {
+export function xmlText(value: string): string {
   return value
     .replace(/[^\x09\x0A\x0D\x20-퟿-�\u{10000}-\u{10FFFF}]/gu, "")
     .replace(/&/g, "&amp;")

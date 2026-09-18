@@ -5,9 +5,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { PLATFORMS, aiStatus, rewriteText } from "@/lib/ai";
-import { createPostPack, generateReelForPost, getPostFull, publishPost, schedulePost, sendForApproval, sendMobilePack, setPostStatus } from "@/lib/smm";
+import { createPostPack, getPostFull, publishPost, schedulePost, sendForApproval, sendMobilePack, setPostStatus } from "@/lib/smm";
 import { deletePost, duplicatePost, setPostAssets, toAssetLite, updatePost, updateVariant } from "@/lib/smm-admin";
-import { generatePoster } from "@/lib/media";
+import { absPath, generatePoster, saveAsset } from "@/lib/media";
+import { generateEditorialCover, generatePaletteCard, generateSplitDetail } from "@/lib/social/studio-visuals";
 import { runInbox, suggestSlot, suggestedSlotOf, wasImported } from "@/lib/inbox";
 import { PLATFORM_META } from "@/lib/social";
 import { listAmbientTracks } from "@/lib/audio";
@@ -84,9 +85,7 @@ async function M() {
         noSuggestedSlot: "Այս փոստը առաջարկվող ժամ չունի։",
         noSlotAvailable: "Ազատ ժամ չգտնվեց։ Ստուգիր Կարգավորումներ → Սոց. ցանցեր օրերն ու ժամը։",
         mobilePackSent: "Նկարներն ու տեքստն ուղարկվեցին Telegram-ի ադմին չաթ։ Բացիր հեռախոսում, պահպանիր նկարները և հրապարակիր Instagram-ում՝ օրվա թրենդային երաժշտությամբ։",
-        reelNoImages: "Reel ստեղծելու համար պետք է առնվազն 2 նկար։",
-        reelFailed: "Reel-ը չհաջողվեց ստեղծել։ Ստուգիր սերվերի մատյանը։",
-        reelGenerated: "Cinematic Reel-ը ստեղծված է և ավելացված՝ մեդիայի ցանկում։",
+        studioVisualFailed: "Չհաջողվեց ստեղծել գրաֆիկան։ Ստուգիր սերվերի մատյանը։",
       },
       en: {
         notFound: "Post not found.",
@@ -148,9 +147,7 @@ async function M() {
         noSuggestedSlot: "This post has no suggested slot.",
         noSlotAvailable: "No free slot was found. Check the posting days and time in Settings → Social media.",
         mobilePackSent: "The images and text were sent to the Telegram admin chat. Open it on your phone, save the images, and post on Instagram with today's trending audio.",
-        reelNoImages: "Generating a Reel needs at least 2 images.",
-        reelFailed: "The Reel could not be generated. Check the server log.",
-        reelGenerated: "The cinematic Reel is ready and added to the media list.",
+        studioVisualFailed: "The graphic could not be generated. Check the server log.",
       },
     },
     locale,
@@ -519,25 +516,66 @@ export async function sendMobilePackAction(input: { id: string }) {
   return { ok: true as const, message: m.mobilePackSent };
 }
 
-/** "🎬 Generate Cinematic Reel": renders a Ken Burns / cross-dissolve slideshow from the post's own
- * photos (lib/social/reel.ts) and appends it to the post's media as a new video asset. */
-export async function generateReelAction(input: { id: string }) {
+const StudioVisualSchema = z.discriminatedUnion("template", [
+  z.object({ template: z.literal("cover"), postId: z.string(), sourceAssetId: z.string(), title: z.string().trim().min(1).max(160), materials: z.string().trim().max(120).optional() }),
+  z.object({ template: z.literal("palette"), postId: z.string(), sourceAssetId: z.string() }),
+  z.object({
+    template: z.literal("split"),
+    postId: z.string(),
+    wideAssetId: z.string(),
+    detailAssetId: z.string(),
+    wideLabel: z.string().trim().max(40).optional(),
+    detailLabel: z.string().trim().max(40).optional(),
+  }),
+]);
+
+/** "🎨 Studio Visual Layouts": composes one of the three sharp+SVG templates (lib/social/studio-visuals.ts)
+ * from the post's own photos and attaches the result as a new image asset, exactly like generatePosterAction. */
+export async function generateStudioVisualAction(input: z.infer<typeof StudioVisualSchema>) {
   await requireUser();
   const m = await M();
-  const parsed = z.object({ id: z.string() }).safeParse(input);
+  const parsed = StudioVisualSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: m.invalidInput };
-  const { id } = parsed.data;
-  const full = getPostFull(id);
+  const data = parsed.data;
+  const full = getPostFull(data.postId);
   if (!full) return { ok: false as const, error: m.notFound };
-  if (full.assets.filter((a) => a.mime.startsWith("image/")).length < 2) return { ok: false as const, error: m.reelNoImages };
+  if (full.assets.length >= MAX_MEDIA) return { ok: false as const, error: m.tooManyMedia };
+
+  const db = getDb();
+  const loadImage = (id: string) => {
+    const a = db.select().from(schema.assets).where(eq(schema.assets.id, id)).get();
+    return a && a.mime.startsWith("image/") ? a : null;
+  };
+
   try {
-    const r = await generateReelForPost(id);
-    if (!r.ok) return { ok: false as const, error: r.error || m.reelFailed };
-    refresh(id);
-    return { ok: true as const, message: m.reelGenerated, asset: toAssetLite(r.asset) };
+    let buffer: Buffer;
+    let originalName: string;
+    if (data.template === "cover") {
+      const src = loadImage(data.sourceAssetId);
+      if (!src) return { ok: false as const, error: m.sourceImage };
+      buffer = await generateEditorialCover({ sourceAbsPath: absPath(src.relPath), title: data.title, materials: data.materials });
+      originalName = "editorial-cover.jpg";
+    } else if (data.template === "palette") {
+      const src = loadImage(data.sourceAssetId);
+      if (!src) return { ok: false as const, error: m.sourceImage };
+      buffer = await generatePaletteCard({ sourceAbsPath: absPath(src.relPath) });
+      originalName = "palette-card.jpg";
+    } else {
+      const wide = loadImage(data.wideAssetId);
+      const detail = loadImage(data.detailAssetId);
+      if (!wide || !detail) return { ok: false as const, error: m.sourceImage };
+      buffer = await generateSplitDetail({ wideAbsPath: absPath(wide.relPath), detailAbsPath: absPath(detail.relPath), wideLabel: data.wideLabel, detailLabel: data.detailLabel });
+      originalName = "split-detail.jpg";
+    }
+    const saved = await saveAsset({ buffer, originalName, mime: "image/jpeg", kindHint: "poster", projectId: full.post.projectId });
+    const asset = db.select().from(schema.assets).where(eq(schema.assets.id, saved.id)).get();
+    if (!asset) return { ok: false as const, error: m.studioVisualFailed };
+    setPostAssets(data.postId, [...full.assets.map((a) => a.id), asset.id]);
+    refresh(data.postId);
+    return { ok: true as const, asset: toAssetLite(asset) };
   } catch (e) {
-    console.error("[smm] generateReelForPost failed", e);
-    return { ok: false as const, error: m.reelFailed };
+    console.error("[smm] generateStudioVisual failed", e);
+    return { ok: false as const, error: m.studioVisualFailed };
   }
 }
 

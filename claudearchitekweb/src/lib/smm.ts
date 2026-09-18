@@ -10,18 +10,15 @@
  * sending an approval twice or publishing a variant twice. If the process dies inside a claim,
  * `sweepStalePost` (called by the worker on start and every tick) releases it again.
  */
-import fs from "node:fs";
 import { and, asc, eq, inArray, isNull, lt, lte, notInArray, or, sql } from "drizzle-orm";
 import { getDb, getSqlite, schema } from "./db";
 import { env } from "./env";
 import { aiStatus, generatePostPack, rewriteText, type Platform, type PostGoal } from "./ai";
 import { getSetting } from "./settings";
-import { absPath, mediaUrl, saveAsset } from "./media";
-import { setPostAssets } from "./smm-admin";
+import { absPath, mediaUrl } from "./media";
 import { resolveUiLocale, socialMessages, type UiLocale } from "./social/messages";
 import { defaultCanvasMode, ensureCanvasVariant, type CanvasMatte, type CanvasMode } from "./social/canvas";
 import { ensureMixedVideo } from "./social/audio-mix";
-import { MAX_REEL_SLIDES, MIN_REEL_SLIDES, renderCinematicReel } from "./social/reel";
 import { ambientFilePath } from "./audio";
 import * as tg from "./telegram";
 import { ADAPTERS, PLATFORM_META, type PublishInput } from "./social";
@@ -316,43 +313,6 @@ export async function sendMobilePack(postId: string, locale?: UiLocale | null): 
   await tg.sendLongMessage(chat, body);
 
   return { ok: true };
-}
-
-/**
- * Renders a Ken Burns / cross-dissolve slideshow from the post's own images (lib/social/reel.ts),
- * mixing in whatever background-audio track the post is already set to use (the same resolution
- * `publishPost` applies to a video variant — see `resolveAudioTrack`), and attaches the result to the
- * post as an ordinary video asset via `saveAsset`, exactly as an uploaded clip would be. Appended,
- * never replacing existing media, so the operator's photos stay in the strip alongside the new Reel.
- */
-export async function generateReelForPost(postId: string): Promise<{ ok: true; asset: Asset } | { ok: false; error: string }> {
-  const full = getPostFull(postId);
-  if (!full) return { ok: false, error: "Post not found" };
-  const images = full.assets.filter((a) => a.mime.startsWith("image/"));
-  if (images.length < MIN_REEL_SLIDES) return { ok: false, error: `At least ${MIN_REEL_SLIDES} images are needed to generate a Reel` };
-
-  const audioAbsPath = resolveAudioTrack(full.post);
-  let rendered: Awaited<ReturnType<typeof renderCinematicReel>>;
-  try {
-    rendered = await renderCinematicReel(images.slice(0, MAX_REEL_SLIDES), audioAbsPath);
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
-  try {
-    const buffer = fs.readFileSync(rendered.path);
-    const saved = await saveAsset({ buffer, originalName: "cinematic-reel.mp4", mime: "video/mp4", kindHint: "video", projectId: full.post.projectId });
-    const db = getDb();
-    const asset = db.select().from(schema.assets).where(eq(schema.assets.id, saved.id)).get();
-    if (!asset) return { ok: false, error: "The Reel was rendered but could not be saved" };
-    setPostAssets(postId, [...full.assets.map((a) => a.id), asset.id]);
-    return { ok: true, asset };
-  } finally {
-    try {
-      fs.unlinkSync(rendered.path);
-    } catch {
-      /* already gone, or never written */
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------
