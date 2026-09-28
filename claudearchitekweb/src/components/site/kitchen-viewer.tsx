@@ -41,6 +41,7 @@ export function KitchenViewer({
   demo,
   compact,
   panelOpen,
+  active,
   minDesktopWidth,
   title,
   fill = false,
@@ -50,6 +51,8 @@ export function KitchenViewer({
   title: string;
   /** Open (true) or fold (false) the viewer's desktop material panel; undefined leaves it to the viewer. */
   panelOpen?: boolean;
+  /** false once the host no longer shows the viewer (e.g. another showcase mode): ends its first-look camera sway. */
+  active?: boolean;
   /**
    * Keep the viewer's desktop layout in a box narrower than its phone breakpoint (760 px): on mouse/trackpad
    * devices the frame is laid out at this width and scaled down to fit (never below 70 %). Touch devices keep the
@@ -99,6 +102,10 @@ export function KitchenViewer({
     panelSent.current = panelOpen;
     post({ type: "architeksoft:panel", open: panelOpen });
   }, [panelOpen]);
+
+  useEffect(() => {
+    if (active === false) post({ type: "architeksoft:ambient", on: false });
+  }, [active]);
 
   useEffect(() => {
     const sendTheme = () => post({ type: "architeksoft:theme", theme: siteTheme() });
