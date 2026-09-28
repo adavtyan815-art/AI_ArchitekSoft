@@ -208,6 +208,66 @@ Locally the same importer is also a command: `npm run inbox`, `npm run inbox -- 
 `npm run inbox -- --example`. It needs `tsx` and `scripts/`, which the runtime image does not ship, so on
 a server the worker is the only importer.
 
+## 3D kitchen configurator (WebViewer)
+
+The homepage showcase (mode 02) and `/viewer` (and `/ru/viewer`, `/en/viewer`) embed the Architeksoft
+WebViewer — a static app from `ClaudeKitchen` (branch `dev`, folder `WebViewer/`) — in an iframe. Its
+files are served by Next.js from `public/webviewer/` at `/webviewer/customer.html`;
+`src/lib/webviewer.ts` builds the iframe URL, `src/components/site/kitchen-viewer.tsx` is the iframe.
+
+- **Which kitchens are public — demo mode:** `webviewer.config.json`. An entry with `decors` is a curated
+  demo bundle: the source kitchen plus **only** the listed manufacturer decors (ids from
+  `catalog_products.json`) and only their texture files; the viewer sorts them into fronts / carcass /
+  countertop by category. Today: `bundle_showcase` = the Wood Dreams kitchen + 17 EGGER decors + 9 locked
+  previews (≈6 MB for the whole viewer folder, instead of ≈340 MB with the full catalog). The first entry is
+  the site's default kitchen.
+- **Asset protection (public showcase):** everything under `public/` is downloadable by anyone, so the sync
+  publishes only what the demo shows: the full catalogs are never copied; the 17 demo decor records keep
+  display fields only (no supplier lists, internal material paths or product specs); their textures are
+  re-encoded at ≤ 512 px and thumbnails at 96 px; the locked previews are a name, maker, colour and a 96 px
+  thumbnail under an opaque file name (`l1.jpg`…), with no decor id or texture. An entry without `decors` is
+  refused unless it says `"publishFullCatalog": true`, and an audit at the end of every sync fails if any
+  other file, field or larger image is in the folder. What remains public by nature: the viewer code and the
+  demo kitchen model itself (the GLB and its manifest, which names the model's own materials).
+- **Full library, locked (demo):** `GET /api/webviewer/library?group=&maker=&market=am&q=&page=` lets the
+  viewer browse the whole library by market, manufacturer or search — one page of 24 locked previews (name,
+  maker, code, colour, a thumbnail URL), 5 pages per filter, 60 requests/min per visitor. Thumbnails come from
+  `/api/webviewer/library/thumb/<token>` (≤ 96 px JPEGs, opaque tokens, 600/min). Both read
+  `private/webviewer/` (index + thumbnails) written by the sync; the demo's own 17 decors are not in it.
+- **Git — no catalog data, ever:** `public/webviewer/` and `private/` are **git-ignored build artefacts**. A fresh
+  checkout has neither; run the sync on the machine that builds the site (it needs a ClaudeKitchen checkout,
+  `WEBVIEWER_SRC`). The Docker build copies both from the build context (`private/.gitkeep` keeps the folder so
+  the `COPY` never fails; without the sync the library API simply answers empty). Only
+  `src/lib/webviewer-build.ts` (source commit, bundle ids, CSP hash) is committed.
+- **Update the viewer or the demo selection:** edit `webviewer.config.json`, then `npm run webviewer:sync`
+  (source folder: `WEBVIEWER_SRC`). It replaces `public/webviewer/` and `private/webviewer/`, audits both, and
+  regenerates `src/lib/webviewer-build.ts`. Commit that file and the config — nothing else it wrote.
+- **Headers:** `/webviewer/*` gets its own CSP (from the integration guide, plus `blob:`/`data:` in
+  `connect-src` for the textures embedded in GLB files) in `src/middleware.ts`, `model/gltf-binary` for
+  `.glb` and revalidating cache headers in `next.config.ts`. HTTPS and compression come from Caddy.
+- **Language:** the iframe gets `&lang=` from the page's locale; the component also posts
+  `{type: "architeksoft:lang"}` when the locale changes without a remount.
+- **iPhone / iPad AR:** the viewer's "Open AR" link (`<a rel="ar" href="blob:…usdz">`) is caught by the
+  host page and followed at the top level, where Safari opens AR Quick Look (`bridgeQuickLook` in
+  `kitchen-viewer.tsx`; same in `landing_page/assets/js/app.js`). One tap for the customer, no separate
+  page. Works only because the viewer is on the same origin.
+- **Demo vs client mode:** the site always embeds the viewer with `mode=demo` (the public showcase: colour
+  showreel until the first touch, the "Demo preview" card with "Start your project" → `/start`, counted as a
+  `cta_click` with label `viewer-demo-card`). Without `mode=demo` the viewer is the full client product — use that
+  for real client projects; nothing demo-related is built into its default mode. The card's figure (library size)
+  and links come from `webviewer.config.json` (`cta`) via the sync script.
+- **Homepage:** `mode=demo&ui=compact` — panel folded, a colour strip over the stage, a lighter tool dock. On
+  desktop the viewer loads by itself after the page has loaded (onboarding tour off); on touch devices a tap
+  starts it straight in the fullscreen overlay. In native full screen the badge is gone, a top-centre pill
+  ("Exit fullscreen") leads back besides Esc, and the viewer's material panel opens by itself.
+- **Theme:** the viewer follows the site's light/dark switch live (`<html data-theme>` + postMessage), light =
+  the "Gallery" studio.
+- **Shared configurations** can open inside the site: `/viewer?bundle=…&cfg=…&doors=1` forwards those
+  values into the iframe (unknown bundles fall back to the default, `cfg` is character-filtered).
+- Old URLs of the static test showroom (`/configurator`, `/showroom`, `/3d`) redirect to `/viewer`.
+- **Before go-live, test on real phones:** Android (Chrome, ARCore) — AR inside the page; iPhone Safari —
+  AR Quick Look from the embedded viewer (the "Open full screen" link under `/viewer` stays as a fallback).
+
 ## Backups
 
 `deploy/backup.sh` runs **on the host**, not inside a container: it needs `sqlite3` and `rclone` installed there and reads the Docker volume directly.

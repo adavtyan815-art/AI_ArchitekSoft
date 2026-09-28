@@ -54,20 +54,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <Showcase
           locale={locale}
           s={d.showcase}
-          viewerLabels={{
-            hint: d.home.viewerHint,
-            swatches: d.home.viewerSwatches,
-            ar: d.home.viewerAr,
-            reset: d.home.viewerReset,
-            load: d.common.tryDemo,
-            alt: d.home.viewerAlt,
-            loading: d.home.viewerLoading,
-            error: d.home.viewerError,
-            retry: d.home.viewerRetry,
-            swatchNames: d.home.viewerColors,
-          }}
+          viewerCta={d.common.tryDemo}
+          viewerTitle={d.home.viewerAlt}
           compareLabels={[d.portal.before, d.portal.after]}
-          media={{ before: "/demo/sketch-plan.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/wardrobe.webp" }}
+          media={{ before: "/demo/sketch-plan.webp", after: "/demo/render-1.webp", video: "/demo/showcase-live.mp4", videoPoster: "/demo/showcase-live-poster.jpg", viewerPoster: "/demo/kitchen-walnut.webp" }}
           headline={
             <>
               <div className="rise">

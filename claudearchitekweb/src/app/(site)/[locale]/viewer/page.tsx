@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Maximize2 } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { ButtonLink, Index, SectionHeading, Ticks } from "@/components/ui";
 import { TrackedCta } from "@/components/site/cta";
-import { ViewerDemo } from "@/components/site/viewer-demo";
+import { KitchenViewer } from "@/components/site/kitchen-viewer";
+import { viewerLang, viewerParamsFromQuery, viewerSrc } from "@/lib/webviewer";
 import { pageMeta } from "../meta";
 
 /** Page-only strings that have no dictionary key yet. */
-const LOCAL: Record<Locale, { featuresTitle: string }> = {
-  hy: { featuresTitle: "Ի՞նչ կարող է անել Ձեր հաճախորդը" },
-  ru: { featuresTitle: "Что может ваш клиент" },
-  en: { featuresTitle: "What your customer can do" },
+const LOCAL: Record<Locale, { featuresTitle: string; frameTitle: string; fullscreen: string }> = {
+  hy: { featuresTitle: "Ի՞նչ կարող է անել Ձեր հաճախորդը", frameTitle: "Խոհանոցի 3D դիտում", fullscreen: "Բացել ամբողջ էկրանով" },
+  ru: { featuresTitle: "Что может ваш клиент", frameTitle: "3D-просмотр кухни", fullscreen: "Открыть на весь экран" },
+  en: { featuresTitle: "What your customer can do", frameTitle: "3D kitchen", fullscreen: "Open full screen" },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -20,8 +21,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return pageMeta({ locale, path: "/viewer", title: d.viewerPage.title, description: d.viewerPage.subtitle });
 }
 
-export default async function ViewerPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function ViewerPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  /** `bundle`, `cfg`, `doors` are forwarded into the viewer, so a shared configuration opens inside the site. */
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { locale: raw } = await params;
+  const opts = viewerParamsFromQuery(await searchParams);
+  const fullHref = viewerSrc({ ...opts, lang: viewerLang((isLocale(raw) ? raw : "hy") as Locale), demo: true });
   const locale = (isLocale(raw) ? raw : "hy") as Locale;
   const d = getDictionary(locale);
   const v = d.viewerPage;
@@ -57,25 +67,20 @@ export default async function ViewerPage({ params }: { params: Promise<{ locale:
             <Index n={2} />
             <span className="eyebrow">{v.demoTitle}</span>
           </div>
-          <span className="caption">3D · AR · {d.home.viewerSwatches}</span>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <span className="caption max-sm:hidden">3D · AR · {d.home.viewerSwatches}</span>
+            {/* Full screen: the viewer as its own page (its brand, "Back to main website", the whole screen) —
+                a real button right above the frame, the first thing people look for. Also the top-level page
+                phones and iOS AR Quick Look work best in. */}
+            <a href={fullHref} className="btn-secondary min-h-11 gap-2 px-4">
+              <Maximize2 size={16} aria-hidden />
+              {t.fullscreen}
+            </a>
+          </div>
         </div>
-        <ViewerDemo
-          labels={{
-            hint: d.home.viewerHint,
-            swatches: d.home.viewerSwatches,
-            ar: d.home.viewerAr,
-            reset: d.home.viewerReset,
-            load: d.common.tryDemo,
-            alt: d.home.viewerAlt,
-            loading: d.home.viewerLoading,
-            error: d.home.viewerError,
-            retry: d.home.viewerRetry,
-            swatchNames: d.home.viewerColors,
-          }}
-          height="h-[440px] sm:h-[600px]"
-          className="mt-6"
-          autoload
-        />
+        {/* The viewer owns the whole box: toolbars, material panel (bottom sheet on phones), AR.
+            Phones: edge to edge, past the page gutter (the clamp is container-x's padding). */}
+        <KitchenViewer locale={locale} {...opts} demo title={t.frameTitle} className="frame mt-6 max-sm:-mx-[clamp(20px,4vw,72px)] max-sm:rounded-none max-sm:border-x-0" />
       </section>
 
       {/* 03 — FEATURES */}

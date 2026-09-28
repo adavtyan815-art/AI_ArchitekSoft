@@ -24,6 +24,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends tzdata && rm -r
 COPY --from=builder --chown=app:app /app/.next/standalone ./
 COPY --from=builder --chown=app:app /app/.next/static ./.next/static
 COPY --from=builder --chown=app:app /app/public ./public
+# 3D configurator's library (index + 96 px thumbnails) from `npm run webviewer:sync`: git-ignored, read at runtime by
+# /api/webviewer/library (the folder always exists through private/.gitkeep; empty = no locked library)
+COPY --from=builder --chown=app:app /app/private ./private
 # split-worker profile: `node worker.js` (no tsx, scripts/ or src/ needed at runtime)
 COPY --from=builder --chown=app:app /app/worker.js ./worker.js
 # native deps used at runtime (kept as external packages) and what they require

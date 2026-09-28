@@ -17,6 +17,7 @@ const translations = {
     nav_portfolio: 'Պորտֆոլիո',
     nav_b2b: 'Արտադրողներին',
     nav_configurator: '3D Ցուցասրահ',
+    config_fullscreen: 'Բացել ամբողջ էկրանով',
     nav_blueprint: 'Կտրման Քարտեզներ (Раскрой)',
     nav_contact: 'Կապ',
     showroom_sec_tag: '4K Ինտերակտիվ Ցուցասրահ',
@@ -148,6 +149,7 @@ const translations = {
     nav_portfolio: 'Портфолио',
     nav_b2b: 'Производителям',
     nav_configurator: '3D Шоурум',
+    config_fullscreen: 'Открыть на весь экран',
     nav_blueprint: 'Карты Раскроя',
     nav_contact: 'Контакты',
     showroom_sec_tag: '4K Интерактивный Шоурум',
@@ -279,6 +281,7 @@ const translations = {
     nav_portfolio: 'Portfolio',
     nav_b2b: 'For Manufacturers',
     nav_configurator: '3D Showroom',
+    config_fullscreen: 'Open full screen',
     nav_blueprint: 'CNC Cutlist',
     nav_contact: 'Contact',
     showroom_sec_tag: '4K Interactive Showroom',
@@ -443,6 +446,28 @@ function setLanguage(lang) {
   document.querySelectorAll('.lang-item').forEach(item => {
     item.classList.toggle('active', item.getAttribute('data-lang') === lang);
   });
+
+  document.documentElement.lang = lang;
+  syncKitchenViewer(lang);
+}
+
+// 3D kitchen configurator (Architeksoft WebViewer, /webviewer/): it has no language switcher of its
+// own. The first language goes in the iframe URL, later changes are sent with postMessage so the
+// viewer re-labels itself without reloading.
+const VIEWER_LANG = { hy: 'hy', am: 'hy', ru: 'ru', en: 'en' };
+function syncKitchenViewer(siteLocale) {
+  const frame = document.getElementById('kitchenViewer');
+  if (!frame) return;
+  const lang = VIEWER_LANG[String(siteLocale).slice(0, 2).toLowerCase()] || 'hy';
+  const url = '/webviewer/customer.html?bundle=' + encodeURIComponent(frame.dataset.bundle) + '&lang=' + lang;
+  const full = document.getElementById('kitchenViewerFull');
+  if (full) full.href = url;
+  if (!frame.getAttribute('src')) {
+    frame.addEventListener('load', () => bridgeQuickLook(frame));
+    frame.src = url;
+    return;
+  }
+  frame.contentWindow?.postMessage({ type: 'architeksoft:lang', lang }, new URL(frame.src, location.href).origin);
 }
 
 const urlTheme = new URLSearchParams(window.location.search).get('theme');
@@ -1571,3 +1596,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// iPhone / iPad AR: the viewer offers its in-browser USDZ as <a rel="ar" href="blob:…">, and Safari opens
+// AR Quick Look reliably only for such a link in the top-level page. The viewer is on this origin, so the
+// tap is caught here (capture phase, same gesture), cancelled, and the same link is followed by this page.
+function bridgeQuickLook(frame) {
+  const ua = navigator.userAgent;
+  if (!(/iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))) return;
+  let doc = null;
+  try { doc = frame.contentDocument; } catch { return; }
+  if (!doc || doc.__arBridge) return;
+  doc.__arBridge = true;
+  doc.addEventListener('click', (e) => {
+    const link = e.target && e.target.closest ? e.target.closest('a[rel~="ar"]') : null;
+    if (!link || !link.href) return;
+    e.preventDefault();
+    const a = document.createElement('a');
+    a.rel = 'ar';
+    a.href = link.href;
+    a.appendChild(document.createElement('img'));
+    a.click();
+  }, true);
+}

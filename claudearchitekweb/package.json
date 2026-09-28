@@ -18,6 +18,7 @@
     "dev:webpack": "next dev -p 3100",
     "build:standalone": "cross-env NEXT_STANDALONE=1 next build",
     "perf": "node scripts/perf.mjs",
+    "webviewer:sync": "node scripts/sync-webviewer.mjs",
     "build:worker": "esbuild scripts/worker.ts --bundle --platform=node --target=node22 --format=cjs --tsconfig=tsconfig.json --external:better-sqlite3 --external:sharp --external:ffmpeg-static --outfile=worker.js"
   },
   "dependencies": {

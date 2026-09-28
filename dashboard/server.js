@@ -38,6 +38,32 @@ app.use("/media", express.static(path.join(LANDING_DIR, "assets", "media")));
 app.use("/local-assets", express.static(ASSETS_DIR));
 app.use("/generated", express.static(GENERATED_DIR));
 
+// 3D kitchen configurator (Architeksoft WebViewer), embedded by configurator.html. The files live in the
+// Next.js site (claudearchitekweb/public/webviewer/, filled by `npm run webviewer:sync` there), so both
+// sites serve the same copy. Its own CSP and cache policy mirror claudearchitekweb/src/lib/csp.ts.
+const WEBVIEWER_DIR = path.join(__dirname, "..", "claudearchitekweb", "public", "webviewer");
+const WEBVIEWER_TYPES = { ".glb": "model/gltf-binary", ".mjs": "text/javascript; charset=utf-8", ".wasm": "application/wasm", ".ktx2": "image/ktx2", ".usdz": "model/vnd.usdz+zip", ".webp": "image/webp" };
+function webviewerCsp() {
+  // the importmap hash is regenerated with the files; read it from the generated module
+  let hash = "";
+  try {
+    hash = /WEBVIEWER_IMPORTMAP_HASH = "([^"]+)"/.exec(fs.readFileSync(path.join(__dirname, "..", "claudearchitekweb", "src", "lib", "webviewer-build.ts"), "utf8"))?.[1] ?? "";
+  } catch {}
+  return `default-src 'self'; script-src 'self' 'wasm-unsafe-eval' ${hash}; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' blob: data:; worker-src 'self' blob:; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'`;
+}
+app.use(
+  "/webviewer",
+  express.static(WEBVIEWER_DIR, {
+    index: false,
+    setHeaders(res, filePath) {
+      const type = WEBVIEWER_TYPES[path.extname(filePath).toLowerCase()];
+      if (type) res.setHeader("Content-Type", type);
+      res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+      if (filePath.endsWith(".html")) res.setHeader("Content-Security-Policy", webviewerCsp());
+    },
+  })
+);
+
 // Enterprise Multi-Page Routes
 app.get("/", (req, res) => {
   res.sendFile(path.join(LANDING_DIR, "index.html"));

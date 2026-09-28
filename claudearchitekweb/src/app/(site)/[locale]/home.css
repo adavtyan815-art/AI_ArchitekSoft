@@ -474,6 +474,31 @@
   .home-x .hx-stage-fs { display: inline-flex; }
   .home-x .hx-fs { display: none; }
 }
+/* native fullscreen (fine pointers): the exit pill, top centre over whatever mode is showing */
+.home-x .hx-fs-exit {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top));
+  left: 50%;
+  z-index: 8;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px 0 13px;
+  border: 1px solid rgba(244, 242, 237, 0.2);
+  border-radius: 999px;
+  background: rgba(23, 21, 15, 0.64);
+  color: #f4f2ed;
+  font-size: 13px;
+  font-weight: 560;
+  white-space: nowrap;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  transition: background-color 0.2s ease;
+}
+.home-x .hx-fs-exit:hover { background: rgba(23, 21, 15, 0.8); }
 .home-x .hx-hero-canvas.is-overlay {
   position: fixed;
   inset: 0;
@@ -514,6 +539,8 @@
 .home-x .is-overlay .hx-seg.is-active { color: #141311; }
 .home-x .is-overlay .hx-strip-ind { background: #efebe3; }
 .home-x .is-overlay .hx-now { display: none; }
+/* over the 3D viewer the close control sits at the end of the strip (see showcase.tsx) */
+.home-x .is-overlay .hx-fs-close { display: inline-flex; color: #efebe3; border-left-color: rgba(239, 235, 227, 0.14); }
 
 /* --- Phones: an intentional composition, not stacked desktop --------------- */
 @media (max-width: 639px) {

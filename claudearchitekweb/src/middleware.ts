@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { buildCsp } from "@/lib/csp";
+import { buildCsp, buildViewerCsp } from "@/lib/csp";
 import { checkAccess, getShareLinkBySlug, passcodeCookieName } from "@/lib/portal";
 
 const LOCALES = ["hy", "ru", "en"];
@@ -7,7 +7,7 @@ const LOCALES = ["hy", "ru", "en"];
  * Paths the locale rewrite must leave alone. `/api` and `/media` are also excluded by the matcher
  * below, so their request bodies are never cloned by the middleware runtime (uploads would be cut off).
  */
-const PASS = ["/api", "/p/", "/v/", "/media", "/_next", "/favicon", "/robots", "/sitemap", "/brand", "/demo", "/og"];
+const PASS = ["/webviewer/", "/api", "/p/", "/v/", "/media", "/_next", "/favicon", "/robots", "/sitemap", "/brand", "/demo", "/og"];
 
 /**
  * A fresh CSP nonce for this request. 128 bits of randomness, base64 — long enough that it cannot
@@ -128,6 +128,13 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(url);
     }
     return withCsp(NextResponse.next({ request: { headers: requestHeaders(req, null, here, nonce) } }), nonce);
+  }
+
+  // The static 3D kitchen configurator: its own policy, no locale, no page headers.
+  if (pathname.startsWith("/webviewer/")) {
+    const res = NextResponse.next();
+    res.headers.set("Content-Security-Policy", buildViewerCsp());
+    return res;
   }
 
   if (PASS.some((p) => pathname.startsWith(p)) || /\.[a-z0-9]+$/i.test(pathname)) {

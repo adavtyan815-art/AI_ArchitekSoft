@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, Maximize2, Minimize2, X } from "lucide-react";
+import { ArrowRight, Box, Maximize2, Minimize2, X } from "lucide-react";
 import { localePath, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { BeforeAfter } from "./before-after";
-import { ViewerDemo, type ViewerLabels } from "./viewer-demo";
+import { KitchenViewer } from "./kitchen-viewer";
 
 /**
  * Interactive showcase — the first screen of the homepage.
@@ -15,7 +15,10 @@ import { ViewerDemo, type ViewerLabels } from "./viewer-demo";
  * The headline sits beside it on the open page, the intro + CTAs below the headline (on phones: after
  * the canvas, so the product is on the first screen).
  *   01 sketch → finished picture (comparison slider)
- *   02 Web Viewer (rotate, change colour; library + model load only when opened, tap-to-load on phones)
+ *   02 Web Viewer — the live 3D kitchen configurator (the curated demo kitchen, no onboarding tour).
+ *      Fine pointers: loads by itself once the page has finished loading, and plays inside the stage.
+ *      Touch devices: a still with a start control; the tap loads it straight into the fullscreen overlay,
+ *      because the viewer needs more room than a phone-sized stage (its phone layout wants ~360 × 560).
  *   03 Live 3D walkthrough (short muted clip, loaded only when opened)
  * Selection is manual only (strip, ← → keys); Web Viewer is the default mode, no autoplay.
  *
@@ -41,7 +44,8 @@ export type ShowcaseStrings = {
 export function Showcase({
   locale,
   s,
-  viewerLabels,
+  viewerCta,
+  viewerTitle,
   compareLabels,
   media,
   headline,
@@ -49,7 +53,10 @@ export function Showcase({
 }: {
   locale: Locale;
   s: ShowcaseStrings;
-  viewerLabels: ViewerLabels;
+  /** Label of the control that starts the 3D kitchen configurator on touch devices. */
+  viewerCta: string;
+  /** Accessible name of the 3D viewer frame. */
+  viewerTitle: string;
   compareLabels: [string, string];
   media: { before: string; after: string; video: string; videoPoster: string; viewerPoster?: string };
   /** Eyebrow + H1 (page-owned). */
@@ -66,6 +73,7 @@ export function Showcase({
   const [fsSupported, setFsSupported] = useState(false);
   const [coarse, setCoarse] = useState(false);
   const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
+  const [live, setLive] = useState(false); // the 3D viewer frame is mounted
   const [opened, setOpened] = useState<boolean[]>(() => s.items.map((_, k) => k === 1));
   const n = s.items.length;
   const p = (path: string) => localePath(locale, path);
@@ -101,6 +109,21 @@ export function Showcase({
     },
     [n],
   );
+
+  // Desktop: start the viewer once the page itself has loaded (never competes with the first paint).
+  // Touch devices wait for a tap on the start control.
+  useEffect(() => {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    const start = () => setLive(true);
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => window.removeEventListener("load", start);
+  }, []);
+
+  const startViewer = () => {
+    setLive(true);
+    if (coarse || !fsSupported) setOverlay(true);
+  };
 
   // The clip plays only while its panel is active.
   useEffect(() => {
@@ -166,6 +189,8 @@ export function Showcase({
 
   const cur = s.items[i];
   const big = fs || overlay;
+  // The viewer keeps its own toolbar in the top corners, so over it the close control moves into the strip.
+  const viewerOverlay = overlay && i === 1;
 
   const stage = (
     <div
@@ -183,9 +208,23 @@ export function Showcase({
         <BeforeAfter before={media.before} after={media.after} labels={compareLabels} aspect="h-full w-full" labelsAt="bottom" />
       </div>
 
-      {/* 02 — Web Viewer (mounted on first open; phones get tap-to-load) */}
+      {/* 02 — Web Viewer (desktop: loads after the page; touch: tap → fullscreen overlay) */}
       <div className={cn("absolute inset-0 transition-opacity duration-500", i === 1 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 1} inert={i !== 1 ? true : undefined}>
-        {opened[1] ? <ViewerDemo labels={viewerLabels} poster={media.viewerPoster} className="flex h-full flex-col rounded-none border-0" height="min-h-0 flex-1" /> : null}
+        {opened[1] && live ? (
+          // public showcase: demo behaviour + compact layout; full screen opens the viewer's material panel
+          <KitchenViewer locale={locale} demo compact tour={false} panelOpen={fs} title={viewerTitle} fill />
+        ) : opened[1] ? (
+          <button type="button" onClick={startViewer} className="group absolute inset-0 flex flex-col items-center justify-center gap-4">
+            {media.viewerPoster ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={media.viewerPoster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70 transition-opacity group-hover:opacity-85" />
+            ) : null}
+            <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-md border border-[#f4f2ed]/35 bg-[#17150f]/60 text-[#f4f2ed] backdrop-blur">
+              <Box size={22} aria-hidden />
+            </span>
+            <span className="relative rounded-sm bg-[#17150f]/60 px-3 py-1.5 font-mono text-[11px] tracking-[0.12em] text-[#f4f2ed] uppercase backdrop-blur">{viewerCta}</span>
+          </button>
+        ) : null}
       </div>
 
       {/* 03 — Live 3D walkthrough (clip loaded on first open) */}
@@ -203,16 +242,20 @@ export function Showcase({
       </div>
 
       {/* touch devices: fullscreen / close control on the stage itself */}
-      <button type="button" className="hx-stage-fs" onClick={toggleFs} aria-label={overlay ? s.exitFullscreen : s.fullscreen} title={overlay ? s.exitFullscreen : s.fullscreen}>
-        {overlay ? <X size={18} /> : <Maximize2 size={17} />}
-      </button>
+      {viewerOverlay ? null : (
+        <button type="button" className="hx-stage-fs" onClick={toggleFs} aria-label={overlay ? s.exitFullscreen : s.fullscreen} title={overlay ? s.exitFullscreen : s.fullscreen}>
+          {overlay ? <X size={18} /> : <Maximize2 size={17} />}
+        </button>
+      )}
 
-      {/* Fullscreen-only caption (native fullscreen on desktop) */}
+      {/* Native fullscreen (desktop): one visible way back besides Esc — a frosted pill at the top centre, the one
+          spot the 3D viewer keeps free (its title and tools sit top-left, its panel on the right, its dock at the
+          bottom). Chrome's own "press Esc" notice covers the same spot for its first few seconds. */}
       {fs ? (
-        <div className="pointer-events-none absolute right-6 bottom-6 max-w-md rounded-md bg-[#17150f]/65 px-4 py-3 text-right text-[#f4f2ed] backdrop-blur">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] opacity-70">{cur?.tag}</div>
-          <div className="mt-1 text-[1.2rem] font-semibold leading-tight tracking-[-0.02em]">{cur?.title}</div>
-        </div>
+        <button type="button" className="hx-fs-exit" onClick={toggleFs}>
+          <X size={15} aria-hidden />
+          {s.exitFullscreen}
+        </button>
       ) : null}
     </div>
   );
@@ -244,9 +287,9 @@ export function Showcase({
           </button>
         );
       })}
-      {fsSupported ? (
-        <button type="button" className="hx-fs" onClick={toggleFs} aria-label={big ? s.exitFullscreen : s.fullscreen} title={big ? s.exitFullscreen : s.fullscreen}>
-          {big ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+      {fsSupported || viewerOverlay ? (
+        <button type="button" className={cn("hx-fs", viewerOverlay && "hx-fs-close")} onClick={toggleFs} aria-label={big ? s.exitFullscreen : s.fullscreen} title={big ? s.exitFullscreen : s.fullscreen}>
+          {viewerOverlay ? <X size={18} /> : big ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
         </button>
       ) : null}
     </div>

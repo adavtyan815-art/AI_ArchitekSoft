@@ -46,6 +46,12 @@ const nextConfig: NextConfig = {
     return [
       { source: "/kitchenpro", destination: "/platform", permanent: true },
       { source: "/:locale(ru|en)/kitchenpro", destination: "/:locale/platform", permanent: true },
+      // URLs of the old test 3D showroom (the static landing_page site) → the page that embeds the WebViewer.
+      { source: "/:old(configurator|configurator.html|showroom|3d)", destination: "/viewer", permanent: true },
+      { source: "/:locale(ru|en)/:old(configurator|showroom|3d)", destination: "/:locale/viewer", permanent: true },
+      // The folder itself has no index page; the viewer is customer.html (it needs the trailing-slash base).
+      { source: "/webviewer", destination: "/viewer", permanent: false },
+      { source: "/webviewer/", destination: "/viewer", permanent: false },
     ];
   },
   async headers() {
@@ -65,6 +71,15 @@ const nextConfig: NextConfig = {
       { source: "/api/:path*", headers: [{ key: "Content-Security-Policy", value: NON_DOCUMENT_CSP }] },
       { source: "/brand/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
       { source: "/demo/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
+      // 3D kitchen configurator (public/webviewer/, see src/lib/webviewer.ts). File names are not
+      // content-hashed and re-exported bundles keep theirs, so everything revalidates (ETag) instead of
+      // being cached long-term. Content types the default static server does not know are set here:
+      // ES modules and GLB fail to load with a wrong type.
+      { source: "/webviewer/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }] },
+      { source: "/webviewer/:path*.glb", headers: [{ key: "Content-Type", value: "model/gltf-binary" }] },
+      { source: "/webviewer/:path*.mjs", headers: [{ key: "Content-Type", value: "text/javascript; charset=utf-8" }] },
+      { source: "/webviewer/:path*.ktx2", headers: [{ key: "Content-Type", value: "image/ktx2" }] },
+      { source: "/webviewer/:path*.usdz", headers: [{ key: "Content-Type", value: "model/vnd.usdz+zip" }] },
       // robots.txt no longer disallows /p/, so crawlers do fetch client pages now. The pages already
       // carry <meta name="robots" content="noindex, nofollow">; the header backs that up and also
       // covers the non-HTML responses (a 404, a redirect) that carry no meta tag.
