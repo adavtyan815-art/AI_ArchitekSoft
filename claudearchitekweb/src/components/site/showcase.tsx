@@ -212,7 +212,7 @@ export function Showcase({
       <div className={cn("absolute inset-0 transition-opacity duration-500", i === 1 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 1} inert={i !== 1 ? true : undefined}>
         {opened[1] && live ? (
           // public showcase: demo behaviour + compact layout; full screen opens the viewer's material panel
-          <KitchenViewer locale={locale} demo compact tour={false} panelOpen={fs} title={viewerTitle} fill />
+          <KitchenViewer locale={locale} demo compact tour={false} panelOpen={fs} minDesktopWidth={800} title={viewerTitle} fill />
         ) : opened[1] ? (
           <button type="button" onClick={startViewer} className="group absolute inset-0 flex flex-col items-center justify-center gap-4">
             {media.viewerPoster ? (

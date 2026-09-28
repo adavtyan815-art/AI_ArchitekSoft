@@ -41,6 +41,7 @@ export function KitchenViewer({
   demo,
   compact,
   panelOpen,
+  minDesktopWidth,
   title,
   fill = false,
   className,
@@ -49,6 +50,12 @@ export function KitchenViewer({
   title: string;
   /** Open (true) or fold (false) the viewer's desktop material panel; undefined leaves it to the viewer. */
   panelOpen?: boolean;
+  /**
+   * Keep the viewer's desktop layout in a box narrower than its phone breakpoint (760 px): on mouse/trackpad
+   * devices the frame is laid out at this width and scaled down to fit (never below 70 %). Touch devices keep the
+   * phone layout, which is what they need.
+   */
+  minDesktopWidth?: number;
   /** Fill the parent box (which must have a height) instead of the default min(100dvh, 860px). */
   fill?: boolean;
   className?: string;
@@ -58,6 +65,21 @@ export function KitchenViewer({
   const [src] = useState(() => viewerSrc({ bundle, lang, cfg, doors, tour, demo, compact }));
   const sent = useRef(lang);
   const panelSent = useRef(panelOpen);
+  const box = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!minDesktopWidth || !el || !window.matchMedia("(pointer: fine)").matches) return;
+    const measure = () => {
+      const w = el.clientWidth;
+      setScale(w && w < minDesktopWidth && w >= minDesktopWidth * 0.7 ? w / minDesktopWidth : 1);
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    measure();
+    return () => ro.disconnect();
+  }, [minDesktopWidth]);
 
   const post = (msg: Record<string, unknown>) => {
     const f = frame.current;
@@ -69,7 +91,6 @@ export function KitchenViewer({
     if (sent.current === lang) return;
     sent.current = lang;
     post({ type: "architeksoft:lang", lang });
-     
   }, [lang]);
 
   // Only a change is sent: the first state is whatever the viewer starts with (compact: folded).
@@ -77,7 +98,6 @@ export function KitchenViewer({
     if (panelOpen === undefined || panelSent.current === panelOpen) return;
     panelSent.current = panelOpen;
     post({ type: "architeksoft:panel", open: panelOpen });
-     
   }, [panelOpen]);
 
   useEffect(() => {
@@ -110,7 +130,7 @@ export function KitchenViewer({
   return (
     // No explicit width: a block fills its line anyway, and "auto" lets a caller bleed it past the page
     // gutter with negative margins (the viewer needs at least ~360 px).
-    <div className={cn("kitchen-viewer", className)} style={{ position: "relative", height: fill ? "100%" : "min(100dvh, 860px)" }}>
+    <div ref={box} className={cn("kitchen-viewer", className)} style={{ position: "relative", height: fill ? "100%" : "min(100dvh, 860px)", overflow: scale < 1 ? "hidden" : undefined }}>
       <iframe
         ref={frame}
         id="kitchenViewer"
@@ -120,7 +140,11 @@ export function KitchenViewer({
         allowFullScreen
         loading="lazy"
         onLoad={(e) => onFrameLoad(e.currentTarget)}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, display: "block" }}
+        style={
+          scale < 1
+            ? { position: "absolute", left: 0, top: 0, width: `${100 / scale}%`, height: `${100 / scale}%`, transform: `scale(${scale})`, transformOrigin: "0 0", border: 0, display: "block" }
+            : { position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, display: "block" }
+        }
       />
     </div>
   );

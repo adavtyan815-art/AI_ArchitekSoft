@@ -256,7 +256,10 @@ files are served by Next.js from `public/webviewer/` at `/webviewer/customer.htm
   `cta_click` with label `viewer-demo-card`). Without `mode=demo` the viewer is the full client product — use that
   for real client projects; nothing demo-related is built into its default mode. The card's figure (library size)
   and links come from `webviewer.config.json` (`cta`) via the sync script.
-- **Homepage:** `mode=demo&ui=compact` — panel folded, a colour strip over the stage, a lighter tool dock. On
+- **Homepage:** `mode=demo&ui=compact` — panel folded, a vertical colour capsule on the right edge ("All" opens
+  the panel from there), one tool dock at the bottom. The slot is narrower than the viewer's 760 px phone
+  breakpoint on laptops, so on mouse/trackpad devices `KitchenViewer minDesktopWidth={800}` lays the iframe out
+  at 800 px and scales it down (≥ 70 %) to keep the desktop layout. On
   desktop the viewer loads by itself after the page has loaded (onboarding tour off); on touch devices a tap
   starts it straight in the fullscreen overlay. In native full screen the badge is gone, a top-centre pill
   ("Exit fullscreen") leads back besides Esc, and the viewer's material panel opens by itself.
