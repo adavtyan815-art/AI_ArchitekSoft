@@ -1,23 +1,28 @@
 {
-  "_note": "Kitchens published on the PUBLIC site under /webviewer/ (npm run webviewer:sync). Everything published is downloadable by any visitor, so the showcase is curated: \"decors\" = the only manufacturer decors copied (ids from the source catalog_products.json; display fields only, textures re-encoded at <= 512 px); \"locked\" = up to 12 premium previews shown with a lock in the viewer's demo mode (name, maker, colour and a 96 px thumbnail only - nothing to apply); \"cta\" = per-language link of the demo card's \"Start your project\"; \"home\" = per-language link of \"Back to main website\" on the standalone viewer page; \"logo\" = the official logo shown there; \"libraryUrl\" = the site's library API: the sync writes the full library (display fields + 96 px thumbnails) to the git-ignored private/webviewer/, and the demo browses it as locked previews (markets, manufacturers, search). An entry without \"decors\" is refused unless it says \"publishFullCatalog\": true (its whole catalog would become public). The first entry is the site's default kitchen.",
+  "_note": "Kitchens published on the PUBLIC site under /webviewer/ (npm run webviewer:sync). Everything published is downloadable by any visitor, so the showcase is curated: \"decors\" = the only manufacturer decors copied (ids from the source catalog_products.json; display fields only, textures re-encoded at <= 512 px); \"locked\" = up to 12 premium previews shown with a lock in the viewer's demo mode (name, maker, colour and a 96 px thumbnail only - nothing to apply); \"cta\" = per-language link of the demo card's \"Start your project\"; \"home\" = per-language link of \"Back to main website\" on the standalone viewer page; \"logo\" = the official logo shown there; \"libraryUrl\" = the site's library API: the sync writes the full library (display fields + 96 px thumbnails) to the git-ignored private/webviewer/, and the demo browses it as locked previews (markets, manufacturers, search). An entry without \"decors\" is refused unless it says \"publishFullCatalog\": true (its whole catalog would become public). \"popular\" = the \"Frequently used\" finishes by kind (solid / wood / stone): a demo decor listed there applies, any other is shown locked (display fields + a 96 px thumbnail). \"curatedOptions\": false drops the base kitchen's own generic swatches, so only real decors are offered. The first entry is the site's default kitchen.",
   "bundles": [
     {
       "id": "bundle_showcase",
       "from": "bundle_wooddream",
-      "cta": { "hy": "/start", "ru": "/ru/start", "en": "/en/start" },
-      "home": { "hy": "/", "ru": "/ru", "en": "/en" },
+      "cta": {
+        "hy": "/start",
+        "ru": "/ru/start",
+        "en": "/en/start"
+      },
+      "home": {
+        "hy": "/",
+        "ru": "/ru",
+        "en": "/en"
+      },
       "logo": "/brand/logo.png",
       "libraryUrl": "/api/webviewer/library",
       "decors": {
         "from": "bundle_egger",
         "ids": [
           "EGGER_W1000_ST9",
-          "EGGER_W1100_ST9",
           "EGGER_U222_ST9",
           "EGGER_U702_ST9",
           "EGGER_U727_ST9",
-          "EGGER_U665_ST9",
-          "EGGER_U502_ST9",
           "EGGER_U999_PM",
           "EGGER_H1145_ST10",
           "EGGER_H1180_ST37",
@@ -28,6 +33,50 @@
           "EGGER_F243_ST76",
           "EGGER_F186_ST9",
           "EGGER_F206_ST9"
+        ]
+      },
+      "curatedOptions": false,
+      "popular": {
+        "from": "bundle_egger",
+        "solid": [
+          "EGGER_W1000_ST9",
+          "EGGER_W1100_ST9",
+          "EGGER_U222_ST9",
+          "EGGER_U156_ST9",
+          "EGGER_U702_ST9",
+          "EGGER_U708_ST9",
+          "EGGER_U727_ST9",
+          "EGGER_U732_ST9",
+          "EGGER_U961_ST7",
+          "EGGER_U999_PM",
+          "EGGER_U665_ST9",
+          "EGGER_U502_ST9"
+        ],
+        "wood": [
+          "EGGER_H1145_ST10",
+          "EGGER_H1180_ST37",
+          "EGGER_H3303_ST10",
+          "EGGER_H1344_ST32",
+          "EGGER_H3154_ST36",
+          "EGGER_H1176_ST37",
+          "EGGER_H1318_ST10",
+          "EGGER_H3176_ST37",
+          "EGGER_H1386_ST40",
+          "EGGER_H1307_ST19",
+          "EGGER_H3156_ST9",
+          "CLEAF_S061_Engadina"
+        ],
+        "stone": [
+          "EGGER_F812_ST9",
+          "EGGER_F243_ST76",
+          "EGGER_F186_ST9",
+          "EGGER_F206_ST9",
+          "EGGER_F187_ST9",
+          "ALVIC_Bernini_LUXE",
+          "ALVIC_Nuvola_01_LUXE",
+          "ALVIC_Porcelain_01_Gold_LUXE",
+          "ALVIC_Sierra_01_LUXE",
+          "ALVIC_Basalto_Pearl_LUXE"
         ]
       },
       "locked": {

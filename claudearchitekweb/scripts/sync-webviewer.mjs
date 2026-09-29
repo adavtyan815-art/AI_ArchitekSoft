@@ -19,6 +19,8 @@
  *  - their records keep display fields only (no supplier lists, internal material paths, product specs);
  *  - their textures are re-encoded at ≤ 512 px (plenty on screen, not production files), thumbnails at 96 px;
  *  - `locked` previews are a name, a maker, a colour and a 96 px thumbnail — no texture, nothing to apply;
+ *  - `popular` ("Frequently used", by kind): the listed demo decors apply, the others are locked previews as above;
+ *  - `curatedOptions: false` drops the base kitchen's own generic swatches (only real decors are offered);
  *  - a bundle copied as-is (its whole catalog public) needs `"publishFullCatalog": true` — never by accident;
  *  - an audit runs last and fails the sync if anything else ended up in the folder.
  *
@@ -44,6 +46,7 @@ let libraryIndexed = "";
 const FILES = ["customer.html", "T_wood02_D.jpg", "T_wood02_D_thumb.jpg"];
 const DIRS = ["app", "vendor/three"];
 const ID = /^[A-Za-z0-9_-]+$/;
+const KINDS = ["solid", "wood", "stone"];   // "Frequently used" kinds, as the viewer names them
 const TEX_MAX = 512;       // px, public decor textures
 const THUMB_MAX = 96;      // px, swatch thumbnails
 /** The only fields of a decor record that reach the public showcase (what the viewer displays). */
@@ -68,6 +71,10 @@ async function shrink(from, to, max, quality = 82) {
 }
 const pickFields = (p) => Object.fromEntries(PUBLIC_FIELDS.filter((k) => p[k] !== undefined).map((k) => [k, p[k]]));
 const thumbOf = (p, thumbs) => p.thumb ?? thumbs.replace(/\/?$/, "/") + p.texture.split("/").pop().replace(/\.[^.]+$/, ".jpg");
+/** A decor's display name: its English name, or its codes when the name is only a code. */
+const displayName = (p) => (/^[A-Z]{0,3}\d/.test(p.name?.en ?? "") ? `${p.textureCode ?? ""} ${p.decorCode ?? ""}`.trim() : p.name?.en ?? p.decorCode ?? p.id);
+/** The library's opaque token for a decor (the same one the library API and its thumbnails use). */
+const tokenOf = (id) => crypto.createHash("sha256").update(`kp-library:${id}`).digest("hex").slice(0, 12);
 
 if (!fs.existsSync(path.join(SRC, "customer.html"))) fail(`no customer.html in ${SRC} (set WEBVIEWER_SRC to the WebViewer/ folder)`);
 const config = readJson(CONFIG);
@@ -79,6 +86,7 @@ for (const e of entries) {
   if (!ID.test(from) || !fs.existsSync(path.join(SRC, from, "manifest.json"))) fail(`"${e.id}": source bundle "${from}" has no manifest.json in ${SRC}`);
   if (e.decors && (!ID.test(e.decors.from ?? "") || !Array.isArray(e.decors.ids))) fail(`"${e.id}": decors needs { from, ids[] }`);
   if (e.locked && (!ID.test(e.locked.from ?? "") || !Array.isArray(e.locked.ids) || e.locked.ids.length > 12)) fail(`"${e.id}": locked needs { from, ids[] } with at most 12 ids`);
+  if (e.popular && (!e.decors || !ID.test(e.popular.from ?? "") || !KINDS.some((k) => Array.isArray(e.popular[k])) || KINDS.some((k) => (e.popular[k] ?? []).length > 40))) fail(`"${e.id}": popular needs a curated "decors" entry and { from, solid[], wood[], stone[] } with at most 40 ids each`);
   for (const k of ["libraryUrl", "logo"]) if (e[k] !== undefined && !/^\/(?!\/)[\w\-./]+$/.test(e[k])) fail(`"${e.id}": ${k} must be a same-site path like /api/... or /brand/...`);
   if (e.libraryUrl && !e.decors) fail(`"${e.id}": libraryUrl needs a curated "decors" entry (the library is built from its source)`);
   if (!e.decors && e.publishFullCatalog !== true) fail(`"${e.id}" has no "decors" list: that would publish its whole decor catalog. Curate it, or set "publishFullCatalog": true if that is really intended.`);
@@ -115,6 +123,7 @@ async function publishCurated(e) {
     if (fs.existsSync(path.join(src, name))) copyFile(path.join(src, name), path.join(out, name));
   }
   const cat = fs.existsSync(path.join(out, "catalog.json")) ? readJson(path.join(out, "catalog.json")) : {};
+  if (e.curatedOptions === false) for (const g of Object.values(cat.groups ?? {})) g.options = [];
   // textures of the curated swatches (catalog.json), when they live inside the bundle
   for (const g of Object.values(cat.groups ?? {})) {
     for (const o of g.options ?? []) {
@@ -168,12 +177,42 @@ async function publishCurated(e) {
     }
   }
 
+  // "Frequently used" (catalog.json `popular`, in kind order): a demo decor by id — it applies; any other decor as a
+  // locked preview — name, maker, codes, colour, category, its library token and a 96 px thumbnail, never an id or texture.
+  if (e.popular) {
+    const popDir = path.join(SRC, e.popular.from);
+    const popDoc = e.popular.from === e.decors.from ? doc : readJson(path.join(popDir, "catalog_products.json"));
+    const popById = new Map((popDoc.products ?? []).map((p) => [p.id, p]));
+    const popThumbs = popDoc.thumbs ?? "textures/thumbs/";
+    const popular = [];
+    let n = 0;
+    for (const kind of KINDS) {
+      for (const id of e.popular[kind] ?? []) {
+        const p = popById.get(id);
+        if (!p) fail(`"${e.id}": popular id ${id} is not in ${e.popular.from}/catalog_products.json`);
+        if (e.decors.ids.includes(id)) { popular.push({ kind, id }); continue; }
+        const item = { kind, name: displayName(p), maker: p.manufacturer ?? "", code: [p.decorCode, p.textureCode].filter(Boolean).join(" "), hex: p.hex, category: p.category ?? "", t: tokenOf(p.id) };
+        if (p.type === "texture" && p.texture) {
+          const rel = thumbOf(p, popThumbs);
+          if (inside(rel) && fs.existsSync(path.join(popDir, rel))) {
+            item.thumb = `textures/popular/p${++n}.jpg`;
+            await shrink(path.join(popDir, rel), path.join(out, item.thumb), THUMB_MAX, 78);
+          }
+        }
+        popular.push(item);
+      }
+    }
+    cat.popular = popular;
+  }
+
   // What the viewer's demo mode (?mode=demo) shows: the size of the full library the selection came from (decors the
   // viewer would list: confidence not "Low"), the locked previews and where "Start your project" leads.
   const library = (doc.products ?? []).filter((p) => p && (p.confidence || "Approximate") !== "Low");
   const libraryCount = library.length;
   cat.demo = { libraryCount, ...(e.cta ? { ctaUrl: e.cta } : {}), ...(locked.length ? { locked } : {}), ...(e.libraryUrl ? { libraryUrl: e.libraryUrl } : {}) };
   if (e.home || e.logo) cat.site = { ...(cat.site ?? {}), ...(e.home ? { home: e.home } : {}), ...(e.logo ? { logo: e.logo } : {}) };
+  // the full library, for both modes: demo browses it locked, the client product applies what its bundle carries
+  if (e.libraryUrl) cat.library = { url: e.libraryUrl, count: libraryCount };
   // The full library for the site's library API (src/app/api/webviewer/library): written to private/ — never under
   // public/, never in git. Display fields + a 96 px thumbnail under an opaque token; no textures, material data,
   // supplier data or internal paths. The demo's own decors are left out (they are already interactive in the viewer).
@@ -183,11 +222,10 @@ async function publishCurated(e) {
     const demoIds = new Set(e.decors.ids);
     const jobs = [];
     const idx = library.filter((p) => !demoIds.has(p.id)).map((p) => {
-      const codeLike = /^[A-Z]{0,3}\d/.test(p.name?.en ?? "");
-      const name = codeLike ? `${p.textureCode ?? ""} ${p.decorCode ?? ""}`.trim() : p.name?.en ?? p.decorCode ?? p.id;
+      const name = displayName(p);
       const refs = (Array.isArray(p.colorRefs) ? p.colorRefs : []).map((r) => `${r.system} ${r.code}`).join(" ");
       const s = [p.label, p.decorCode, p.textureCode, p.name?.en, p.name?.ru, p.name?.hy, p.collection, p.family, p.manufacturer, p.finish, refs].filter(Boolean).join(" ").toLowerCase();
-      const token = crypto.createHash("sha256").update(`kp-library:${p.id}`).digest("hex").slice(0, 12);
+      const token = tokenOf(p.id);
       let th = false;
       if (p.type === "texture" && p.texture) {
         const rel = thumbOf(p, thumbs);
@@ -224,14 +262,14 @@ async function audit() {
       if (!/^(manifest\.json|set\.glb|set_ar\.glb|catalog\.json|catalog_products\.json|textures\/.+\.jpg)$/.test(rel)) problems.push(`${e.id}: unexpected file ${rel}`);
       if (rel.startsWith("textures/")) {
         const { width = 0, height = 0 } = await sharp(f).metadata();
-        const max = /^textures\/(thumbs|locked)\//.test(rel) ? THUMB_MAX : TEX_MAX;
+        const max = /^textures\/(thumbs|locked|popular)\//.test(rel) ? THUMB_MAX : TEX_MAX;
         if (Math.max(width, height) > max) problems.push(`${e.id}: ${rel} is ${width}×${height} (max ${max})`);
       }
     }
     const prods = readJson(path.join(dir, "catalog_products.json")).products ?? [];
     if (prods.length !== e.decors.ids.length) problems.push(`${e.id}: ${prods.length} decor records, expected ${e.decors.ids.length}`);
     for (const p of prods) for (const k of Object.keys(p)) if (!PUBLIC_FIELDS.includes(k)) problems.push(`${e.id}: ${p.id} carries "${k}"`);
-    const tex = walk(path.join(dir, "textures")).filter((f) => !/[\\/](thumbs|locked)[\\/]/.test(f)).length;
+    const tex = walk(path.join(dir, "textures")).filter((f) => !/[\\/](thumbs|locked|popular)[\\/]/.test(f)).length;
     if (tex > e.decors.ids.length + 4) problems.push(`${e.id}: ${tex} textures for ${e.decors.ids.length} decors`);
   }
   // the private library: thumbnails only, never above 96 px; and nothing of it under public/
