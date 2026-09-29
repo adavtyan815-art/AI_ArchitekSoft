@@ -76,9 +76,9 @@ export function Showcase({
   const [coarse, setCoarse] = useState(false);
   const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
   const [live, setLive] = useState(false); // the 3D viewer frame is mounted
-  // the 3D canvas's centre inside the viewer frame (0..1): the exit pill centres on it, so with the viewer's panel
-  // open it sits over the visible scene instead of over the panel's edge
-  const [canvasCx, setCanvasCx] = useState(0.5);
+  // the 3D canvas's centre inside the viewer frame (0..1), while the viewer's side panel is open: the exit pill centres
+  // on it, over the visible scene instead of over the panel's edge. Panel closed: null, the pill sits at 50 %.
+  const [canvasCx, setCanvasCx] = useState<number | null>(null);
   const [opened, setOpened] = useState<boolean[]>(() => s.items.map((_, k) => k === 1));
   const n = s.items.length;
   const p = (path: string) => localePath(locale, path);
@@ -86,7 +86,10 @@ export function Showcase({
   useEffect(() => {
     setCoarse(window.matchMedia("(pointer: coarse)").matches);
     setFsSupported(!!document.fullscreenEnabled);
-    const onFs = () => setFs(!!document.fullscreenElement);
+    const onFs = () => {
+      setFs(!!document.fullscreenElement);
+      if (!document.fullscreenElement) setCanvasCx(null); // re-reported when the panel opens on the next entry
+    };
     document.addEventListener("fullscreenchange", onFs);
     return () => document.removeEventListener("fullscreenchange", onFs);
   }, []);
@@ -217,7 +220,7 @@ export function Showcase({
       <div className={cn("absolute inset-0 transition-opacity duration-500", i === 1 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 1} inert={i !== 1 ? true : undefined}>
         {opened[1] && live ? (
           // public showcase: demo behaviour + compact layout; full screen opens the viewer's material panel
-          <KitchenViewer locale={locale} demo compact tour={false} panelOpen={fs} active={i === 1} onLayout={(l) => setCanvasCx(l.cx)} minDesktopWidth={800} title={viewerTitle} fill />
+          <KitchenViewer locale={locale} demo compact tour={false} panelOpen={fs} active={i === 1} onLayout={(l) => setCanvasCx(l.open ? l.cx : null)} minDesktopWidth={800} title={viewerTitle} fill />
         ) : opened[1] ? (
           <button type="button" onClick={startViewer} className="group absolute inset-0 flex flex-col items-center justify-center gap-4">
             {media.viewerPoster ? (
@@ -254,11 +257,11 @@ export function Showcase({
       )}
 
       {/* Native fullscreen (desktop): one visible way back besides Esc — a frosted pill at the top, centred on the
-          visible 3D canvas (the viewer reports where it is: with its panel open, that is left of the panel). Its
-          settings sit top-right, the dock at the bottom. Chrome's own "press Esc" notice covers the top centre for
+          visible 3D canvas (the viewer reports where it is: with its panel open, that is left of the panel;
+          folded, the whole frame). Its settings live in that panel, the dock at the bottom. Chrome's own "press Esc" notice covers the top centre for
           its first few seconds. */}
       {fs ? (
-        <button type="button" className="hx-fs-exit" onClick={toggleFs} aria-label={s.exitFullscreen} style={{ left: `${(i === 1 ? canvasCx : 0.5) * 100}%` }}>
+        <button type="button" className="hx-fs-exit" onClick={toggleFs} aria-label={s.exitFullscreen} style={{ left: `${(i === 1 && canvasCx !== null ? canvasCx : 0.5) * 100}%` }}>
           <X size={15} aria-hidden />
           {s.exitFullscreenShort}
         </button>

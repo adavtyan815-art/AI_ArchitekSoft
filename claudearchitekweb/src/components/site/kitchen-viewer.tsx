@@ -54,8 +54,11 @@ export function KitchenViewer({
   panelOpen?: boolean;
   /** false once the host no longer shows the viewer (e.g. another showcase mode): ends its first-look camera sway. */
   active?: boolean;
-  /** Where the viewer's 3D canvas is — centre and width as fractions of the frame (the panel takes the rest). */
-  onLayout?: (layout: { cx: number; w: number }) => void;
+  /**
+   * Where the viewer's 3D canvas is — centre and width as fractions of the frame (the panel takes the rest) — and
+   * whether its side panel is open. Reported for the panel's settled state, on every open/fold and resize.
+   */
+  onLayout?: (layout: { cx: number; w: number; open: boolean }) => void;
   /**
    * Keep the viewer's desktop layout in a box narrower than its phone breakpoint (760 px): on mouse/trackpad
    * devices the frame is laid out at this width and scaled down to fit (never below 70 %). Touch devices keep the
@@ -122,8 +125,8 @@ export function KitchenViewer({
       if (e.source !== frame.current?.contentWindow || e.origin !== window.location.origin) return;
       if (e.data?.type === "architeksoft:cta") trackEvent("cta_click", { locale, meta: { label: "viewer-demo-card", href: "/start" } });
       if (e.data?.type === "architeksoft:layout") {
-        const cx = Number(e.data.cx), w = Number(e.data.w);
-        if (cx > 0 && cx < 1 && w > 0 && w <= 1) layoutCb.current?.({ cx, w });
+        const cx = Number(e.data.cx), w = Number(e.data.w), open = e.data.open === true;
+        if (cx > 0 && cx < 1 && w > 0 && w <= 1) layoutCb.current?.({ cx, w, open });
       }
     };
     window.addEventListener("message", onMessage);
