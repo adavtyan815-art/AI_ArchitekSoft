@@ -62,7 +62,7 @@ export const en = {
     heroSubtitle:
       "ArchiTek Soft helps furniture makers, showrooms and their customers choose colours, materials and forms with confidence, in interactive 3D. We do not make furniture. We make the decision easy and exact.",
     heroPrimary: "Start a project",
-    heroSecondary: "Try the Web Viewer",
+    heroSecondary: "All Web Viewer Capabilities",
     heroNote: "Works on any phone or computer from a normal link.",
     heroCaption: "From a hand sketch to interactive 3D, at the real dimensions",
     proof: [
@@ -82,18 +82,26 @@ export const en = {
     splitTitle: "Who is it for?",
     splitSubtitle: "Two paths, two clear offers.",
     b2bCard: {
-      tag: "For business",
+      tag: "For Makers & Showrooms",
       title: "I make or sell furniture",
-      text: "Your customer chooses and approves in 3D at the first meeting. You produce what was approved, without remakes.",
-      bullets: ["A branded Web Viewer link for every order", "Colour and material options without new renders", "Live 3D presentations for the showroom and key clients"],
-      cta: "The business offer",
+      text: "Your customer sees, chooses and approves the project in 3D at the very first meeting. You produce exactly what was approved — with a precise cut list and drawings, and without costly production errors. Try the ready interactive demo on the site, and let’s discuss a pilot partnership for your projects.",
+      bullets: [
+        "A 3D link with your brand — your customer sees your logo and contacts",
+        "Production accuracy — drawings and a cut list (CutList) with 0 mm error",
+        "Fast approval — colours and details change on the spot, no new renders",
+      ],
+      cta: "Discuss Partnership",
     },
     b2cCard: {
-      tag: "For individuals",
+      tag: "For Homeowners",
       title: "I am ordering furniture",
-      text: "Send your measurements, get your kitchen in 3D, choose colours and form, see it in your room and go to any maker with a ready decision.",
-      bullets: ["You see exactly what you will get", "You compare 2–3 options", "A decision sheet for the maker you choose"],
-      cta: "What you need to start",
+      text: "Send your room measurements and within 24–48 hours get an interactive 3D link to your future furniture. Choose front colours, materials and handles, see it in your room (in AR), and go to any furniture maker with a ready, approved decision.",
+      bullets: [
+        "A 3D link on your phone — opens on any device, no app to install",
+        "No costly mistakes — you see the furniture before you order",
+        "A decision sheet — the list of approved materials and decors for the maker",
+      ],
+      cta: "How to Order",
     },
     viewerTag: "Web Viewer",
     viewerTitle: "Try it right now",

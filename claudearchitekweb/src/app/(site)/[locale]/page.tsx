@@ -3,11 +3,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
-import { getSetting } from "@/lib/settings";
 import { getPortfolio } from "@/lib/public-data";
 import { ButtonLink, Index } from "@/components/ui";
 import { TrackedCta } from "@/components/site/cta";
-import { ContactChannels } from "@/components/site/contact-channels";
 import { PortfolioGrid } from "@/components/site/portfolio-grid";
 import { Showcase } from "@/components/site/showcase";
 import { pageMeta } from "./meta";
@@ -42,8 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const locale = (isLocale(raw) ? raw : "hy") as Locale;
   const d = getDictionary(locale);
   const c = d.homeCompact;
-  const brand = getSetting("brand");
-  const p = (path: string) => localePath(locale, path);
+  const p =(path: string) => localePath(locale, path);
   const work = getPortfolio(locale, { featuredOnly: true, limit: 3 });
   const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
@@ -158,6 +155,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
               <h3 className="hx-door-title">{card.title}</h3>
               <p className="hx-door-text">{card.text}</p>
+              {/* "Lead — explanation": the lead in bold */}
+              <ul className="hx-door-list">
+                {card.bullets.map((b) => {
+                  const [lead, ...rest] = b.split(" — ");
+                  return (
+                    <li key={b}>
+                      {rest.length ? (
+                        <>
+                          <strong>{lead}</strong> — {rest.join(" — ")}
+                        </>
+                      ) : (
+                        b
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
               <span className="hx-door-link">
                 {card.cta}
                 <ArrowRight size={15} />
@@ -217,9 +231,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 {d.common.startProject}
                 <ArrowUpRight size={18} />
               </TrackedCta>
-              <div className="mt-9 border-t border-line pt-5">
-                <ContactChannels brand={brand} dict={d} compact />
-              </div>
             </div>
           </div>
         </div>

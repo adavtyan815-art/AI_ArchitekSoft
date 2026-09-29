@@ -361,6 +361,7 @@
 .home-x .hx-materials {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 18px 22px;
   margin-top: 26px;
 }
@@ -368,7 +369,8 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
 }
 .home-x .hx-material span:first-child {
   width: 46px;
@@ -406,6 +408,35 @@
   font-size: 15px;
   line-height: 1.6;
   color: var(--muted);
+}
+/* the door's three points: a bold lead ("A 3D link with your brand") and its explanation */
+.home-x .hx-door-list {
+  display: grid;
+  gap: 9px;
+  max-width: 30rem;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.home-x .hx-door-list li {
+  position: relative;
+  padding-left: 18px;
+}
+.home-x .hx-door-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 8px;
+  height: 1.5px;
+  background: var(--accent);
+}
+.home-x .hx-door-list strong {
+  font-weight: 600;
+  color: var(--fg);
 }
 .home-x .hx-door-link {
   display: inline-flex;
