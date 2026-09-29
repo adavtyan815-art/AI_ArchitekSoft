@@ -176,6 +176,17 @@ export function Showcase({
     }
   };
 
+  // The viewer's materials dock "‹" (fine pointers): step into full screen, where the material panel opens with room.
+  const expandViewer = async () => {
+    if (document.fullscreenElement) return true;
+    try {
+      await stageRef.current?.requestFullscreen?.();
+    } catch {
+      return false;
+    }
+    return !!document.fullscreenElement;
+  };
+
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === "Escape" && document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
@@ -219,8 +230,9 @@ export function Showcase({
       {/* 02 — Web Viewer (desktop: loads after the page; touch: tap → fullscreen overlay) */}
       <div className={cn("absolute inset-0 transition-opacity duration-500", i === 1 ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={i !== 1} inert={i !== 1 ? true : undefined}>
         {opened[1] && live ? (
-          // public showcase: demo behaviour + compact layout; full screen opens the viewer's material panel
-          <KitchenViewer locale={locale} demo compact tour={false} panelOpen={fs} fullscreen={fs || overlay} active={i === 1} onLayout={(l) => setCanvasCx(l.open ? l.cx : null)} minDesktopWidth={800} title={viewerTitle} fill />
+          // public showcase: demo behaviour + compact layout; full screen opens the viewer's material panel, and the
+          // viewer's "‹" (open the panel) steps into full screen first
+          <KitchenViewer locale={locale} demo compact tour={false} panelOpen={fs} fullscreen={fs || overlay} onExpand={fsSupported && !coarse ? expandViewer : undefined} active={i === 1} onLayout={(l) => setCanvasCx(l.open ? l.cx : null)} minDesktopWidth={800} title={viewerTitle} fill />
         ) : opened[1] ? (
           <button type="button" onClick={startViewer} className="group absolute inset-0 flex flex-col items-center justify-center gap-4">
             {media.viewerPoster ? (

@@ -29,7 +29,10 @@ function siteTheme(): Theme {
  *   viewer's studio — sent on load and on every change;
  * - panel: `panelOpen` opens or folds the viewer's desktop material panel (e.g. while the host is full screen);
  * - full screen: `fullscreen` tells the viewer the host shows it full screen — a folded panel then leaves a clean
- *   canvas (only the edge handle, no materials dock).
+ *   canvas (only the edge handle, no materials dock);
+ * - expand: with `onExpand` the host tells the viewer it can take it full screen (`architeksoft:host {canExpand}`);
+ *   the materials dock's "‹" then asks for it (`architeksoft:expand`) instead of opening the panel inside the small
+ *   box. `onExpand` resolves false when that is not possible — the panel then opens in place.
  * The viewer reports "Start your project" in its demo card (`architeksoft:cta`), counted as a CTA click.
  *
  * iPhone / iPad AR: see `bridgeQuickLook` below.
@@ -44,6 +47,7 @@ export function KitchenViewer({
   compact,
   panelOpen,
   fullscreen,
+  onExpand,
   active,
   onLayout,
   minDesktopWidth,
@@ -57,6 +61,11 @@ export function KitchenViewer({
   panelOpen?: boolean;
   /** The host shows the viewer full screen (or in a full-screen overlay); undefined = never. */
   fullscreen?: boolean;
+  /**
+   * The host can show the viewer full screen: called when the visitor opens the panel from the materials dock (the
+   * showroom transition). Resolve false when it could not — the viewer's panel then opens in place.
+   */
+  onExpand?: () => boolean | Promise<boolean>;
   /** false once the host no longer shows the viewer (e.g. another showcase mode): ends its first-look camera sway. */
   active?: boolean;
   /**
@@ -83,6 +92,9 @@ export function KitchenViewer({
   const box = useRef<HTMLDivElement>(null);
   const layoutCb = useRef(onLayout);
   layoutCb.current = onLayout;
+  const expandCb = useRef(onExpand);
+  expandCb.current = onExpand;
+  const canExpand = !!onExpand;
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
@@ -129,6 +141,10 @@ export function KitchenViewer({
   }, [active]);
 
   useEffect(() => {
+    post({ type: "architeksoft:host", canExpand });
+  }, [canExpand]);
+
+  useEffect(() => {
     const sendTheme = () => post({ type: "architeksoft:theme", theme: siteTheme() });
     const html = new MutationObserver(sendTheme);
     html.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -140,6 +156,14 @@ export function KitchenViewer({
       if (e.data?.type === "architeksoft:layout") {
         const cx = Number(e.data.cx), w = Number(e.data.w), open = e.data.open === true;
         if (cx > 0 && cx < 1 && w > 0 && w <= 1) layoutCb.current?.({ cx, w, open });
+      }
+      if (e.data?.type === "architeksoft:expand") {
+        // still inside the click's user activation (it reaches the parent frame too), so full screen is allowed
+        Promise.resolve(expandCb.current?.() ?? false)
+          .catch(() => false)
+          .then((ok) => {
+            if (!ok) post({ type: "architeksoft:panel", open: true });
+          });
       }
     };
     window.addEventListener("message", onMessage);
@@ -159,6 +183,7 @@ export function KitchenViewer({
     post({ type: "architeksoft:theme", theme: siteTheme() });
     // a message sent before the viewer was listening is lost: repeat the full-screen state once it has loaded
     if (fsSent.current) post({ type: "architeksoft:fullscreen", on: true });
+    if (expandCb.current) post({ type: "architeksoft:host", canExpand: true });
   };
 
   return (
