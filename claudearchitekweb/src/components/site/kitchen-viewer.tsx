@@ -27,7 +27,9 @@ function siteTheme(): Theme {
  *   instantly instead of reloading (the `src` never changes after mount);
  * - theme: the site's light/dark switch (and the OS preference, when the visitor never chose) drives the
  *   viewer's studio — sent on load and on every change;
- * - panel: `panelOpen` opens or folds the viewer's desktop material panel (e.g. while the host is full screen).
+ * - panel: `panelOpen` opens or folds the viewer's desktop material panel (e.g. while the host is full screen);
+ * - full screen: `fullscreen` tells the viewer the host shows it full screen — a folded panel then leaves a clean
+ *   canvas (only the edge handle, no materials dock).
  * The viewer reports "Start your project" in its demo card (`architeksoft:cta`), counted as a CTA click.
  *
  * iPhone / iPad AR: see `bridgeQuickLook` below.
@@ -41,6 +43,7 @@ export function KitchenViewer({
   demo,
   compact,
   panelOpen,
+  fullscreen,
   active,
   onLayout,
   minDesktopWidth,
@@ -52,6 +55,8 @@ export function KitchenViewer({
   title: string;
   /** Open (true) or fold (false) the viewer's desktop material panel; undefined leaves it to the viewer. */
   panelOpen?: boolean;
+  /** The host shows the viewer full screen (or in a full-screen overlay); undefined = never. */
+  fullscreen?: boolean;
   /** false once the host no longer shows the viewer (e.g. another showcase mode): ends its first-look camera sway. */
   active?: boolean;
   /**
@@ -74,6 +79,7 @@ export function KitchenViewer({
   const [src] = useState(() => viewerSrc({ bundle, lang, cfg, doors, tour, demo, compact }));
   const sent = useRef(lang);
   const panelSent = useRef(panelOpen);
+  const fsSent = useRef(false);
   const box = useRef<HTMLDivElement>(null);
   const layoutCb = useRef(onLayout);
   layoutCb.current = onLayout;
@@ -112,6 +118,13 @@ export function KitchenViewer({
   }, [panelOpen]);
 
   useEffect(() => {
+    const on = fullscreen === true;
+    if (fsSent.current === on) return;
+    fsSent.current = on;
+    post({ type: "architeksoft:fullscreen", on });
+  }, [fullscreen]);
+
+  useEffect(() => {
     if (active === false) post({ type: "architeksoft:ambient", on: false });
   }, [active]);
 
@@ -144,6 +157,8 @@ export function KitchenViewer({
   const onFrameLoad = (f: HTMLIFrameElement) => {
     bridgeQuickLook(f);
     post({ type: "architeksoft:theme", theme: siteTheme() });
+    // a message sent before the viewer was listening is lost: repeat the full-screen state once it has loaded
+    if (fsSent.current) post({ type: "architeksoft:fullscreen", on: true });
   };
 
   return (
