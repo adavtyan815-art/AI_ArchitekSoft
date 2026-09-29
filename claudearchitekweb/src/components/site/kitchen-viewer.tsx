@@ -42,6 +42,7 @@ export function KitchenViewer({
   compact,
   panelOpen,
   active,
+  onLayout,
   minDesktopWidth,
   title,
   fill = false,
@@ -53,6 +54,8 @@ export function KitchenViewer({
   panelOpen?: boolean;
   /** false once the host no longer shows the viewer (e.g. another showcase mode): ends its first-look camera sway. */
   active?: boolean;
+  /** Where the viewer's 3D canvas is — centre and width as fractions of the frame (the panel takes the rest). */
+  onLayout?: (layout: { cx: number; w: number }) => void;
   /**
    * Keep the viewer's desktop layout in a box narrower than its phone breakpoint (760 px): on mouse/trackpad
    * devices the frame is laid out at this width and scaled down to fit (never below 70 %). Touch devices keep the
@@ -69,6 +72,8 @@ export function KitchenViewer({
   const sent = useRef(lang);
   const panelSent = useRef(panelOpen);
   const box = useRef<HTMLDivElement>(null);
+  const layoutCb = useRef(onLayout);
+  layoutCb.current = onLayout;
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
@@ -116,6 +121,10 @@ export function KitchenViewer({
     const onMessage = (e: MessageEvent) => {
       if (e.source !== frame.current?.contentWindow || e.origin !== window.location.origin) return;
       if (e.data?.type === "architeksoft:cta") trackEvent("cta_click", { locale, meta: { label: "viewer-demo-card", href: "/start" } });
+      if (e.data?.type === "architeksoft:layout") {
+        const cx = Number(e.data.cx), w = Number(e.data.w);
+        if (cx > 0 && cx < 1 && w > 0 && w <= 1) layoutCb.current?.({ cx, w });
+      }
     };
     window.addEventListener("message", onMessage);
     // The frame can finish loading before hydration attaches onLoad: treat a document that is already there as loaded.

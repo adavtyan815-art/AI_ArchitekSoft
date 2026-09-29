@@ -506,7 +506,8 @@ export const en = {
     next: "Next",
     choose: "Choose a demonstration",
     fullscreen: "Fullscreen",
-    exitFullscreen: "Exit fullscreen",
+    exitFullscreen: "Exit full screen",
+    exitFullscreenShort: "Exit full screen",
     items: [
       { key: "sketch", tag: "Sketch → 3D", title: "A sketch becomes the finished picture", text: "Drag the divider to compare a hand sketch with the finished 3D image, at the same dimensions.", cta: "How it works", href: "/how-it-works" },
       { key: "viewer", tag: "Web Viewer", title: "Rotate it and change the colour", text: "This is the link every customer gets: rotate, zoom, pick the front colour, see it in your own room.", cta: "Open the Web Viewer", href: "/viewer" },
