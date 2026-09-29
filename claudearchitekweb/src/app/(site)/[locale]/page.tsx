@@ -1,13 +1,15 @@
-import Image from "next/image";
+import fs from "node:fs";
+import path from "node:path";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ClipboardCheck, Link2, Ruler, ShieldCheck, Smartphone, Zap } from "lucide-react";
 import { getDictionary, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { getPortfolio } from "@/lib/public-data";
 import { ButtonLink, Index } from "@/components/ui";
 import { TrackedCta } from "@/components/site/cta";
 import { PortfolioGrid } from "@/components/site/portfolio-grid";
 import { Showcase } from "@/components/site/showcase";
+import { B2BStory, B2CStory } from "@/components/site/home-stories";
 import { pageMeta } from "./meta";
 import "./home.css";
 
@@ -27,6 +29,14 @@ const MATERIALS: { label: string; fill: string }[] = [
   { label: "EGGER H3131", fill: "linear-gradient(135deg,#a8865e,#7a5a3a)" },
   { label: "EGGER U626", fill: "#6c7a5c" },
 ];
+
+/**
+ * A storytelling photo for a "Who it is for" card, when one has been added under public/home/ (else the composed
+ * scene is shown). B2B: b2b-story.webp; B2C: b2c-ar.webp — 1600 × 1200 px (4:3), WebP; see home-stories.tsx.
+ */
+function storyPhoto(name: string): string | null {
+  return fs.existsSync(path.join(process.cwd(), "public", "home", name)) ? `/home/${name}` : null;
+}
 
 /**
  * Homepage v7 — "the drafting table" (scoped styles in home.css).
@@ -101,7 +111,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <ArrowRight size={16} />
               </ButtonLink>
             </div>
-            <div className="lg:col-span-7 lg:pt-1">
+            <div className="hx-platform-aside lg:col-span-7">
               <ol className="hx-list">
                 {d.home.pillars.map((pl, i) => (
                   <li key={pl.title}>
@@ -129,53 +139,63 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div className="mb-8 max-w-2xl border-t border-line pt-6 sm:mb-12 sm:pt-8">
           <div className="hx-kicker">
             <Index n={3} />
-            <span>{d.home.splitTitle}</span>
+            <span>B2B · B2C</span>
           </div>
           <h2 className="hx-h2">{d.home.splitTitle}</h2>
           <p className="hx-lead">{d.home.splitSubtitle}</p>
         </div>
-        <div className="grid gap-10 md:grid-cols-2 md:gap-8 reveal-stagger">
+        {/* Two horizontal pillars, one above the other: the story image on one side (alternating), the offer on
+            the other — tag, title, text, three points side by side and the button — so a whole card fits the screen.
+            B2B: a maker's desk (configurator, CutList, samples); B2C: the kitchen placed in AR in a real room. */}
+        <div className="hx-pillars reveal-stagger">
           {[
-            { card: d.home.b2bCard, href: p("/for-business"), img: "/demo/kitchen-walnut.webp", code: "B2B" },
-            { card: d.home.b2cCard, href: p("/for-home"), img: "/demo/render-2.webp", code: "B2C" },
-          ].map(({ card, href, img, code }) => (
-            <Link key={href} href={href} className="hx-door group">
-              <div className="frame img-zoom">
-                <div className="relative aspect-[4/3] bg-surface-2">
-                  <Image src={img} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+            {
+              card: d.home.b2bCard,
+              href: p("/for-business"),
+              code: "B2B",
+              icons: [Link2, Ruler, Zap],
+              media: <B2BStory photo={storyPhoto("b2b-story.webp")} />,
+            },
+            {
+              card: d.home.b2cCard,
+              href: p("/for-home"),
+              code: "B2C",
+              icons: [Smartphone, ShieldCheck, ClipboardCheck],
+              media: <B2CStory photo={storyPhoto("b2c-ar.webp")} arLabel="AR" />,
+            },
+          ].map(({ card, href, code, icons, media }, n) => (
+            <Link key={href} href={href} className={`hx-pillar group${n % 2 ? " hx-pillar--flip" : ""}`}>
+              <div className="hx-pillar-media img-zoom">{media}</div>
+              <div className="hx-pillar-body">
+                <div className="hx-pillar-tag">
+                  <span className="hx-pillar-code">{code}</span>
+                  <span>{card.tag}</span>
                 </div>
-                <div className="frame-bar flex items-center justify-between gap-3 border-t border-line px-3.5 py-2">
-                  <span className="caption min-w-0 truncate">
-                    <span className="text-accent">{code}</span>
-                    <span className="mx-2 text-faint">/</span>
-                    {card.tag}
-                  </span>
-                  <ArrowUpRight size={14} className="flex-none text-faint transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fg" />
-                </div>
+                <h3 className="hx-pillar-title">{card.title}</h3>
+                <p className="hx-pillar-text">{card.text}</p>
+                {/* "Lead — explanation": the lead as the point's heading */}
+                <ul className="hx-pillar-points">
+                  {card.bullets.map((b, n) => {
+                    const [lead, ...rest] = b.split(" — ");
+                    const Icon = icons[n % icons.length];
+                    return (
+                      <li key={b}>
+                        <span className="hx-pillar-ico" aria-hidden>
+                          <Icon size={17} strokeWidth={1.7} />
+                        </span>
+                        <span className="min-w-0">
+                          <strong>{lead}</strong>
+                          {rest.length ? <span>{rest.join(" — ")}</span> : null}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <span className="hx-pillar-cta">
+                  {card.cta}
+                  <ArrowRight size={16} />
+                </span>
               </div>
-              <h3 className="hx-door-title">{card.title}</h3>
-              <p className="hx-door-text">{card.text}</p>
-              {/* "Lead — explanation": the lead in bold */}
-              <ul className="hx-door-list">
-                {card.bullets.map((b) => {
-                  const [lead, ...rest] = b.split(" — ");
-                  return (
-                    <li key={b}>
-                      {rest.length ? (
-                        <>
-                          <strong>{lead}</strong> — {rest.join(" — ")}
-                        </>
-                      ) : (
-                        b
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-              <span className="hx-door-link">
-                {card.cta}
-                <ArrowRight size={15} />
-              </span>
             </Link>
           ))}
         </div>

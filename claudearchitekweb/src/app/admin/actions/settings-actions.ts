@@ -151,7 +151,7 @@ const BrandSchema = z.object({
   email: z.string().max(120).refine((v) => !v || isEmail(v), { message: "email" }),
   telegram: z.string().max(60).refine((v) => !v || /^@?[A-Za-z][A-Za-z0-9_]{3,31}$/.test(v) || (isHttpUrl(v) && /^https?:\/\/(t|telegram)\.me\//i.test(v)), { message: "TELEGRAM_HANDLE" }),
   whatsapp: optionalPhone,
-  address: z.string().max(200),
+  address: z.string().max(700),   // per language: {"hy","ru","en"} ≤ 200 each (see saveBrandAction)
   website: optionalUrl,
   instagram: optionalUrl,
   facebook: optionalUrl,
@@ -159,13 +159,29 @@ const BrandSchema = z.object({
   youtube: optionalUrl,
   tiktok: optionalUrl,
   defaultLanguage: z.enum(["hy", "ru", "en"]),
-  workingHours: z.string().max(120),
+  workingHours: z.string().max(450),   // per language, ≤ 120 each
 });
+
+/** Address and working hours are typed once per language (hy / ru / en) and stored together as JSON, which the
+ *  site's `localizeBrandText` reads (a missing language falls back to another); the same text in all three is
+ *  stored as that one plain text. */
+const LANGS = ["hy", "ru", "en"] as const;
+function perLanguage(formData: FormData, key: string, max: number): string {
+  const v: Record<string, string> = Object.fromEntries(LANGS.map((l) => [l, s(formData, `${key}_${l}`).slice(0, max)]).filter(([, t]) => t));
+  const texts = [...new Set(Object.values(v))];
+  if (!texts.length) return "";
+  if (texts.length === 1 && Object.keys(v).length === LANGS.length) return texts[0];
+  return JSON.stringify(v);
+}
 
 export async function saveBrandAction(formData: FormData) {
   await requireUser();
   const keys = Object.keys(BrandSchema.shape) as (keyof z.infer<typeof BrandSchema>)[];
   const raw: Record<string, string> = Object.fromEntries(keys.map((k) => [k, s(formData, k)]));
+  raw.address = perLanguage(formData, "address", 200);
+  raw.workingHours = perLanguage(formData, "workingHours", 120);
+  // the per-language boxes, so a rejected submit re-renders them as typed
+  for (const k of ["address", "workingHours"]) for (const l of LANGS) raw[`${k}_${l}`] = s(formData, `${k}_${l}`);
   // "facebook.com/ArchiTekSoft" is what people paste: give it a scheme, then validate strictly.
   for (const k of URL_KEYS) if (raw[k]) raw[k] = normalizeHttpUrl(raw[k]) ?? raw[k];
   const parsed = BrandSchema.safeParse(raw);

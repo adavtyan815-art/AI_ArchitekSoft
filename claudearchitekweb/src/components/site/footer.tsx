@@ -1,15 +1,29 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { localePath, pickLang, type Dictionary, type Locale } from "@/lib/i18n";
+import { Mail, MapPin, MessageCircle, Phone, Send, type LucideIcon } from "lucide-react";
+import { localePath, type Dictionary, type Locale } from "@/lib/i18n";
+import { localizeBrandText } from "@/lib/brand-text";
 import type { BrandSettings } from "@/lib/settings";
 import { BrandLogo } from "@/components/brand-logo";
 import { telegramUrl, whatsappUrl } from "./contact-channels";
 
+type ContactRow = { key: string; label: string; value: string; href?: string; Icon: LucideIcon };
+
+/** "Vanadzor, Armenia" → "ք. Վանաձոր" / "г. Ванадзор" / "Vanadzor": the city, as a footer line reads it. */
+const CITY_PREFIX: Record<Locale, string> = { hy: "ք. ", ru: "г. ", en: "" };
+function cityOf(address: string, locale: Locale): string {
+  const city = address.split(",")[0].trim();
+  const prefix = CITY_PREFIX[locale];
+  return city && prefix && !city.startsWith(prefix.trim()) ? prefix + city : city;
+}
+
 /**
- * Footer v3: a closing statement in serif, then an index of the site in mono-labelled columns,
- * then a hairline meta row. No boxes; rules and type carry the structure.
- * Phones get their own composition: a shorter statement, the contact rows (they are actions),
- * a two-column link matrix and social as one row — not the desktop columns stacked.
+ * Footer v5: one index row, then a hairline meta row. No statement and no separate contact band: the closing band above
+ * makes the pitch, and the direct contacts live in the first column under the logo.
+ * Four columns from lg (tablets: the brand block across the row, its contacts in two columns, the three link columns
+ * beneath): brand (logo + phone, e-mail, Telegram, WhatsApp, city · hours) | Solutions | Company | Social.
+ * The brand column is laid out on the link columns' own rhythm — the logo on the headings' line, then rows of the same
+ * height as the links, bottom-aligned — so each contact sits level with a link and every column ends on one line.
+ * Phones: the contact rows first (each a full-width 40px tap target), then a two-column link matrix, social as a row.
  */
 export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dictionary; brand: BrandSettings }) {
   const p = (path: string) => localePath(locale, path);
@@ -30,62 +44,64 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
       ],
     },
   ];
-  const contacts = [
-    [dict.common.telegram, brand.telegram, telegramUrl(brand.telegram)],
-    [dict.common.whatsapp, brand.whatsapp, whatsappUrl(brand.whatsapp)],
-    [dict.common.call, brand.phone, `tel:${brand.phone.replace(/[^\d+]/g, "")}`],
-    [dict.common.email, brand.email, `mailto:${brand.email}`],
-  ].filter(([, v]) => v);
+  const address = localizeBrandText(brand.address, locale);
+  const hours = localizeBrandText(brand.workingHours, locale);
+  const where = [address ? cityOf(address, locale) : "", hours].filter(Boolean).join(" · ");
+  const contacts = (
+    [
+      { key: "phone", label: dict.common.call, value: brand.phone, href: `tel:${brand.phone.replace(/[^\d+]/g, "")}`, Icon: Phone },
+      { key: "email", label: dict.common.email, value: brand.email, href: `mailto:${brand.email}`, Icon: Mail },
+      { key: "telegram", label: dict.common.telegram, value: brand.telegram, href: telegramUrl(brand.telegram), Icon: Send },
+      { key: "whatsapp", label: dict.common.whatsapp, value: brand.whatsapp, href: whatsappUrl(brand.whatsapp), Icon: MessageCircle },
+      { key: "where", label: [dict.contact.addressLabel, dict.contact.hoursLabel].join(" · "), value: where, Icon: MapPin },
+    ] satisfies ContactRow[]
+  ).filter((c) => c.value);
   const socials = [
     ["Instagram", brand.instagram],
     ["Facebook", brand.facebook],
     ["LinkedIn", brand.linkedin],
     ["YouTube", brand.youtube],
   ].filter(([, url]) => url);
+  /** A footer row: 40px tap target on phones, the links' own type-led height from md. */
+  const row = "flex min-h-10 min-w-0 items-center gap-2.5 text-fg-2 transition-colors md:min-h-0 md:py-0.5";
 
   return (
     <footer className="mt-20 border-t border-line-strong pb-16 sm:mt-24 md:pb-0">
       <div className="container-x">
-        {/* Statement + contact */}
-        <div className="grid gap-8 py-12 sm:py-14 lg:grid-cols-12 lg:py-20">
-          <div className="lg:col-span-7">
-            <p className="font-display text-[1.45rem] leading-[1.2] text-fg sm:text-[2.2rem] sm:leading-[1.15]">{dict.footer.tagline}</p>
-            <Link href={p("/start")} className="link-arrow mt-4 min-h-10 text-[15px] sm:mt-6 sm:min-h-0">
-              {dict.common.startProject}
-              <ArrowUpRight size={16} />
-            </Link>
-          </div>
-          <div className="lg:col-span-5 lg:pl-8">
-            <div className="kicker">{dict.footer.contact}</div>
-            {/* The padding sits on the <a>, not the <li>: the row is the tap target, so the whole
-                44px band is clickable on a phone — same rule as ContactChannels on /contact. */}
-            <ul className="mt-3 divide-y divide-line border-y border-line">
-              {contacts.map(([label, value, href]) => (
-                <li key={label} className="contain-w flex items-center justify-between gap-4 text-[14px]">
-                  <span className="caption">{label}</span>
-                  <a href={href} className="min-h-11 min-w-0 flex-1 truncate py-3 text-right text-fg transition-colors hover:text-accent" target={href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
-                    {value}
-                  </a>
-                </li>
-              ))}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-9 py-10 md:grid-cols-12 md:gap-10 md:py-12 lg:py-14">
+          {/* Brand: the logo on the headings' line, the direct contacts on the link rows' rhythm, bottom-aligned */}
+          <div className="col-span-2 md:col-span-12 lg:col-span-4 lg:flex lg:flex-col lg:justify-between lg:gap-6">
+            <div className="hidden md:mb-5 md:block lg:mb-0">
+              {/* +2px: the wordmark's ink then starts on the column headings' cap line (the PNG has ~2.7px of
+                  transparent top padding at this size; the headings' caps sit ~4.5px into their line box) */}
+              <BrandLogo className="footer-logo mt-0.5 h-8" />
+            </div>
+            <ul className="space-y-0 text-[14px] md:grid md:grid-cols-2 md:gap-x-10 md:gap-y-2 lg:block lg:space-y-2" aria-label={dict.footer.contact}>
+              {contacts.map(({ key, label, value, href, Icon }) => {
+                const body = (
+                  <>
+                    <Icon size={15} strokeWidth={1.7} className="flex-none text-faint" aria-hidden />
+                    <span className="truncate">{value}</span>
+                  </>
+                );
+                return (
+                  <li key={key}>
+                    {href ? (
+                      <a href={href} className={`${row} hover:text-fg`} aria-label={`${label}: ${value}`} target={href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
+                        {body}
+                      </a>
+                    ) : (
+                      <span className={row} title={`${label}: ${value}`}>
+                        {body}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
-            <div className="mt-4 text-[13px] text-muted">
-              <div>{String(pickLang(brand.address, locale, brand.address))}</div>
-              <div>{String(pickLang(brand.workingHours, locale, brand.workingHours))}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Index: brand + two link columns (a 2-column matrix on phones) + social */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-9 border-t border-line py-9 md:grid-cols-12 md:gap-10 md:py-10">
-          <div className="col-span-2 md:col-span-4">
-            <div className="hidden md:block">
-              <BrandLogo className="h-8" />
-            </div>
-            <p className="max-w-xs text-[13.5px] leading-relaxed text-muted md:mt-4">{dict.meta.description}</p>
           </div>
           {cols.map((c) => (
-            <div key={c.title} className="md:col-span-3">
+            <div key={c.title} className="md:col-span-4 lg:col-span-3">
               <div className="kicker">{c.title}</div>
               {/* Phones: each link is a full-width 40px row (the rows sit tight, so the column keeps
                   its height). From md the pointer is a mouse again and the type-led spacing returns. */}
@@ -100,7 +116,7 @@ export function SiteFooter({ locale, dict, brand }: { locale: Locale; dict: Dict
               </ul>
             </div>
           ))}
-          <div className="col-span-2 md:col-span-2">
+          <div className="col-span-2 md:col-span-4 lg:col-span-2">
             <div className="kicker">{dict.footer.social}</div>
             <ul className="mt-2 flex flex-wrap gap-x-5 text-[14px] md:mt-3 md:block md:space-y-2">
               {socials.map(([name, url]) => (

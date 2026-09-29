@@ -442,7 +442,7 @@ export const en = {
     privacy: "Privacy",
     admin: "Admin",
     social: "Social",
-    meta: "Yerevan · 3D · AR · Web Viewer",
+    meta: "Vanadzor · 3D · AR · Web Viewer",
   },
   notFound: {
     code: "404",

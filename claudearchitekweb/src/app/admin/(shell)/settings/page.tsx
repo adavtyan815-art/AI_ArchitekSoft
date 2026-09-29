@@ -17,6 +17,7 @@ import { PlatformChip } from "@/components/admin/smm/platform-chip";
 import { SubmitButton } from "@/components/admin/form-buttons";
 import { CopyButton } from "@/components/admin/copy-button";
 import { Field, Input, Select, Textarea } from "@/components/ui";
+import { brandTextIn } from "@/lib/brand-text";
 import { PasswordForm } from "./password-form";
 import {
   readSettingsDraft,
@@ -34,6 +35,8 @@ type SP = Record<string, string | string[] | undefined>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
 const TAB_KEYS = ["brand", "smm", "telegram", "integrations", "live", "security"] as const;
+/** The public site's languages, for the per-language brand texts (address, working hours). */
+const BRAND_LANGS = [["hy", "Հայերեն"], ["ru", "Русский"], ["en", "English"]] as const;
 
 
 /** Wording this page adds on top of the shared admin dictionary. */
@@ -112,6 +115,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     const v = draft?.values[key];
     return typeof v === "string" ? v : stored;
   };
+  /** One language of a per-language brand text (address, working hours): the draft, else the stored value. */
+  const dl = (key: "address" | "workingHours", lang: "hy" | "ru" | "en") => d(`${key}_${lang}`, brandTextIn(brand[key], lang));
   const draftList = (key: string, stored: string[]) => {
     const v = draft?.values[key];
     return Array.isArray(v) ? v : stored;
@@ -142,9 +147,17 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <Field label={L.brand.email}><Input name="email" type="email" inputMode="email" autoComplete="email" defaultValue={d("email", brand.email)} aria-invalid={bad("email")} /></Field>
             <Field label={L.brand.telegram}><Input name="telegram" defaultValue={d("telegram", brand.telegram)} placeholder="@ArchiTek_Soft" aria-invalid={bad("telegram")} /></Field>
             <Field label={L.brand.whatsapp}><Input name="whatsapp" type="tel" inputMode="tel" defaultValue={d("whatsapp", brand.whatsapp)} placeholder="+374…" aria-invalid={bad("whatsapp")} /></Field>
-            <Field label={L.brand.address}><Input name="address" defaultValue={d("address", brand.address)} maxLength={200} aria-invalid={bad("address")} /></Field>
             <Field label={L.brand.website}><Input name="website" inputMode="url" defaultValue={d("website", brand.website)} placeholder="https://…" aria-invalid={bad("website")} /></Field>
-            <Field label={L.brand.workingHours}><Input name="workingHours" defaultValue={d("workingHours", brand.workingHours)} maxLength={120} aria-invalid={bad("workingHours")} /></Field>
+            {/* Address and hours are shown in the visitor's language (footer, contact page): one field per language. */}
+            {(["address", "workingHours"] as const).map((key) => (
+              <Field key={key} label={L.brand[key]} className="sm:col-span-2">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {BRAND_LANGS.map(([lang, name]) => (
+                    <Input key={lang} name={`${key}_${lang}`} defaultValue={dl(key, lang)} placeholder={name} aria-label={`${L.brand[key]} — ${name}`} maxLength={key === "address" ? 200 : 120} aria-invalid={bad(key)} />
+                  ))}
+                </div>
+              </Field>
+            ))}
             <Field label={L.brand.instagram}><Input name="instagram" inputMode="url" defaultValue={d("instagram", brand.instagram)} placeholder="https://instagram.com/…" aria-invalid={bad("instagram")} /></Field>
             <Field label={L.brand.facebook}><Input name="facebook" inputMode="url" defaultValue={d("facebook", brand.facebook)} placeholder="https://facebook.com/…" aria-invalid={bad("facebook")} /></Field>
             <Field label={L.brand.linkedin}><Input name="linkedin" inputMode="url" defaultValue={d("linkedin", brand.linkedin)} placeholder="https://linkedin.com/company/…" aria-invalid={bad("linkedin")} /></Field>

@@ -63,7 +63,7 @@ const DEFAULTS: { brand: BrandSettings; smm: SmmSettings; telegram: TelegramSett
     email: "architeksoft@gmail.com",
     telegram: "@ArchiTek_Soft",
     whatsapp: "+37498484909",
-    address: "Yerevan, Armenia",
+    address: "Vanadzor, Armenia",
     website: "https://www.architeksoft.com",
     instagram: "https://www.instagram.com/architek_soft",
     facebook: "https://facebook.com/ArchiTekSoft",

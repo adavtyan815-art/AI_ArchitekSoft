@@ -22,6 +22,9 @@
   --band-faint: #9a958a;
   --band-surface: rgba(23, 21, 15, 0.05);
   --band-shadow: 0 0 0 1px rgba(23, 21, 15, 0.08), 0 30px 60px -48px rgba(23, 21, 15, 0.35);
+  /* who-it-is-for pillars: a raised paper card */
+  --pillar-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(23, 21, 15, 0.04), 0 28px 56px -40px rgba(23, 21, 15, 0.38);
+  --pillar-shadow-hover: 0 0 0 1px var(--line-strong), 0 2px 6px rgba(23, 21, 15, 0.06), 0 40px 72px -44px rgba(23, 21, 15, 0.5);
 }
 :where([data-theme="dark"]) .home-x {
   --hx-canvas-ring: rgba(239, 235, 227, 0.14);
@@ -34,6 +37,8 @@
   --band-faint: rgba(239, 235, 227, 0.4);
   --band-surface: rgba(239, 235, 227, 0.06);
   --band-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 50px 100px -50px rgba(0, 0, 0, 0.9);
+  --pillar-shadow: 0 0 0 1px var(--line), 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 36px 72px -44px rgba(0, 0, 0, 0.9);
+  --pillar-shadow-hover: 0 0 0 1px var(--line-strong), 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 44px 84px -44px rgba(0, 0, 0, 0.95);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .home-x {
@@ -47,6 +52,8 @@
     --band-faint: rgba(239, 235, 227, 0.4);
     --band-surface: rgba(239, 235, 227, 0.06);
     --band-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 50px 100px -50px rgba(0, 0, 0, 0.9);
+    --pillar-shadow: 0 0 0 1px var(--line), 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 36px 72px -44px rgba(0, 0, 0, 0.9);
+    --pillar-shadow-hover: 0 0 0 1px var(--line-strong), 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 44px 84px -44px rgba(0, 0, 0, 0.95);
   }
 }
 
@@ -66,16 +73,18 @@
   text-wrap: balance; /* two even lines when the column is narrow, never an orphaned last word */
 }
 .home-x .hx-h1 {
-  margin-top: 20px;
+  margin-top: 22px;
   font-size: clamp(2.3rem, 3.6vw, 3.4rem);
-  line-height: 1.06;
-  letter-spacing: -0.018em;
+  line-height: 1.1;
+  letter-spacing: -0.014em;
   font-variation-settings: "opsz" 72;
   text-wrap: balance;
   color: var(--fg);
 }
 /* Armenian: more leading, near-zero tracking (see the :lang(hy) rules in globals.css) */
-.home-x:lang(hy) .hx-h1 { line-height: 1.12; letter-spacing: -0.008em; }
+/* Armenian: taller ascenders and descenders — open leading, a hair of tracking and word space */
+.home-x:lang(hy) .hx-h1 { line-height: 1.22; letter-spacing: 0.004em; word-spacing: 0.06em; }
+.home-x:lang(ru) .hx-h1 { line-height: 1.12; letter-spacing: -0.01em; }
 .home-x:lang(hy) .hx-h2 { line-height: 1.14; letter-spacing: -0.006em; }
 .home-x .hx-intro {
   max-width: 32rem;
@@ -132,17 +141,20 @@
   margin-top: 16px;
   max-width: 30rem;
 }
+/* Desktop: the copy column (headline + text + actions) and the showcase block (stage + strip + caption) are
+   centred on one shared horizontal axis — equal free space above and below the shorter one, at any width —
+   instead of top-aligned halves whose bottoms drift apart as the stage's height changes with the viewport. */
 @media (min-width: 1024px) {
   .home-x .hx-hero {
     grid-template-columns: minmax(0, 8fr) minmax(0, 13fr);
-    grid-template-rows: auto 1fr;
+    grid-template-rows: 1fr auto auto 1fr;
     column-gap: 56px;
     row-gap: 0;
-    align-items: start;
+    align-items: center;
   }
-  .home-x .hx-hero-text { grid-column: 1; grid-row: 1; padding-top: 12px; }
-  .home-x .hx-hero-copy { grid-column: 1; grid-row: 2; margin-top: 28px; padding-right: 8px; }
-  .home-x .hx-hero-canvas { grid-column: 2; grid-row: 1 / span 2; }
+  .home-x .hx-hero-text { grid-column: 1; grid-row: 2; }
+  .home-x .hx-hero-copy { grid-column: 1; grid-row: 3; margin-top: 30px; padding-right: 8px; }
+  .home-x .hx-hero-canvas { grid-column: 2; grid-row: 1 / span 4; align-self: center; }
 }
 @media (min-width: 1280px) {
   .home-x .hx-hero { column-gap: clamp(56px, 5vw, 88px); }
@@ -326,6 +338,11 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--band-fg) 16%, transparent);
 }
 
+/* the steps column: its first rule sits level with the headline, not on the section tag's line */
+@media (min-width: 1024px) {
+  .home-x .hx-platform-aside { padding-top: var(--hx-aside-offset, 40px); }
+}
+
 /* numbered rule list inside the band */
 .home-x .hx-list {
   border-top: 1px solid var(--band-line-strong);
@@ -363,7 +380,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 18px 22px;
-  margin-top: 26px;
+  margin-top: 30px;
 }
 .home-x .hx-material {
   display: flex;
@@ -386,70 +403,369 @@
   color: var(--band-faint);
 }
 
-/* --- Doors: framed images with a caption bar, text below ------------------- */
-.home-x .hx-door {
-  display: block;
+/* --- Who it is for: two horizontal pillars ------------------------------------ */
+/* One card per row: the story image on one side (alternating), the offer on the other — tag, title, text, the three
+   points side by side and the button — so a whole card is on screen at once. Below 1024 px: image on top, a compact
+   body, points as a list. */
+.home-x .hx-pillars {
+  display: grid;
+  gap: 20px;
+}
+@media (min-width: 1024px) {
+  .home-x .hx-pillars { gap: 28px; }
+}
+.home-x .hx-pillar {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--surface);
   color: var(--fg);
+  box-shadow: var(--pillar-shadow);
+  transition: box-shadow 0.35s var(--hx-ease), transform 0.35s var(--hx-ease);
 }
-.home-x .hx-door .frame {
-  border-radius: 10px;
-  transition: border-color 0.25s ease;
+.home-x .hx-pillar:hover { box-shadow: var(--pillar-shadow-hover); transform: translateY(-2px); }
+.home-x .hx-pillar:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.home-x .hx-pillar-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
 }
-.home-x .hx-door:hover .frame { border-color: var(--line-strong); }
-.home-x .hx-door-title {
-  margin-top: 18px;
-  font-size: clamp(1.35rem, 1.9vw, 1.65rem);
-  line-height: 1.15;
-  color: var(--fg);
+/* side by side from tablet width up (the points stay a list until 1024 px) */
+@media (min-width: 768px) {
+  .home-x .hx-pillar { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .home-x .hx-pillar--flip { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .home-x .hx-pillar--flip .hx-pillar-media { order: 2; border-right: 0; border-left: 1px solid var(--line); }
+  .home-x .hx-pillar-media { aspect-ratio: auto; min-height: 360px; border-bottom: 0; border-right: 1px solid var(--line); }
 }
-.home-x .hx-door-text {
-  margin-top: 8px;
-  max-width: 30rem;
-  font-size: 15px;
-  line-height: 1.6;
+@media (min-width: 1024px) {
+  .home-x .hx-pillar-media { min-height: 400px; }
+}
+.home-x .hx-pillar-body {
+  display: flex;
+  flex-direction: column;
+  padding: 26px 28px 28px;
+}
+@media (min-width: 1024px) {
+  .home-x .hx-pillar-body { padding: 36px 40px 38px; }
+}
+@media (min-width: 1280px) {
+  .home-x .hx-pillar-body { padding: 40px 48px 42px; }
+}
+.home-x .hx-pillar-tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--muted);
 }
-/* the door's three points: a bold lead ("A 3D link with your brand") and its explanation */
-.home-x .hx-door-list {
+.home-x .hx-pillar-code {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.home-x .hx-pillar-title {
+  margin-top: 14px;
+  font-size: clamp(1.5rem, 2vw, 1.85rem);
+  line-height: 1.14;
+  letter-spacing: -0.012em;
+  color: var(--fg);
+  text-wrap: balance;
+}
+.home-x:lang(hy) .hx-pillar-title { line-height: 1.24; letter-spacing: 0; }
+.home-x .hx-pillar-text {
+  margin-top: 10px;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+/* the three points: side by side on the wide card (icon, lead, one line of explanation), a list below */
+.home-x .hx-pillar-points {
   display: grid;
-  gap: 9px;
-  max-width: 30rem;
-  margin: 14px 0 0;
+  margin: 22px 0 26px;
   padding: 0;
   list-style: none;
-  font-size: 14px;
+  border-top: 1px solid var(--line);
+}
+.home-x .hx-pillar-points li {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+@media (min-width: 1024px) {
+  .home-x .hx-pillar-points { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 22px; margin: 24px 0 28px; border-top: 0; }
+  .home-x .hx-pillar-points li { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 18px 0 0; border-bottom: 0; border-top: 1px solid var(--line); }
+}
+.home-x .hx-pillar-ico {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.home-x .hx-pillar-points strong {
+  display: block;
+  padding-top: 1px;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--fg);
+}
+.home-x .hx-pillar-points li > span:last-child > span {
+  display: block;
+  margin-top: 3px;
+  font-size: 13.5px;
   line-height: 1.5;
   color: var(--muted);
 }
-.home-x .hx-door-list li {
-  position: relative;
-  padding-left: 18px;
-}
-.home-x .hx-door-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.62em;
-  width: 8px;
-  height: 1.5px;
-  background: var(--accent);
-}
-.home-x .hx-door-list strong {
-  font-weight: 600;
-  color: var(--fg);
-}
-.home-x .hx-door-link {
+.home-x .hx-pillar-cta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  font-size: 14px;
+  align-self: flex-start;
+  gap: 10px;
+  min-height: 48px;
+  margin-top: auto;
+  padding: 0 22px;
+  border-radius: 10px;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 14.5px;
   font-weight: 600;
-  color: var(--fg);
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
-.home-x .hx-door-link svg { transition: transform 0.2s ease; }
-.home-x .hx-door:hover .hx-door-link { color: var(--accent); }
-.home-x .hx-door:hover .hx-door-link svg { transform: translateX(3px); }
+.home-x .hx-pillar-cta svg { transition: transform 0.2s ease; }
+.home-x .hx-pillar:hover .hx-pillar-cta { background: var(--accent); color: #fff; }
+.home-x .hx-pillar:hover .hx-pillar-cta svg { transform: translateX(3px); }
+
+/* --- The story scenes (home-stories.tsx): sized in container units, so they hold any card shape -------------- */
+.home-x .hx-story {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+}
+/* a fixed-proportion stage centred in the scene: its objects keep their layout in a square desktop card, a tall
+   tablet column or a wide phone band (the scene's background still fills the whole card) */
+.home-x .hx-story-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100cqw, 110cqh);
+  aspect-ratio: 11 / 10;
+  transform: translate(-50%, -50%);
+  container-type: size;
+}
+/* B2B — a maker's desk on drafting paper */
+.home-x .hx-story--desk {
+  background-color: #e9e4da;
+  background-image:
+    linear-gradient(rgba(23, 21, 15, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 21, 15, 0.055) 1px, transparent 1px),
+    radial-gradient(120% 90% at 30% 20%, rgba(255, 255, 255, 0.55), transparent 60%);
+  background-size: 5.5cqmin 5.5cqmin, 5.5cqmin 5.5cqmin, 100% 100%;
+}
+/* a clean elevation drawing lying flat on the desk, partly under the laptop */
+.home-x .hx-blueprint {
+  position: absolute;
+  left: 3cqw;
+  top: 7cqh;
+  width: 52cqw;
+  aspect-ratio: 4 / 3;
+  padding: 2.6cqmin;
+  background: #fbfaf7;
+  box-shadow: 0 0 0 1px rgba(23, 21, 15, 0.07), 0 0.6cqmin 1.6cqmin rgba(23, 21, 15, 0.14);
+  transform: rotate(-3deg);
+}
+.home-x .hx-blueprint-svg { display: block; width: 100%; height: 100%; }
+/* a pencil resting on the drawing */
+.home-x .hx-pencil {
+  position: absolute;
+  left: 10cqw;
+  top: 49cqh;
+  width: 30cqw;
+  height: 1.5cqmin;
+  border-radius: 0.75cqmin;
+  background: linear-gradient(90deg, #2b2a28 0 6%, #d8c9a8 6% 12%, #3b3831 12% 100%);
+  box-shadow: 0 0.5cqmin 1cqmin rgba(23, 21, 15, 0.3);
+  transform: rotate(-24deg);
+  transform-origin: left center;
+}
+/* the laptop, open on the desk, its screen unobstructed */
+.home-x .hx-laptop {
+  position: absolute;
+  z-index: 1;
+  left: 30cqw;
+  top: 16cqh;
+  width: 66cqw;
+  filter: drop-shadow(0 3cqmin 5cqmin rgba(23, 21, 15, 0.28));
+}
+.home-x .hx-laptop-screen {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1.3cqmin solid #1b1a18;
+  border-bottom-width: 1.8cqmin;
+  border-radius: 1.8cqmin 1.8cqmin 0.6cqmin 0.6cqmin;
+  background: #1b1a18;
+}
+.home-x .hx-laptop-base {
+  position: relative;
+  left: -5%;
+  width: 110%;
+  height: 2.4cqmin;
+  border-radius: 0 0 2cqmin 2cqmin;
+  background: linear-gradient(#d9d5cd, #b9b4aa);
+}
+.home-x .hx-laptop-dock {
+  position: absolute;
+  left: 50%;
+  bottom: 2.4cqmin;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1.2cqmin;
+  padding: 1.2cqmin 1.6cqmin;
+  border-radius: 1.6cqmin;
+  background: rgba(251, 250, 247, 0.92);
+}
+.home-x .hx-laptop-dock i { display: block; width: 3.2cqmin; height: 2.4cqmin; border-radius: 0.6cqmin; background: rgba(23, 21, 15, 0.16); }
+.home-x .hx-laptop-dock i.is-on { background: #b28a3e; }
+/* real decor samples, lying flat in a neat row in front of the laptop */
+.home-x .hx-swatches {
+  position: absolute;
+  left: 40cqw;
+  top: 76cqh;
+  display: flex;
+  gap: 2.2cqmin;
+}
+.home-x .hx-swatch {
+  display: block;
+  width: 11cqmin;
+  height: 11cqmin;
+  border-radius: 0.8cqmin;
+  box-shadow: inset 0 0 0 1px rgba(23, 21, 15, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0.5cqmin 1.2cqmin rgba(23, 21, 15, 0.22);
+}
+.home-x .hx-swatch.is-grain {
+  background-image:
+    repeating-linear-gradient(8deg, rgba(90, 58, 26, 0.18) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(8deg, rgba(255, 236, 210, 0.12) 0 2px, transparent 2px 9px),
+    linear-gradient(135deg, #c29566, #8d6238);
+}
+/* B2C — the kitchen placed in AR, on a phone held up in a real room */
+.home-x .hx-story--room { background: #2a2622; }
+.home-x .hx-story-room { filter: blur(1.4px) saturate(0.9) brightness(0.82); transform: scale(1.04); }
+.home-x .hx-story--room::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(70% 70% at 50% 45%, transparent 40%, rgba(15, 13, 11, 0.45));
+}
+.home-x .hx-phone {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  height: min(84cqh, 150cqw);
+  aspect-ratio: 9 / 18.5;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  padding: 1.3cqh;
+  border-radius: 6cqh;
+  background: linear-gradient(145deg, #2c2a27, #0f0e0d);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 4cqh 9cqh -2cqh rgba(0, 0, 0, 0.65);
+}
+.home-x .hx-phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 5cqh;
+  background: #000;
+}
+.home-x .hx-ar-brackets {
+  position: absolute;
+  inset: 7% 8%;
+  background:
+    linear-gradient(#fff, #fff) left top / 12% 2px no-repeat, linear-gradient(#fff, #fff) left top / 2px 7% no-repeat,
+    linear-gradient(#fff, #fff) right top / 12% 2px no-repeat, linear-gradient(#fff, #fff) right top / 2px 7% no-repeat,
+    linear-gradient(#fff, #fff) left bottom / 12% 2px no-repeat, linear-gradient(#fff, #fff) left bottom / 2px 7% no-repeat,
+    linear-gradient(#fff, #fff) right bottom / 12% 2px no-repeat, linear-gradient(#fff, #fff) right bottom / 2px 7% no-repeat;
+  opacity: 0.85;
+}
+.home-x .hx-ar-pill {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.6cqh 1.8cqh;
+  border-radius: 99px;
+  background: rgba(15, 13, 11, 0.62);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: max(7px, 2.2cqh);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.home-x .hx-ar-ring {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5%;
+  width: 104%;
+  aspect-ratio: 7 / 1;
+  transform: translateX(-50%);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px rgba(217, 73, 31, 0.28), 0 0 18px rgba(255, 255, 255, 0.35);
+}
+.home-x .hx-ar-scale {
+  position: absolute;
+  left: 50%;
+  top: 11%;
+  transform: translateX(-50%);
+  padding: 0.5cqh 1.4cqh;
+  border-radius: 0.8cqh;
+  background: #d9491f;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: max(7px, 2cqh);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+/* dark: the desk dims to graphite paper, the samples and sheet stay physical */
+:where([data-theme="dark"]) .home-x .hx-story--desk {
+  background-color: #23201c;
+  background-image:
+    linear-gradient(rgba(239, 235, 227, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(239, 235, 227, 0.05) 1px, transparent 1px),
+    radial-gradient(120% 90% at 30% 20%, rgba(255, 255, 255, 0.05), transparent 60%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .home-x .hx-story--desk {
+    background-color: #23201c;
+    background-image:
+      linear-gradient(rgba(239, 235, 227, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(239, 235, 227, 0.05) 1px, transparent 1px),
+      radial-gradient(120% 90% at 30% 20%, rgba(255, 255, 255, 0.05), transparent 60%);
+  }
+}
 
 /* --- Where next: a rule list ----------------------------------------------- */
 .home-x .hx-next-list {
@@ -604,6 +920,19 @@
   .home-x .hx-note { margin-top: 12px; }
   .home-x .hx-materials { gap: 14px 16px; }
   .home-x .hx-h2 { font-size: clamp(1.7rem, 7.4vw, 2rem); }
+  /* pillars: a compact card — a shorter story band, tight body, points as a list, a full-width thumb button */
+  .home-x .hx-pillar { border-radius: 14px; }
+  .home-x .hx-pillar-media { aspect-ratio: 16 / 10; }
+  .home-x .hx-pillar-body { padding: 20px 20px 22px; }
+  .home-x .hx-pillar-tag { font-size: 10.5px; letter-spacing: 0.1em; }
+  .home-x .hx-pillar-title { margin-top: 12px; font-size: 1.45rem; }
+  .home-x .hx-pillar-text { font-size: 14.5px; line-height: 1.58; }
+  .home-x .hx-pillar-points { margin: 18px 0 20px; }
+  .home-x .hx-pillar-points li { grid-template-columns: 34px minmax(0, 1fr); gap: 12px; padding: 11px 0; }
+  .home-x .hx-pillar-ico { width: 34px; height: 34px; border-radius: 9px; }
+  /* one line, the arrow beside the words: the long Armenian label scales with the screen instead of wrapping */
+  .home-x .hx-pillar-cta { align-self: stretch; justify-content: center; gap: 8px; min-height: 50px; padding: 0 16px; font-size: clamp(13px, 3.75vw, 14.5px); white-space: nowrap; }
+  .home-x .hx-pillar:hover { transform: none; }
 }
 /* short or landscape phones: get the stage on screen sooner */
 @media (max-height: 700px) and (max-width: 1023px) {

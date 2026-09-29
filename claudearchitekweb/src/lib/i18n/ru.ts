@@ -442,7 +442,7 @@ export const ru = {
     privacy: "Конфиденциальность",
     admin: "Управление",
     social: "Соцсети",
-    meta: "Ереван · 3D · AR · Web Viewer",
+    meta: "Ванадзор · 3D · AR · Web Viewer",
   },
   notFound: {
     code: "404",

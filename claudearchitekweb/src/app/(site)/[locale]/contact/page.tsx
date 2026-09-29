@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getDictionary, isLocale, pickLang, type Locale } from "@/lib/i18n";
+import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
+import { localizeBrandText } from "@/lib/brand-text";
 import { pageMeta } from "../meta";
 import { getSetting } from "@/lib/settings";
 import { Index, Spec } from "@/components/ui";
@@ -20,8 +21,8 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const brand = getSetting("brand");
   const c = d.contact;
   const facts = [
-    brand.address ? { k: c.addressLabel, v: String(pickLang(brand.address, locale, brand.address)) } : null,
-    brand.workingHours ? { k: c.hoursLabel, v: String(pickLang(brand.workingHours, locale, brand.workingHours)) } : null,
+    brand.address ? { k: c.addressLabel, v: localizeBrandText(brand.address, locale) } : null,
+    brand.workingHours ? { k: c.hoursLabel, v: localizeBrandText(brand.workingHours, locale) } : null,
   ].filter(Boolean) as { k: string; v: string }[];
 
   return (
